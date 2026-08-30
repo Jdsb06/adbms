@@ -4,7 +4,6 @@ import psycopg2
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Add scripts directory to path if needed
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from solution_q1 import run_q1
@@ -40,6 +39,20 @@ def generate_assignment_report():
 
     cur.execute("SELECT count(*) FROM title;")
     total_title = cur.fetchone()[0]
+
+    # Fetch exact bucket boundaries for id and title
+    db_bounds = {}
+    for col in ['id', 'title']:
+        cur.execute(f'''
+            SELECT array_to_json(histogram_bounds)
+            FROM pg_stats
+            WHERE tablename = 'title' AND attname = '{col}';
+        ''')
+        res = cur.fetchone()[0]
+        db_bounds[col] = res if res else []
+
+    id_bounds_list = db_bounds['id']
+    title_bounds_list = db_bounds['title']
 
     cur.execute("SELECT count(*) FROM title WHERE title < 'Race';")
     act_race_cnt = cur.fetchone()[0]
@@ -98,11 +111,18 @@ def generate_assignment_report():
 ## Q1. Histogram Analysis for `id` and `title` Columns of `title` Table
 
 ### 1. Corresponding SQL Query
-To inspect PostgreSQL internal statistics and histogram boundary values stored in `pg_stats`:
+To inspect PostgreSQL internal statistics and histogram boundary values stored in `pg_stats` (and exported in `/tmp/stats.csv`):
 ```sql
-SELECT tablename, attname, null_frac, avg_width, n_distinct, histogram_bounds
+SELECT 
+    attname, 
+    null_frac, 
+    n_distinct, 
+    most_common_vals, 
+    most_common_freqs, 
+    histogram_bounds 
 FROM pg_stats
-WHERE tablename = 'title' AND attname IN ('id', 'title');
+WHERE tablename = 'title' 
+  AND attname IN ('id', 'title');
 ```
 
 ### 2. Kind of Histogram
@@ -119,10 +139,32 @@ Textual attributes in PostgreSQL are converted into histograms by:
 3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation.
 4. Selecting quantile boundary string values at equal percentile intervals to form the 100 equi-depth bucket boundaries stored in `pg_stats.histogram_bounds`.
 
-### 5. Bucket Boundaries Summary
-- **`id` Column Boundaries**: Starts at `1` and ends at `{total_title}` across 100 equi-depth quantiles.
-- **`title` Column Boundaries**: Sample string boundaries range lexicographically from initial titles up to final lexicographical titles.
+### 5. Exact Bucket Boundaries List (From `pg_stats` / `/tmp/stats.csv`)
 
+#### A. Column `id` Bucket Boundaries ({len(id_bounds_list)} values, 100 buckets)
+| Bucket Index | Boundary Value (`id`) | Bucket Interval |
+| :---: | :---: | :--- |
+"""
+    for i in range(len(id_bounds_list)):
+        if i == 0:
+            report += f"| B{i:03d} (Start) | `{id_bounds_list[i]}` | Start of table data |\n"
+        else:
+            report += f"| B{i:03d} | `{id_bounds_list[i]}` | Bucket {i}: [`{id_bounds_list[i-1]}` - `{id_bounds_list[i]}`] |\n"
+
+    report += f"""
+#### B. Column `title` Bucket Boundaries ({len(title_bounds_list)} values, 100 buckets)
+| Bucket Index | Boundary Value (`title`) | Lexicographical Interval |
+| :---: | :--- | :--- |
+"""
+    for i in range(len(title_bounds_list)):
+        val_str = str(title_bounds_list[i]).replace('|', '\\|')
+        if i == 0:
+            report += f"| B{i:03d} (Start) | `{val_str}` | Start of text data |\n"
+        else:
+            prev_str = str(title_bounds_list[i-1]).replace('|', '\\|')
+            report += f"| B{i:03d} | `{val_str}` | Bucket {i}: [`{prev_str}` - `{val_str}`] |\n"
+
+    report += f"""
 ### 6. Histogram Visualization
 ![Histogram for title.id](../plots/q1_histogram_id.png)
 
