@@ -303,52 +303,69 @@ Textual attributes in PostgreSQL are converted into histograms by:
 ![Histogram for title.title](../plots/q1_histogram_title.png)
 
 ### 7. Max Selectivity Error
-- **Max Selectivity Error** as default_statistics_target is 100. Therefore, the maximum selectivity error for a range query is $\frac{1}{100}$ (or 0.01 / 1%). for out case it is 1/100 , ie 1%
+- **Max Selectivity Error**: Since `default_statistics_target` is 100, there are 100 buckets. Therefore, the maximum selectivity error for a range query is bounded by:
+
+$$
+\text{Max Error} \le \frac{1}{B} = \frac{1}{100} = 0.01 \quad (1.0\%)
+$$
+
+For our evaluated queries, the observed maximum selectivity error is **0.8364%** (0.008364), which strictly satisfies $\text{Max Error} \le 1.0\%$.
 
 
 ### 8: Selectivity Estimation for Text Columns
 
-To estimate the selectivity of a range query on a text column (such as `title < 'Race'`), as we know psql dosent just count rows inbetwwen instead, it relies on its internal histogram and a mathematical technique called linear interpolation. The query planner follows this step-by-step process:
+To estimate the selectivity of a range query on a text column (such as `title < 'Race'`), PostgreSQL relies on its internal histogram and linear interpolation. The query planner follows this step-by-step process:
 
-*   **Bucket Identification:** The engine scans the `histogram_bounds` array to locate the specific bucket where the target string ('Race') falls.
-*   **Full Bucket Summation:** It counts all the complete buckets that come before the target bucket. Because this is an equi-depth histogram, each full bucket represents a fixed, equal fraction of the total rows.
-*   **Text-to-Numeric Conversion:** For the target bucket itself, PostgreSQL converts the string prefixes into floating-point numbers so it can perform mathematical operations on the text.
-*   **Linear Interpolation:** The database assumes that the values inside this specific bucket are perfectly and evenly distributed. It calculates exactly how deep into the bucket the target value sits using this formula:
-    $$ \text{Fraction} = \frac{\text{Query Value} - \text{Bucket Min}}{\text{Bucket Max} - \text{Bucket Min}} $$
-*   **Final Calculation:** Finally, the engine adds this fractional bucket value to the sum of the preceding full buckets to generate the total selectivity estimate.
+*   **Bucket Identification:** The engine scans the `histogram_bounds` array to locate the specific bucket where the target string (`'Race'`) falls.
+*   **Full Bucket Summation:** It counts all complete buckets preceding the target bucket. Each full bucket represents a fixed fraction of total rows ($\frac{1}{B} = 0.01$).
+*   **Text-to-Numeric Conversion:** For the target bucket, PostgreSQL converts initial string bytes into floating-point numbers in $[0.0, 1.0]$ range for interpolation.
+*   **Linear Interpolation:** Assuming uniform distribution inside the target bucket, it calculates the target's position using:
+
+    $$
+    \text{Fraction} = \frac{\text{Query Value} - \text{Bucket Min}}{\text{Bucket Max} - \text{Bucket Min}}
+    $$
+
+*   **Final Calculation:** Adds the fractional bucket estimate to the sum of preceding full buckets to get the final estimated selectivity.
 
 ---
 
 ### 9: Estimated vs. Actual Selectivities
 
-To evaluate the accuracy of the query planner's estimates, we compare the estimated rows (from the `EXPLAIN` command) against the actual returned rows (from `EXPLAIN ANALYZE`). The total row count ($N$) for the `title` table is 2,528,312.
+To evaluate query planner accuracy, we compare estimated rows (from `EXPLAIN`) against actual rows (from `EXPLAIN ANALYZE`). Total row count ($N$) for the `title` table is 2,528,312.
 
 **Query 1: `title < 'Race'`**
 ```sql 
-explain analyze SELECT * FROM title WHERE title.title < 'Race';
+EXPLAIN ANALYZE SELECT * FROM title WHERE title.title < 'Race';
 ```
-*   **Actual Selectivity:** The query physically returned 1,918,141 matching rows. 
-    $$ S_{act} = \frac{1918141}{2528312} \approx 0.7587 \text{ (75.87\%)} $$
-   ```sql
-   EXPLAIN SELECT * FROM title WHERE title.title < 'Race';
+*   **Actual Selectivity:** The query physically returned 1,918,141 matching rows.
+
+    $$ S_{act} = \frac{1918141}{2528312} \approx 0.7587 \quad (75.87\%) $$
+
+```sql
+EXPLAIN SELECT * FROM title WHERE title.title < 'Race';
 ```
-*   **Estimated Selectivity:** The planner estimated 1,939,288 rows. 
-    $$ S_{est} = \frac{1939288}{2528312} \approx 0.7670 \text{ (76.70\%)} $$
-*   **Observation:** The absolute error is roughly 0.83%. This shows that the text-to-numeric linear interpolation handles the string distribution quite accurately.
+*   **Estimated Selectivity:** The planner estimated 1,939,288 rows.
+
+    $$ S_{est} = \frac{1939288}{2528312} \approx 0.7670 \quad (76.70\%) $$
+
+*   **Observation:** The absolute error is roughly 0.83%. This shows that text-to-numeric linear interpolation handles the string distribution accurately.
 
 **Query 2: `id < 350000`**
 ```sql
 EXPLAIN ANALYZE SELECT * FROM title WHERE title.id < '350000';
 ```
 *   **Actual Selectivity:** The query returned 349,999 matching rows.
-    $$ S_{act} = \frac{349999}{2528312} \approx 0.1384 \text{ (13.84\%)} $$
-   ```sql
+
+    $$ S_{act} = \frac{349999}{2528312} \approx 0.1384 \quad (13.84\%) $$
+
+```sql
 EXPLAIN SELECT * FROM title WHERE title.id < '350000';
 ```
 *   **Estimated Selectivity:** The planner estimated 337,982 rows.
 
-    $$ S_{est} = \frac{337982}{2528312} \approx 0.1337 \text{ (13.37\%)} $$
-*   **Observation:** The absolute error here is about 0.47%. Because the `id` column is a strictly numeric sequence, the bucket distribution is very tight, resulting in a slightly lower selectivity error than the text column.
+    $$ S_{est} = \frac{337982}{2528312} \approx 0.1337 \quad (13.37\%) $$
+
+*   **Observation:** The absolute error here is about 0.47%. Because the `id` column is a strictly numeric sequence, the bucket distribution is tight, resulting in a slightly lower selectivity error than the text column.
 
 
 
@@ -385,7 +402,11 @@ Using linear regression model $T(N) = m \cdot N + c$:
 - **Slope ($m$)**: `0.00049640` seconds / sample
 - **Intercept ($c$)**: `-0.357260` seconds
 - **Extrapolated Time for Full Table ($N=2,528,312$)**:
-  $$T(2,528,312) = (0.00049640 \times 2,528,312) + (-0.357260) = \mathbf{1254.70\text{ seconds}} \quad (\mathbf{20.91\text{ minutes}})$$
+
+$$
+T(2528312) = (0.00049640 \times 2528312) + (-0.357260) = 1254.70 \text{ seconds} \quad (20.91 \text{ minutes})
+$$
+
 
 ### 7. Sample Size vs Time Relationship Plot
 ![Sample Size vs Time](../plots/q2_sample_size_vs_time.png)
