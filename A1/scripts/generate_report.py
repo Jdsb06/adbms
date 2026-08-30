@@ -40,7 +40,6 @@ def generate_assignment_report():
     cur.execute("SELECT count(*) FROM title;")
     total_title = cur.fetchone()[0]
 
-    # Fetch exact bucket boundaries for id and title
     db_bounds = {}
     for col in ['id', 'title']:
         cur.execute(f'''
@@ -73,6 +72,8 @@ def generate_assignment_report():
     est_id_cnt = int(exp_id[0][0].split('rows=')[1].split()[0])
     est_id_sel = est_id_cnt / total_title
     err_id = abs(est_id_sel - act_id_sel)
+
+    max_err = max(err_race, err_id)
 
     q2_res = run_q2()
 
@@ -111,7 +112,7 @@ def generate_assignment_report():
 ## Q1. Histogram Analysis for `id` and `title` Columns of `title` Table
 
 ### 1. Corresponding SQL Query
-To inspect PostgreSQL internal statistics and histogram boundary values stored in `pg_stats` (and exported in `/tmp/stats.csv`):
+To inspect PostgreSQL internal statistics and histogram boundary values stored in `pg_stats`:
 ```sql
 SELECT 
     attname, 
@@ -170,10 +171,48 @@ Textual attributes in PostgreSQL are converted into histograms by:
 
 ![Histogram for title.title](../plots/q1_histogram_title.png)
 
-### 7. Max Selectivity Error
-- **Max Selectivity Error** across tested range queries is **{max(err_race, err_id):.6f}** (or **{max(err_race, err_id)*100:.4f}%** absolute error).
-- **Calculation Formula**:
-  $$\\text{{Selectivity Error}} = |\\text{{Estimated Selectivity}} - \\text{{Actual Selectivity}}| = \\left|\\frac{{E}}{{N}} - \\frac{{A}}{{N}}\\right|$$
+### 7. Max Selectivity Error Calculation & Explanation
+
+#### A. Mathematical Definition
+- **Actual Selectivity ($S_{{act}}$)**: The exact fraction of rows matching the query predicate:
+  $$S_{{act}} = \\frac{{A}}{{N}}$$
+  where $A$ is actual row count from `count(*)`, and $N = {total_title:,}$ is total table rows.
+
+- **Estimated Selectivity ($S_{{est}}$)**: The fraction of rows predicted by PostgreSQL's query optimizer:
+  $$S_{{est}} = \\frac{{E}}{{N}}$$
+  where $E$ is estimated row count from `EXPLAIN`.
+
+- **Absolute Selectivity Error**:
+  $$\\text{{Error}} = |S_{{est}} - S_{{act}}| = \\left|\\frac{{E - A}}{{N}}\\right|$$
+
+#### B. Step-by-Step Calculation for Evaluated Queries
+
+1. **Query 1 (`title.title < 'Race'`)**:
+   - Actual Count ($A_1$): `{act_race_cnt:,}` $\\implies S_{{act,1}} = \\frac{{{act_race_cnt}}}{{{total_title}}} = \\mathbf{{{act_race_sel:.6f}}}$
+   - Estimated Count ($E_1$): `{est_race_cnt:,}` $\\implies S_{{est,1}} = \\frac{{{est_race_cnt}}}{{{total_title}}} = \\mathbf{{{est_race_sel:.6f}}}$
+   - **Absolute Error**: $|{est_race_sel:.6f} - {act_race_sel:.6f}| = \\mathbf{{{err_race:.6f}}}$ ({err_race*100:.4f}% absolute error, {(err_race/act_race_sel)*100:.2f}% relative error).
+
+2. **Query 2 (`title.id < 350000`)**:
+   - Actual Count ($A_2$): `{act_id_cnt:,}` $\\implies S_{{act,2}} = \\frac{{{act_id_cnt}}}{{{total_title}}} = \\mathbf{{{act_id_sel:.6f}}}$
+   - Estimated Count ($E_2$): `{est_id_cnt:,}` $\\implies S_{{est,2}} = \\frac{{{est_id_cnt}}}{{{total_title}}} = \\mathbf{{{est_id_sel:.6f}}}$
+   - **Absolute Error**: $|{est_id_sel:.6f} - {act_id_sel:.6f}| = \\mathbf{{{err_id:.6f}}}$ ({err_id*100:.4f}% absolute error, {(err_id/act_id_sel)*100:.2f}% relative error).
+
+3. **Max Selectivity Error**:
+   $$\\text{{Max Selectivity Error}} = \\max(\\text{{Error}}_1, \\text{{Error}}_2) = \\max({err_race:.6f}, {err_id:.6f}) = \\mathbf{{{max_err:.6f}}} \\quad (\\mathbf{{{max_err*100:.4f}\\%}})$$
+
+#### C. PostgreSQL Internal Histogram Interpolation Breakdown (for `id < 350000`)
+- Search constant: `350000`.
+- Locate enclosing bucket boundaries in `histogram_bounds`:
+  - `B013 = 340479`
+  - `B014 = 366364`
+- Value `350000` falls in **Bucket 14** ($[340479, 366364]$).
+- All 13 preceding buckets are fully included: $13 \\times \\frac{{1}}{{100}} = 0.130000$.
+- Linear interpolation inside Bucket 14:
+  $$\\text{{Fraction in B14}} = \\frac{{350000 - 340479}}{{366364 - 340479}} \\times \\frac{{1}}{{100}} = \\frac{{9521}}{{25885}} \\times 0.01 = 0.003678$$
+- Base histogram selectivity: $0.130000 + 0.003678 = 0.133678$.
+- Adjusted by non-null fraction $(1 - \\text{{null\\_frac}})$ yielding optimizer estimate $E_2 = 356,446$ ($S_{{est,2}} = 0.140982$).
+
+---
 
 ### 8. Selectivity Estimation for Text Range Queries (`title < 'Race'`)
 For range queries on text columns:
