@@ -303,35 +303,54 @@ Textual attributes in PostgreSQL are converted into histograms by:
 ![Histogram for title.title](../plots/q1_histogram_title.png)
 
 ### 7. Max Selectivity Error
-- **Max Selectivity Error** across tested range queries is **0.008364** (or **0.8364%** absolute error).
-- **Calculation Formula**:
-  $$\text{Selectivity Error} = |\text{Estimated Selectivity} - \text{Actual Selectivity}| = \left|\frac{E}{N} - \frac{A}{N}\right|$$
+- **Max Selectivity Error** as default_statistics_target is 100. Therefore, the maximum selectivity error for a range query is $\frac{1}{100}$ (or 0.01 / 1%). for out case it is 1/100 , ie 1%
 
-### 8. Selectivity Estimation for Text Range Queries (`title < 'Race'`)
-For range queries on text columns:
-1. PostgreSQL checks if the search string lies within `pg_stats.histogram_bounds`.
-2. It identifies the lower boundary $S_i$ and upper boundary $S_{i+1}$ enclosing the search target.
-3. It counts all buckets strictly preceding $S_i$ ($i \times \text{bucket\_weight}$).
-4. It computes linear interpolation within $[S_i, S_{i+1}]$ using prefix byte character encoding.
-5. The sum is multiplied by $(1 - \text{null\_frac} - \sum \text{MCV\_freq})$ to produce estimated selectivity.
 
-### 9. Estimated and Actual Selectivities
+### 8: Selectivity Estimation for Text Columns
 
-#### Query 1: `SELECT * FROM title WHERE title.title < 'Race';`
-- **Actual Row Count**: 1,918,141
-- **Actual Selectivity**: **0.758665** (75.87%)
-- **Estimated Row Count**: 1,939,288
-- **Estimated Selectivity**: **0.767029** (76.70%)
-- **Selectivity Error**: **0.008364** (Relative Error: **1.10%**)
+To estimate the selectivity of a range query on a text column (such as `title < 'Race'`), as we know psql dosent just count rows inbetwwen instead, it relies on its internal histogram and a mathematical technique called linear interpolation. The query planner follows this step-by-step process:
 
-#### Query 2: `SELECT * FROM title WHERE title.id < 350000;`
-- **Actual Row Count**: 349,999
-- **Actual Selectivity**: **0.138432** (13.84%)
-- **Estimated Row Count**: 337,982
-- **Estimated Selectivity**: **0.133679** (13.37%)
-- **Selectivity Error**: **0.004753** (Relative Error: **3.43%**)
+*   **Bucket Identification:** The engine scans the `histogram_bounds` array to locate the specific bucket where the target string ('Race') falls.
+*   **Full Bucket Summation:** It counts all the complete buckets that come before the target bucket. Because this is an equi-depth histogram, each full bucket represents a fixed, equal fraction of the total rows.
+*   **Text-to-Numeric Conversion:** For the target bucket itself, PostgreSQL converts the string prefixes into floating-point numbers so it can perform mathematical operations on the text.
+*   **Linear Interpolation:** The database assumes that the values inside this specific bucket are perfectly and evenly distributed. It calculates exactly how deep into the bucket the target value sits using this formula:
+    $$ \text{Fraction} = \frac{\text{Query Value} - \text{Bucket Min}}{\text{Bucket Max} - \text{Bucket Min}} $$
+*   **Final Calculation:** Finally, the engine adds this fractional bucket value to the sum of the preceding full buckets to generate the total selectivity estimate.
 
 ---
+
+### 9: Estimated vs. Actual Selectivities
+
+To evaluate the accuracy of the query planner's estimates, we compare the estimated rows (from the `EXPLAIN` command) against the actual returned rows (from `EXPLAIN ANALYZE`). The total row count ($N$) for the `title` table is 2,528,312.
+
+**Query 1: `title < 'Race'`**
+```sql 
+explain analyze SELECT * FROM title WHERE title.title < 'Race';
+```
+*   **Actual Selectivity:** The query physically returned 1,918,141 matching rows. 
+    $$ S_{act} = \frac{1918141}{2528312} \approx 0.7587 \text{ (75.87\%)} $$
+   ```sql
+   EXPLAIN SELECT * FROM title WHERE title.title < 'Race';
+```
+*   **Estimated Selectivity:** The planner estimated 1,939,288 rows. 
+    $$ S_{est} = \frac{1939288}{2528312} \approx 0.7670 \text{ (76.70\%)} $$
+*   **Observation:** The absolute error is roughly 0.83%. This shows that the text-to-numeric linear interpolation handles the string distribution quite accurately.
+
+**Query 2: `id < 350000`**
+```sql
+EXPLAIN ANALYZE SELECT * FROM title WHERE title.id < '350000';
+```
+*   **Actual Selectivity:** The query returned 349,999 matching rows.
+    $$ S_{act} = \frac{349999}{2528312} \approx 0.1384 \text{ (13.84\%)} $$
+   ```sql
+EXPLAIN SELECT * FROM title WHERE title.id < '350000';
+```
+*   **Estimated Selectivity:** The planner estimated 337,982 rows.
+
+    $$ S_{est} = \frac{337982}{2528312} \approx 0.1337 \text{ (13.37\%)} $$
+*   **Observation:** The absolute error here is about 0.47%. Because the `id` column is a strictly numeric sequence, the bucket distribution is very tight, resulting in a slightly lower selectivity error than the text column.
+
+
 
 ## Q2. Optimal Serial Histogram Construction ($B=20$ Buckets)
 
