@@ -50,7 +50,11 @@
 ## Q1. Histogram Analysis for `id` and `title` Columns of `title` Table
 
 ### 1. Corresponding SQL Query
-To inspect PostgreSQL internal statistics and histogram boundary values stored in `pg_stats` (and exported in `/tmp/stats.csv`):
+to see what all colums needed form `pg_stats'
+```sql
+\d pg_stats;
+```
+To see histogram boundary values and other relevent  stored in `pg_stats`:
 ```sql
 SELECT 
     attname, 
@@ -65,20 +69,23 @@ WHERE tablename = 'title'
 ```
 
 ### 2. Kind of Histogram
-PostgreSQL uses an **Equi-Depth (Equi-Height) Histogram** combined with a **Most Common Values (MCV)** list. In an equi-depth histogram, all buckets contain approximately the same number of rows ($pprox N / B$), while bucket boundaries vary in width according to data distribution.
+PSQL uses an **Equi-Depth Histogram** combined with a **Most Common Values** list. In an equidepth histogram, all buckets contain approximately the same number of rows ($approx N / B$), while bucket boundaries vary in width according to data distribution.
 
 ### 3. Number of Buckets
 - Column `id`: **100 buckets** (101 bucket boundary values)
 - Column `title`: **100 buckets** (101 bucket boundary values)
-
+- extra -  to see the defualt
+```sql
+SHOW default_statistics_target;
+```
 ### 4. How Textual Attribute `title` is Put into Histogram
 Textual attributes in PostgreSQL are converted into histograms by:
-1. Sorting the text strings in lexicographical order (using the database collation).
-2. Sampling string values from the table.
-3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation.
+1. Sorting the text strings in lexicographical order(like bannana and apple will be apple, bannana)
+2. Sampling string values from the table(like table title has around 2.5M rows , it will only sample around 30K)
+3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation(like laptop will be broken to lap with l = 108, a=97, p=112 then by 256 as between 0 and 1 , lap will be around 0.42 , we can then see where a key belongs between two keeys )
 4. Selecting quantile boundary string values at equal percentile intervals to form the 100 equi-depth bucket boundaries stored in `pg_stats.histogram_bounds`.
 
-### 5. Exact Bucket Boundaries List (From `pg_stats` / `/tmp/stats.csv`)
+### 5. Exact Bucket Boundaries List (From `pg_stats`)
 
 #### A. Column `id` Bucket Boundaries (101 values, 100 buckets)
 | Bucket Index | Boundary Value (`id`) | Bucket Interval |
