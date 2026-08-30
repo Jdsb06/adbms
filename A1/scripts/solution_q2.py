@@ -1,12 +1,10 @@
+import os
 import time
 import psycopg2
 import matplotlib.pyplot as plt
 import numpy as np
 
 def build_optimal_histogram(data, num_buckets=20):
-    """
-    Vectorized Dynamic Programming Optimal Serial Histogram minimizing Sum of Squared Errors (SSE).
-    """
     n = len(data)
     if n == 0:
         return [], []
@@ -22,13 +20,11 @@ def build_optimal_histogram(data, num_buckets=20):
     dp = np.full((num_buckets + 1, n + 1), np.inf, dtype=np.float64)
     parent = np.zeros((num_buckets + 1, n + 1), dtype=np.int32)
 
-    # Base case: 1 bucket
     j_arr = np.arange(1, n + 1)
     sum_x = pref[j_arr]
     sum_x2 = pref2[j_arr]
     dp[1, 1:] = np.maximum(0.0, sum_x2 - (sum_x**2) / j_arr)
 
-    # Vectorized DP transitions
     for b in range(2, num_buckets + 1):
         for i in range(b, n + 1):
             j_vals = np.arange(b - 1, i)
@@ -40,7 +36,6 @@ def build_optimal_histogram(data, num_buckets=20):
             dp[b, i] = c_vals[best_idx]
             parent[b, i] = j_vals[best_idx]
 
-    # Reconstruct bucket boundaries
     splits = [n]
     curr_b, curr_i = num_buckets, n
     while curr_b > 1:
@@ -99,23 +94,22 @@ def compute_max_selectivity_error(bucket_boundaries, bucket_counts, sample_data)
     return max(errors) if errors else 0.0
 
 def run_q2():
+    os.makedirs('plots', exist_ok=True)
     conn = psycopg2.connect(dbname='imdbload')
     cur = conn.cursor()
 
     sample_sizes = [1000, 3000, 5000]
-    num_buckets = 20 # Chosen within 10-50 range
+    num_buckets = 20
 
     timings_id = {}
     errors_id = {}
     timings_title = {}
-    
     hist_results = {}
 
     print("=== Running Q2 Vectorized DP Experiments ===")
     for N in sample_sizes:
         print(f"\n--- Processing Sample Size N = {N} ---")
         
-        # 1. Column 'id'
         id_sample = fetch_sample(cur, N, 'id')
         id_sample.sort()
         
@@ -129,7 +123,6 @@ def run_q2():
         errors_id[N] = err_id
         print(f"[id] N={N}: Build Time = {elapsed_id:.4f}s, Max Selectivity Error = {err_id:.6f}")
 
-        # 2. Column 'title'
         title_sample = fetch_sample(cur, N, 'title')
         title_sample.sort()
         title_encoded = [string_to_float(t) for t in title_sample]
@@ -145,7 +138,6 @@ def run_q2():
             hist_results['id_3000'] = (id_bounds, id_counts, elapsed_id, err_id)
             hist_results['title_3000'] = (title_bounds_num, title_counts, title_sample, elapsed_title)
 
-    # Plotting for N = 3000 (Horizontal Bar Plot as specified in Q2.1: value-boundaries on Y-axis, frequency on X-axis)
     id_b_3000, id_c_3000, t_id_3000, e_id_3000 = hist_results['id_3000']
     plt.figure(figsize=(10, 8))
     y_labels = [f"[{int(b[0])} - {int(b[1])}]" for b in id_b_3000]
@@ -156,15 +148,12 @@ def run_q2():
     plt.title(f'Optimal Serial Histogram (B={num_buckets}) for title.id (N=3000)')
     plt.grid(True, linestyle='--', alpha=0.5)
     plt.tight_layout()
-    plt.savefig('q2_histogram_id_3000.png', dpi=300)
+    plt.savefig('plots/q2_histogram_id_3000.png', dpi=300)
     plt.close()
 
-    # Title Plot for N = 3000
     t_b_3000, t_c_3000, t_samp_3000, t_time_3000 = hist_results['title_3000']
     plt.figure(figsize=(10, 8))
-    # Decode bucket boundaries from sample string prefixes
     t_labels = []
-    # Map encoded split boundaries to actual sample string boundaries
     cum_cnt = 0
     for cnt in t_c_3000:
         start_str = t_samp_3000[cum_cnt][:15]
@@ -179,10 +168,9 @@ def run_q2():
     plt.title(f'Optimal Serial Histogram (B={num_buckets}) for title.title (N=3000)')
     plt.grid(True, linestyle='--', alpha=0.5)
     plt.tight_layout()
-    plt.savefig('q2_histogram_title_3000.png', dpi=300)
+    plt.savefig('plots/q2_histogram_title_3000.png', dpi=300)
     plt.close()
 
-    # Linear Regression & Extrapolation
     X = np.array(sample_sizes)
     Y = np.array([timings_id[n] for n in sample_sizes])
     slope, intercept = np.polyfit(X, Y, 1)
@@ -193,7 +181,6 @@ def run_q2():
     print(f"Slope m = {slope:.8f} s/sample, Intercept c = {intercept:.6f} s")
     print(f"Extrapolated Build Time for Full Table (N={full_table_N:,}): {extrapolated_time:.2f} seconds ({extrapolated_time/60:.2f} minutes)")
 
-    # Plot: Sample Size vs Time
     plt.figure(figsize=(8, 5))
     plt.plot(sample_sizes, Y, 'o-', color='#d9534f', linewidth=2, markersize=8, label='Measured Timings')
     x_line = np.linspace(500, 6000, 100)
@@ -204,10 +191,9 @@ def run_q2():
     plt.legend()
     plt.grid(True, linestyle='--', alpha=0.5)
     plt.tight_layout()
-    plt.savefig('q2_sample_size_vs_time.png', dpi=300)
+    plt.savefig('plots/q2_sample_size_vs_time.png', dpi=300)
     plt.close()
 
-    # Plot: Sample Size vs Max Selectivity Error
     plt.figure(figsize=(8, 5))
     err_vals = [errors_id[n] for n in sample_sizes]
     plt.plot(sample_sizes, err_vals, 's-', color='#0275d8', linewidth=2, markersize=8)
@@ -216,11 +202,11 @@ def run_q2():
     plt.title('Sample Size vs Max Selectivity Error')
     plt.grid(True, linestyle='--', alpha=0.5)
     plt.tight_layout()
-    plt.savefig('q2_sample_size_vs_error.png', dpi=300)
+    plt.savefig('plots/q2_sample_size_vs_error.png', dpi=300)
     plt.close()
 
     conn.close()
-    print("\nQ2 execution completed! All plots and extrapolations saved.")
+    print("\nQ2 execution completed! All plots saved in plots/.")
     
     return {
         'timings_id': timings_id,

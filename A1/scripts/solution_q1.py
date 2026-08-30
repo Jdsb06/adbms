@@ -9,13 +9,11 @@ def parse_pg_array(arr_val):
     if isinstance(arr_val, list):
         return [str(x) for x in arr_val]
     if isinstance(arr_val, str):
-        # Remove surrounding braces { } and split by comma
         s = arr_val.strip()
         if s.startswith('{') and s.endswith('}'):
             s = s[1:-1]
         if not s:
             return []
-        # Basic CSV split handling quoted strings
         import csv
         import io
         f = io.StringIO(s)
@@ -27,15 +25,14 @@ def parse_pg_array(arr_val):
     return []
 
 def run_q1():
+    os.makedirs('plots', exist_ok=True)
     conn = psycopg2.connect(dbname='imdbload')
     cur = conn.cursor()
 
-    # 1. Fetch total count from title table
     cur.execute("SELECT count(*) FROM title;")
     total_rows = cur.fetchone()[0]
     print(f"Total rows in title table: {total_rows}")
 
-    # 2. Query pg_stats for 'id' and 'title' columns
     cur.execute("""
         SELECT attname, null_frac, avg_width, n_distinct, most_common_vals, most_common_freqs, histogram_bounds
         FROM pg_stats
@@ -61,12 +58,10 @@ def run_q1():
         b_len = len(b) if b else 0
         print(f"Column '{col}': {b_len} boundary values ({b_len - 1 if b_len else 0} buckets)")
 
-    # Analyze 'id' histogram
     raw_id_bounds = stats['id']['bounds']
     id_bounds = [int(x) for x in raw_id_bounds if x.isdigit()]
     title_bounds = stats['title']['bounds']
 
-    # Calculate selectivity for: select * from title where title.title < 'Race';
     cur.execute("SELECT count(*) FROM title WHERE title < 'Race';")
     actual_race_count = cur.fetchone()[0]
     actual_race_sel = actual_race_count / total_rows
@@ -82,7 +77,6 @@ def run_q1():
             break
     est_race_sel = est_race_count / total_rows
 
-    # Calculate selectivity for: select * from title where title.id < 350000;
     cur.execute("SELECT count(*) FROM title WHERE id < 350000;")
     actual_id_count = cur.fetchone()[0]
     actual_id_sel = actual_id_count / total_rows
@@ -121,7 +115,7 @@ def run_q1():
         plt.ylabel('Frequency (Rows per Bucket)')
         plt.grid(True, linestyle='--', alpha=0.5)
         plt.tight_layout()
-        plt.savefig('q1_histogram_id.png', dpi=300)
+        plt.savefig('plots/q1_histogram_id.png', dpi=300)
         plt.close()
 
     # Plot 2: Histogram for title.title
@@ -140,11 +134,11 @@ def run_q1():
         plt.ylabel('Frequency (Rows per Bucket)')
         plt.grid(True, linestyle='--', alpha=0.5)
         plt.tight_layout()
-        plt.savefig('q1_histogram_title.png', dpi=300)
+        plt.savefig('plots/q1_histogram_title.png', dpi=300)
         plt.close()
 
     conn.close()
-    print("\nQ1 execution completed! Plots saved as q1_histogram_id.png and q1_histogram_title.png.")
+    print("\nQ1 execution completed! Plots saved in plots/.")
 
 if __name__ == '__main__':
     run_q1()

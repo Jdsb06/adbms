@@ -4,7 +4,8 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Dataset archives & large CSV files (cannot push files >100MB to GitHub)
+# Dataset directory, archives & large CSV files (cannot push files >100MB to GitHub)
+data/
 *.csv
 imdb.tgz
 job.tgz

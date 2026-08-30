@@ -76,9 +76,9 @@ Textual attributes in PostgreSQL are converted into histograms by:
 - **`title` Column Boundaries**: Sample string boundaries range lexicographically from initial titles up to final lexicographical titles.
 
 ### 6. Histogram Visualization
-![Histogram for title.id](q1_histogram_id.png)
+![Histogram for title.id](../plots/q1_histogram_id.png)
 
-![Histogram for title.title](q1_histogram_title.png)
+![Histogram for title.title](../plots/q1_histogram_title.png)
 
 ### 7. Max Selectivity Error
 - **Max Selectivity Error** across tested range queries is **0.002550** (or **0.2550%** absolute error).
@@ -116,41 +116,41 @@ For range queries on text columns:
 ### 1. Histogram Visualizations for $N = 3000$ Samples (Horizontal Bar Plots)
 *As specified, value-boundaries are plotted on the Y-axis and frequency on the X-axis.*
 
-![Optimal Serial Histogram for title.id (N=3000)](q2_histogram_id_3000.png)
+![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
-![Optimal Serial Histogram for title.title (N=3000)](q2_histogram_title_3000.png)
+![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
 
 ### 2. Execution Build Time
-- **$N=1000$**: **0.1657 seconds**
-- **$N=3000$**: **1.0955 seconds**
-- **$N=5000$**: **2.0096 seconds**
+- **$N=1000$**: **0.1853 seconds**
+- **$N=3000$**: **0.9767 seconds**
+- **$N=5000$**: **2.2994 seconds**
 
 ### 3. Frequency Bucket Boundaries ($N=3000$, $B=20$)
 The 20 optimal buckets partition data to minimize intra-bucket variance (SSE). Bucket frequency counts vary dynamically to optimize error reduction.
 
 ### 4. Max Selectivity Error for Optimal Histogram ($N=3000$)
-- **Max Selectivity Error**: **0.002702**
+- **Max Selectivity Error**: **0.002248**
 - **Calculation**: Computed across 10 evaluation range quantiles comparing optimal bucket cumulative frequency estimation against empirical sample distribution.
 
 ### 5. Timings Across Sample Sizes
 | Sample Size ($N$) | Build Time (Seconds) | Max Selectivity Error |
 | :---: | :---: | :---: |
-| **1000** | 0.1657s | 0.003726 |
-| **3000** | 1.0955s | 0.002702 |
-| **5000** | 2.0096s | 0.004294 |
+| **1000** | 0.1853s | 0.004565 |
+| **3000** | 0.9767s | 0.002248 |
+| **5000** | 2.2994s | 0.003013 |
 
 ### 6. Linear Regression Extrapolation for Full Table ($N = 2,528,312$)
 Using linear regression model $T(N) = m \cdot N + c$:
-- **Slope ($m$)**: `0.00046096` seconds / sample
-- **Intercept ($c$)**: `-0.292637` seconds
+- **Slope ($m$)**: `0.00052852` seconds / sample
+- **Intercept ($c$)**: `-0.431751` seconds
 - **Extrapolated Time for Full Table ($N=2,528,312$)**:
-  $$T(2,528,312) = (0.00046096 \times 2,528,312) + (-0.292637) = \mathbf{1165.17\text{ seconds}} \quad (\mathbf{19.42\text{ minutes}})$$
+  $$T(2,528,312) = (0.00052852 \times 2,528,312) + (-0.431751) = \mathbf{1335.83\text{ seconds}} \quad (\mathbf{22.26\text{ minutes}})$$
 
 ### 7. Sample Size vs Time Relationship Plot
-![Sample Size vs Time](q2_sample_size_vs_time.png)
+![Sample Size vs Time](../plots/q2_sample_size_vs_time.png)
 
 ### 8. Sample Size vs Max Selectivity Error Relationship Plot
-![Sample Size vs Max Selectivity Error](q2_sample_size_vs_error.png)
+![Sample Size vs Max Selectivity Error](../plots/q2_sample_size_vs_error.png)
 
 ### 9. Impact of Bucket Count ($B$) Choice
 - **Fewer Buckets (e.g., $B = 5$ or $10$)**:

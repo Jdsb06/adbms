@@ -1,16 +1,20 @@
 import os
+import sys
 import psycopg2
 import matplotlib.pyplot as plt
 import numpy as np
+
+# Add scripts directory to path if needed
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from solution_q1 import run_q1
 from solution_q2 import run_q2
 
 def generate_assignment_report():
+    os.makedirs('reports', exist_ok=True)
     conn = psycopg2.connect(dbname='imdbload')
     cur = conn.cursor()
 
-    # Get system details
     os_name = "Ubuntu 26.04 LTS"
     cpu_model = "13th Gen Intel(R) Core(TM) i3-1315U (6 cores, 8 threads)"
     ram_amount = "14 GiB"
@@ -19,7 +23,6 @@ def generate_assignment_report():
     cur.execute("SELECT version();")
     pg_version = cur.fetchone()[0]
 
-    # Get Table Cardinalities & PK columns
     tables = [
         'aka_name', 'aka_title', 'cast_info', 'char_name', 'comp_cast_type',
         'company_name', 'company_type', 'complete_cast', 'info_type', 'keyword',
@@ -35,11 +38,9 @@ def generate_assignment_report():
         cardinalities[t] = cnt
         total_db_rows += cnt
 
-    # Fetch Q1 details
     cur.execute("SELECT count(*) FROM title;")
     total_title = cur.fetchone()[0]
 
-    # Q1 Selectivities
     cur.execute("SELECT count(*) FROM title WHERE title < 'Race';")
     act_race_cnt = cur.fetchone()[0]
     act_race_sel = act_race_cnt / total_title
@@ -60,10 +61,8 @@ def generate_assignment_report():
     est_id_sel = est_id_cnt / total_title
     err_id = abs(est_id_sel - act_id_sel)
 
-    # Run Q2 code to get timings and data
     q2_res = run_q2()
 
-    # Generate Markdown Report Content
     report = f"""# Advanced Database Management Systems (ADBMS)
 ## Assignment 0 & Assignment 1: Histogram Analysis Report
 
@@ -125,9 +124,9 @@ Textual attributes in PostgreSQL are converted into histograms by:
 - **`title` Column Boundaries**: Sample string boundaries range lexicographically from initial titles up to final lexicographical titles.
 
 ### 6. Histogram Visualization
-![Histogram for title.id](q1_histogram_id.png)
+![Histogram for title.id](../plots/q1_histogram_id.png)
 
-![Histogram for title.title](q1_histogram_title.png)
+![Histogram for title.title](../plots/q1_histogram_title.png)
 
 ### 7. Max Selectivity Error
 - **Max Selectivity Error** across tested range queries is **{max(err_race, err_id):.6f}** (or **{max(err_race, err_id)*100:.4f}%** absolute error).
@@ -165,9 +164,9 @@ For range queries on text columns:
 ### 1. Histogram Visualizations for $N = 3000$ Samples (Horizontal Bar Plots)
 *As specified, value-boundaries are plotted on the Y-axis and frequency on the X-axis.*
 
-![Optimal Serial Histogram for title.id (N=3000)](q2_histogram_id_3000.png)
+![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
-![Optimal Serial Histogram for title.title (N=3000)](q2_histogram_title_3000.png)
+![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
 
 ### 2. Execution Build Time
 - **$N=1000$**: **{q2_res['timings_id'][1000]:.4f} seconds**
@@ -196,10 +195,10 @@ Using linear regression model $T(N) = m \\cdot N + c$:
   $$T(2,528,312) = ({q2_res['slope']:.8f} \\times 2,528,312) + ({q2_res['intercept']:.6f}) = \\mathbf{{{q2_res['extrapolated_time']:.2f}\\text{{ seconds}}}} \\quad (\\mathbf{{{q2_res['extrapolated_time']/60:.2f}\\text{{ minutes}}}})$$
 
 ### 7. Sample Size vs Time Relationship Plot
-![Sample Size vs Time](q2_sample_size_vs_time.png)
+![Sample Size vs Time](../plots/q2_sample_size_vs_time.png)
 
 ### 8. Sample Size vs Max Selectivity Error Relationship Plot
-![Sample Size vs Max Selectivity Error](q2_sample_size_vs_error.png)
+![Sample Size vs Max Selectivity Error](../plots/q2_sample_size_vs_error.png)
 
 ### 9. Impact of Bucket Count ($B$) Choice
 - **Fewer Buckets (e.g., $B = 5$ or $10$)**:
@@ -210,10 +209,11 @@ Using linear regression model $T(N) = m \\cdot N + c$:
   - **Cons**: Higher histogram construction time, larger storage overhead in catalog, and slightly higher plan generation latency during query execution.
 """
 
-    with open('Assignment_Report.md', 'w') as f:
+    report_file = 'reports/Assignment_Report.md'
+    with open(report_file, 'w') as f:
         f.write(report)
     
-    print("\nMaster Report generated successfully as Assignment_Report.md!")
+    print(f"\nMaster Report generated successfully as {report_file}!")
 
 if __name__ == '__main__':
     generate_assignment_report()

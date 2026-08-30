@@ -1,50 +1,66 @@
 # Join Order Benchmark (JOB) & Histogram Analysis (ADBMS Assignment 0 & 1)
 
-This repository contains the complete implementation, database loading automation, histogram algorithms, and report generation for **Assignment 0** and **Assignment 1 (Histogram)**.
+This repository contains the complete implementation, database loading automation, histogram algorithms, visualizations, and report generation for **Assignment 0** and **Assignment 1 (Histogram)**.
+
+---
+
+## 📁 Categorized Directory Structure
+
+```text
+A1/
+├── scripts/                    # Automation scripts & SQL queries
+│   ├── load_job.sh             # Main automated database loader script
+│   ├── import_job.sql          # Schema, CSV import & index creation SQL script
+│   ├── get_cardinalities.sql   # SQL query for table row counts & primary keys
+│   ├── solution_q1.py          # Q1: PostgreSQL equi-depth histogram analysis
+│   ├── solution_q2.py          # Q2: Dynamic Programming V-Optimal Serial Histogram
+│   ├── generate_report.py      # Master benchmark runner & report compiler
+│   ├── export_llm_chat.py      # Transcribes conversation log into markdown
+│   └── convert_to_doc.py       # Converts markdown reports to Word .docx
+├── reports/                    # Final submission documents & PDF reference
+│   ├── Assignment_Report.docx  # Final Assignment 0 & 1 Report (.docx)
+│   ├── Assignment_Report.md    # Final Assignment 0 & 1 Report (.md)
+│   ├── LLM_Conversations.docx  # AI assistant interaction log (.docx)
+│   ├── LLM_Conversations.md    # AI assistant interaction log (.md)
+│   └── Assignment 1 Histogram.pdf # Original assignment prompt PDF
+├── plots/                      # Generated histogram & experiment plots (.png)
+│   ├── q1_histogram_id.png
+│   ├── q1_histogram_title.png
+│   ├── q2_histogram_id_3000.png
+│   ├── q2_histogram_title_3000.png
+│   ├── q2_sample_size_vs_time.png
+│   └── q2_sample_size_vs_error.png
+├── data/                       # IMDB dataset archives & extracted CSV files (gitignored)
+│   ├── imdb.tgz
+│   └── *.csv
+├── job/                        # Join Order Benchmark (JOB) queries & schema definitions
+└── README.md                   # Repository documentation
+```
 
 ---
 
 ## 🚀 Quick Start (Single-Command Execution)
 
-To reproduce the entire benchmark, run the following automated pipeline:
+To reproduce the entire benchmark and re-generate all reports/plots:
 
 ```bash
-# 1. Load the database (Extracts CSVs, creates DB, imports tables, builds FK indexes & runs ANALYZE)
-./load_job.sh
+# 1. Load database into PostgreSQL (extracts CSVs, creates DB, imports tables, builds indexes & runs ANALYZE)
+./scripts/load_job.sh
 
-# 2. Setup Python Virtual Environment and install dependencies
+# 2. Setup Python environment and install dependencies
 python3 -m venv venv
 ./venv/bin/pip install psycopg2-binary matplotlib numpy pandas python-docx markdown
 
-# 3. Run complete histogram benchmark, generate all plots, compile reports & export docx
-./venv/bin/python3 generate_report.py && ./venv/bin/python3 export_llm_chat.py && ./venv/bin/python3 convert_to_doc.py
+# 3. Run complete benchmark, re-generate plots & compile Word (.docx) reports
+./venv/bin/python3 scripts/generate_report.py && ./venv/bin/python3 scripts/export_llm_chat.py && ./venv/bin/python3 scripts/convert_to_doc.py
 ```
 
 ---
 
-## 📂 Repository Structure
-
-- `load_job.sh`: Shell script to extract IMDB dataset, create PostgreSQL database `imdbload`, load CSV files, build indexes, and execute `ANALYZE`.
-- `import_job.sql`: SQL script containing schema creation, `\copy` statements for 21 tables, foreign key indexes, and `ANALYZE`.
-- `get_cardinalities.sql`: SQL query script to retrieve primary keys and cardinalities (`count(*)`) across all 21 tables.
-- `solution_q1.py`: Python script extracting PostgreSQL equi-depth histograms from `pg_stats`, calculating range selectivities and max selectivity errors.
-- `solution_q2.py`: Python script implementing Vectorized Dynamic Programming for V-Optimal Serial Histograms ($B=20$ buckets) across sample sizes 1000, 3000, and 5000, with build-time extrapolation.
-- `generate_report.py`: Master runner executing Q1 & Q2 benchmarks and compiling `Assignment_Report.md`.
-- `export_llm_chat.py`: Script exporting the complete LLM interaction transcript to `LLM_Conversations.md`.
-- `convert_to_doc.py`: Converter generating Word `.docx` documents (`Assignment_Report.docx` and `LLM_Conversations.docx`).
-- `Assignment_Report.docx` / `Assignment_Report.md`: Main submission document for Assignment 0 & 1.
-- `LLM_Conversations.docx` / `LLM_Conversations.md`: Complete record of interactions with the AI assistant.
-- `q1_*.png`, `q2_*.png`: Generated plot visualizations.
-
----
-
-## 📊 Prerequisites & System Requirements
-- **OS**: Ubuntu Linux 22.04 LTS / 24.04 LTS / 26.04 LTS
-- **PostgreSQL**: PostgreSQL 16+ (tested on PostgreSQL 18.6)
-- **Python**: Python 3.10+ with `psycopg2-binary`, `matplotlib`, `numpy`, `pandas`, `python-docx`
-
-### Database Credentials
-The scripts connect to PostgreSQL database `imdbload` on `localhost`. Ensure your system user has permissions or has created the role and database:
+## 📊 Database Credentials & Prerequisites
+- **OS**: Ubuntu Linux
+- **PostgreSQL Engine**: PostgreSQL 16+ (tested on PostgreSQL 18.6)
+- Standard local PostgreSQL user socket access:
 ```bash
 sudo -u postgres createuser -s $USER
 sudo -u postgres createdb imdbload -O $USER

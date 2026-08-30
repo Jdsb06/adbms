@@ -2,7 +2,9 @@ import json
 import os
 
 log_file = '/home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/.system_generated/logs/transcript_full.jsonl'
-output_file = 'LLM_Conversations.md'
+output_dir = 'reports'
+os.makedirs(output_dir, exist_ok=True)
+output_file = os.path.join(output_dir, 'LLM_Conversations.md')
 
 with open(log_file, 'r', encoding='utf-8') as f:
     lines = f.readlines()
