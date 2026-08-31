@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{xltabular}
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{xcolor}
@@ -67,13 +68,21 @@
 
 \subsubsection{Table Cardinalities \& Primary Keys}
 
-\begin{table}[H]
-\centering
 \small
-\begin{tabularx}{\textwidth}{l | X | X}
+\begin{xltabular}{\textwidth}{l | X | X}
 \toprule
 \textbf{Table Name} & \textbf{Primary Key Column} & \textbf{Cardinality (\texttt{count(*)})} \\
 \midrule
+\endfirsthead
+\toprule
+\textbf{Table Name} & \textbf{Primary Key Column} & \textbf{Cardinality (\texttt{count(*)})} \\
+\midrule
+\endfirsthead
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
 \texttt{aka\_name} & \texttt{id} & 901,343 \\
 \texttt{aka\_title} & \texttt{id} & 361,472 \\
 \texttt{cast\_info} & \texttt{id} & 36,244,344 \\
@@ -95,9 +104,8 @@
 \texttt{person\_info} & \texttt{id} & 2,963,664 \\
 \texttt{role\_type} & \texttt{id} & 12 \\
 \texttt{title} & \texttt{id} & 2,528,312 \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\end{xltabular}
+
 
 \hrule
 
@@ -155,13 +163,21 @@ Textual attributes in PostgreSQL are converted into histograms by:
 \subsubsection{5. Exact Bucket Boundaries List (From \texttt{pg\_stats})}
 
 \paragraph{A. Column \texttt{id} Bucket Boundaries (101 values, 100 buckets)}
-\begin{table}[H]
-\centering
 \small
-\begin{tabularx}{\textwidth}{l | X | X}
+\begin{xltabular}{\textwidth}{l | X | X}
 \toprule
 \textbf{Bucket Index} & \textbf{Boundary Value (\texttt{id})} & \textbf{Bucket Interval} \\
 \midrule
+\endfirsthead
+\toprule
+\textbf{Bucket Index} & \textbf{Boundary Value (\texttt{id})} & \textbf{Bucket Interval} \\
+\midrule
+\endfirsthead
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
 B000 (Start) & \texttt{41} & Start of table data \\
 B001 & \texttt{25598} & Bucket 1: [\texttt{41} - \texttt{25598}] \\
 B002 & \texttt{50067} & Bucket 2: [\texttt{25598} - \texttt{50067}] \\
@@ -263,18 +279,25 @@ B097 & \texttt{2452338} & Bucket 97: [\texttt{2428038} - \texttt{2452338}] \\
 B098 & \texttt{2479928} & Bucket 98: [\texttt{2452338} - \texttt{2479928}] \\
 B099 & \texttt{2505988} & Bucket 99: [\texttt{2479928} - \texttt{2505988}] \\
 B100 & \texttt{2528305} & Bucket 100: [\texttt{2505988} - \texttt{2528305}] \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\end{xltabular}
+
 
 \paragraph{B. Column \texttt{title} Bucket Boundaries (101 values, 100 buckets)}
-\begin{table}[H]
-\centering
 \small
-\begin{tabularx}{\textwidth}{l | X | X}
+\begin{xltabular}{\textwidth}{l | X | X}
 \toprule
 \textbf{Bucket Index} & \textbf{Boundary Value (\texttt{title})} & \textbf{Lexicographical Interval} \\
 \midrule
+\endfirsthead
+\toprule
+\textbf{Bucket Index} & \textbf{Boundary Value (\texttt{title})} & \textbf{Lexicographical Interval} \\
+\midrule
+\endfirsthead
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
 B000 (Start) & \texttt{...} & Start of text data \\
 B001 & \texttt{(\#1.1302)} & Bucket 1: [\texttt{...} - \texttt{(\#1.1302)}] \\
 B002 & \texttt{(\#1.219)} & Bucket 2: [\texttt{(\#1.1302)} - \texttt{(\#1.219)}] \\
@@ -376,9 +399,8 @@ B097 & \texttt{Watashi no ibasho} & Bucket 97: [\texttt{Verzaubert} - \texttt{Wa
 B098 & \texttt{Who Needs Sex Therapy?} & Bucket 98: [\texttt{Watashi no ibasho} - \texttt{Who Needs Sex Therapy?}] \\
 B099 & \texttt{Yasmina} & Bucket 99: [\texttt{Who Needs Sex Therapy?} - \texttt{Yasmina}] \\
 B100 & \texttt{Zzzzzz} & Bucket 100: [\texttt{Yasmina} - \texttt{Zzzzzz}] \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\end{xltabular}
+
 
 \subsubsection{6. Histogram Visualization}
 \begin{figure}[H]
@@ -506,13 +528,21 @@ The optimal serial histogram algorithm partitions the 3,000 samples into 20 dyna
 
 
 \paragraph{A. Column \texttt{id} Frequency Bucket Boundaries ($N=3000$, $B=20$)}
-\begin{table}[H]
-\centering
 \small
-\begin{tabularx}{\textwidth}{l | X | X}
+\begin{xltabular}{\textwidth}{l | X | X}
 \toprule
 \textbf{Bucket \#} & \textbf{Value Interval (\texttt{id})} & \textbf{Frequency Count ($n_i$)} \\
 \midrule
+\endfirsthead
+\toprule
+\textbf{Bucket \#} & \textbf{Value Interval (\texttt{id})} & \textbf{Frequency Count ($n_i$)} \\
+\midrule
+\endfirsthead
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
 Bucket 01 & [\texttt{197} - \texttt{130,726}] & 162 \\
 Bucket 02 & [\texttt{132,128} - \texttt{264,204}] & 171 \\
 Bucket 03 & [\texttt{269,581} - \texttt{404,155}] & 179 \\
@@ -533,18 +563,25 @@ Bucket 17 & [\texttt{2,063,131} - \texttt{2,185,305}] & 144 \\
 Bucket 18 & [\texttt{2,186,749} - \texttt{2,302,858}] & 153 \\
 Bucket 19 & [\texttt{2,305,143} - \texttt{2,411,310}] & 118 \\
 Bucket 20 & [\texttt{2,412,939} - \texttt{2,522,416}] & 128 \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\end{xltabular}
+
 
 \paragraph{B. Column \texttt{title} Frequency Bucket Boundaries ($N=3000$, $B=20$)}
-\begin{table}[H]
-\centering
 \small
-\begin{tabularx}{\textwidth}{l | X | X}
+\begin{xltabular}{\textwidth}{l | X | X}
 \toprule
 \textbf{Bucket \#} & \textbf{Value Interval (\texttt{title})} & \textbf{Frequency Count ($n_i$)} \\
 \midrule
+\endfirsthead
+\toprule
+\textbf{Bucket \#} & \textbf{Value Interval (\texttt{title})} & \textbf{Frequency Count ($n_i$)} \\
+\midrule
+\endfirsthead
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
 Bucket 01 & [\texttt{"\#7.1: Festival of the Hun"} - \texttt{"(323) Graffiti6"}] & 848 \\
 Bucket 02 & [\texttt{"...And a Good Slopping Out"} - \texttt{"38. dag"}] & 19 \\
 Bucket 03 & [\texttt{"404"} - \texttt{"99 Pieces"}] & 7 \\
@@ -565,9 +602,8 @@ Bucket 17 & [\texttt{"desAliento"} - \texttt{"iDate Christ"}] & 2 \\
 Bucket 18 & [\texttt{"¡Eglantina sexy in stgo.!"} - \texttt{"¡Eglantina sexy in stgo.!"}] & 1 \\
 Bucket 19 & [\texttt{"¿Ligamos mucho los españo"} - \texttt{"Âme belge"}] & 3 \\
 Bucket 20 & [\texttt{"Ørkenens juvel"} - \texttt{"Übers Ziel hinaus"}] & 4 \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\end{xltabular}
+
 
 
 \subsubsection{4. Max Selectivity Error for Optimal Histogram ($N=3000$)}
@@ -577,19 +613,26 @@ Bucket 20 & [\texttt{"Ørkenens juvel"} - \texttt{"Übers Ziel hinaus"}] & 4 \\
 \end{itemize}
 
 \subsubsection{5. Timings Across Sample Sizes}
-\begin{table}[H]
-\centering
 \small
-\begin{tabularx}{\textwidth}{l | X | X}
+\begin{xltabular}{\textwidth}{l | X | X}
 \toprule
 \textbf{Sample Size ($N$)} & \textbf{Build Time (Seconds)} & \textbf{Max Selectivity Error} \\
 \midrule
+\endfirsthead
+\toprule
+\textbf{Sample Size ($N$)} & \textbf{Build Time (Seconds)} & \textbf{Max Selectivity Error} \\
+\midrule
+\endfirsthead
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
 \textbf{1000} & 0.2078s & 0.003292 \\
 \textbf{3000} & 0.9947s & 0.003169 \\
 \textbf{5000} & 2.1934s & 0.002944 \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\end{xltabular}
+
 
 \subsubsection{6. Linear Regression Extrapolation for Full Table ($N = 2,528,312$)}
 Using linear regression model $T(N) = m \cdot N + c$:

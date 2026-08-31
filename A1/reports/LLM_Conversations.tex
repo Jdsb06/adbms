@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{xltabular}
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{xcolor}
@@ -3380,22 +3381,29 @@ All code, experiment pipelines, visualizations, and documentation files required
 
 \subsubsection{Created Submission Files \& Artifacts}
 
-\begin{table}[H]
-\centering
 \small
-\begin{tabularx}{\textwidth}{l | X}
+\begin{xltabular}{\textwidth}{l | X}
 \toprule
 \textbf{Document / Code File} & \textbf{Purpose \& Description} \\
 \midrule
+\endfirsthead
+\toprule
+\textbf{Document / Code File} & \textbf{Purpose \& Description} \\
+\midrule
+\endfirsthead
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
 \textbf{[Assignment\_Report.docx](file:///home/jdsb/Desktop/IIITB/SEM5\_IIITB/ADBMS/adbms/A1/Assignment\_Report.docx)} ([.md](file:///home/jdsb/Desktop/IIITB/SEM5\_IIITB/ADBMS/adbms/A1/Assignment\_Report.md)) & Main doc file containing all answers for \textbf{Assignment 0} (Setup, Database cardinalities) \& \textbf{Assignment 1} (Q1.1–Q1.9 \& Q2.1–Q2.9). \\
 \textbf{[LLM\_Conversations.docx](file:///home/jdsb/Desktop/IIITB/SEM5\_IIITB/ADBMS/adbms/A1/LLM\_Conversations.docx)} ([.md](file:///home/jdsb/Desktop/IIITB/SEM5\_IIITB/ADBMS/adbms/A1/LLM\_Conversations.md)) & Required document containing all prompt and response logs with the LLM assistant. \\
 \textbf{[solution\_q1.py](file:///home/jdsb/Desktop/IIITB/SEM5\_IIITB/ADBMS/adbms/A1/solution\_q1.py)} & Code to query \texttt{pg\_stats}, compute actual vs estimated selectivities, and plot PostgreSQL equi-depth histograms. \\
 \textbf{[solution\_q2.py](file:///home/jdsb/Desktop/IIITB/SEM5\_IIITB/ADBMS/adbms/A1/solution\_q2.py)} & Vectorized Dynamic Programming algorithm for V-optimal serial histograms ($B=20$ buckets) across sample sizes 1000, 3000, 5000, error calculation, and linear regression build-time extrapolation. \\
 \textbf{[generate\_report.py](file:///home/jdsb/Desktop/IIITB/SEM5\_IIITB/ADBMS/adbms/A1/generate\_report.py)} & Single-command automated runner executing all queries, generating plots, and compiling \texttt{Assignment\_Report.md}. \\
 \textbf{[convert\_to\_doc.py](file:///home/jdsb/Desktop/IIITB/SEM5\_IIITB/ADBMS/adbms/A1/convert\_to\_doc.py)} & Converts markdown reports into Word \texttt{.docx} documents. \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\end{xltabular}
+
 
 \hrule
 
@@ -7668,13 +7676,21 @@ Both [Assignment\_Report.docx](file:///home/jdsb/Desktop/IIITB/SEM5\_IIITB/ADBMS
 In an equi-depth histogram with $N = 2,528,312$ total rows and $B = 100$ buckets, each bucket contains approximately \textbf{25,283 rows}.
 
 
-\begin{table}[H]
-\centering
 \small
-\begin{tabularx}{\textwidth}{l | X | X}
+\begin{xltabular}{\textwidth}{l | X | X}
 \toprule
 \textbf{Bucket} & \textbf{Boundary Value (\texttt{id})} & \textbf{Interval / Range} \\
 \midrule
+\endfirsthead
+\toprule
+\textbf{Bucket} & \textbf{Boundary Value (\texttt{id})} & \textbf{Interval / Range} \\
+\midrule
+\endfirsthead
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
 \textbf{B000 (Min)} & \textbf{\texttt{41}} & Table Minimum ID \\
 \textbf{B001} & \texttt{25598} & Bucket 1: [\texttt{41} - \texttt{25598}] \\
 \textbf{B002} & \texttt{50067} & Bucket 2: [\texttt{25598} - \texttt{50067}] \\
@@ -7776,9 +7792,8 @@ In an equi-depth histogram with $N = 2,528,312$ total rows and $B = 100$ buckets
 \textbf{B098} & \texttt{2479928} & Bucket 98: [\texttt{2452338} - \texttt{2479928}] \\
 \textbf{B099} & \texttt{2505988} & Bucket 99: [\texttt{2479928} - \texttt{2505988}] \\
 \textbf{B100 (Max)} & \textbf{\texttt{2528305}} & Bucket 100: [\texttt{2505988} - \texttt{2528305}] \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\end{xltabular}
+
 
 \hrule
 
@@ -7788,13 +7803,21 @@ In an equi-depth histogram with $N = 2,528,312$ total rows and $B = 100$ buckets
 In lexicographical string ordering:
 
 
-\begin{table}[H]
-\centering
 \small
-\begin{tabularx}{\textwidth}{l | X | X}
+\begin{xltabular}{\textwidth}{l | X | X}
 \toprule
 \textbf{Bucket} & \textbf{Boundary String Value (\texttt{title})} & \textbf{Lexicographical Interval} \\
 \midrule
+\endfirsthead
+\toprule
+\textbf{Bucket} & \textbf{Boundary String Value (\texttt{title})} & \textbf{Lexicographical Interval} \\
+\midrule
+\endfirsthead
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
 \textbf{B000 (Min)} & \texttt{...} & Start of text titles \\
 \textbf{B001} & \texttt{(\#1.1302)} & Bucket 1: [\texttt{...} - \texttt{(\#1.1302)}] \\
 \textbf{B002} & \texttt{(\#1.219)} & Bucket 2: [\texttt{(\#1.1302)} - \texttt{(\#1.219)}] \\
@@ -7896,9 +7919,8 @@ In lexicographical string ordering:
 \textbf{B098} & \texttt{Who Needs Sex Therapy?} & Bucket 98 \\
 \textbf{B099} & \texttt{Yasmina} & Bucket 99 \\
 \textbf{B100 (Max)} & \texttt{Zzzzzz} & Bucket 100: [\texttt{Yasmina} - \texttt{Zzzzzz}] \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\end{xltabular}
+
 
 \hrule
 
@@ -9006,17 +9028,24 @@ High-frequency values are stored separately in the \texttt{most\_common\_vals} a
 
 \subsubsection{Summary Table}
 
-\begin{table}[H]
-\centering
 \small
-\begin{tabularx}{\textwidth}{l | X | l | l | X}
+\begin{xltabular}{\textwidth}{l | X | l | l | X}
 \toprule
 \textbf{Metric} & \textbf{Theoretical Formula} & \textbf{Value for $B=100$ Buckets} & \textbf{Actual Measured Error} & \textbf{Status} \\
 \midrule
-\textbf{Max Selectivity Error} & $\textbackslash{}text{Max Error} \textbackslash{}le \textbackslash{}frac{1}{B}$ & $\textbackslash{}frac{1}{100} = \textbackslash{}mathbf{0.010000 \textbackslash{} (1.0\textbackslash{}\%)}$ & $\textbackslash{}mathbf{0.008364 \textbackslash{} (0.8364\textbackslash{}\%)}$ & \textbf{Passed ($\textbackslash{}le 1.0\textbackslash{}\%$)} \\
+\endfirsthead
+\toprule
+\textbf{Metric} & \textbf{Theoretical Formula} & \textbf{Value for $B=100$ Buckets} & \textbf{Actual Measured Error} & \textbf{Status} \\
+\midrule
+\endfirsthead
+\endhead
 \bottomrule
-\end{tabularx}
-\end{table}
+\endfoot
+\bottomrule
+\endlastfoot
+\textbf{Max Selectivity Error} & $\textbackslash{}text{Max Error} \textbackslash{}le \textbackslash{}frac{1}{B}$ & $\textbackslash{}frac{1}{100} = \textbackslash{}mathbf{0.010000 \textbackslash{} (1.0\textbackslash{}\%)}$ & $\textbackslash{}mathbf{0.008364 \textbackslash{} (0.8364\textbackslash{}\%)}$ & \textbf{Passed ($\textbackslash{}le 1.0\textbackslash{}\%$)} \\
+\end{xltabular}
+
 
 \hrule
 

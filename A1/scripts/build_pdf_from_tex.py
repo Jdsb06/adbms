@@ -25,7 +25,6 @@ def process_inline(text, escape_all_backslash=False):
         s = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', s)
         return s
 
-    # Split text into math segments ($...$ or $$...$$) and plain text
     parts = re.split(r'(\$\$.*?\$\$|\$.*?\$)', text, flags=re.DOTALL)
     res = []
     for p in parts:
@@ -35,7 +34,6 @@ def process_inline(text, escape_all_backslash=False):
             res.append(m)
         else:
             s = p
-            # Escape TeX characters in non-math text
             s = s.replace('\\', r'\textbackslash{}')
             s = s.replace('&', r'\&')
             s = s.replace('%', r'\%')
@@ -43,7 +41,6 @@ def process_inline(text, escape_all_backslash=False):
             s = s.replace('_', r'\_')
             s = s.replace('~', r'\textasciitilde{}')
             s = s.replace('^', r'\textasciicircum{}')
-            # Convert backticks to \texttt{} and **bold** to \textbf{}
             s = re.sub(r'`(.*?)`', r'\\texttt{\1}', s)
             s = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', s)
             res.append(s)
@@ -66,6 +63,7 @@ def md_to_tex(md_file, tex_file, is_log_file=False):
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{xltabular}
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{xcolor}
@@ -152,21 +150,29 @@ def md_to_tex(md_file, tex_file, is_log_file=False):
                     body = rows[1:]
 
                 num_cols = len(header)
+                # Determine column specification
                 col_spec = ' | '.join(['X' if i == len(header)-1 or i == 1 else 'l' for i in range(num_cols)])
                 
-                tex_out.append(r'\begin{table}[H]' + '\n' + r'\centering' + '\n' + r'\small' + '\n')
-                tex_out.append(r'\begin{tabularx}{\textwidth}{' + col_spec + r'}' + '\n' + r'\toprule' + '\n')
+                # Use xltabular so long tables (e.g. 101 rows) break seamlessly across multiple pages!
+                tex_out.append(r'\small' + '\n')
+                tex_out.append(r'\begin{xltabular}{\textwidth}{' + col_spec + r'}' + '\n')
+                tex_out.append(r'\toprule' + '\n')
                 
                 header_cells = [r'\textbf{' + process_inline(h, is_log_file) + '}' for h in header]
-                header_str = ' & '.join(header_cells) + r' \\' + '\n' + r'\midrule' + '\n'
+                header_str = ' & '.join(header_cells) + r' \\' + '\n' + r'\midrule' + '\n' + r'\endfirsthead' + '\n'
                 tex_out.append(header_str)
+
+                # Headings on subsequent pages
+                tex_out.append(r'\toprule' + '\n' + header_str + r'\endhead' + '\n')
+                tex_out.append(r'\bottomrule' + '\n' + r'\endfoot' + '\n')
+                tex_out.append(r'\bottomrule' + '\n' + r'\endlastfoot' + '\n')
 
                 for row in body:
                     row_cells = [process_inline(cell, is_log_file) for cell in row]
                     row_str = ' & '.join(row_cells) + r' \\' + '\n'
                     tex_out.append(row_str)
 
-                tex_out.append(r'\bottomrule' + '\n' + r'\end{tabularx}' + '\n' + r'\end{table}' + '\n')
+                tex_out.append(r'\end{xltabular}' + '\n\n')
                 table_lines = []
                 in_table = False
 
@@ -183,7 +189,7 @@ def md_to_tex(md_file, tex_file, is_log_file=False):
             tex_out.append(r'\end{figure}' + '\n')
             continue
 
-        # Headings - Regex extraction to keep entire title string intact
+        # Headings
         if stripped.startswith('# '):
             if in_list:
                 tex_out.append(r'\end{itemize}' + '\n')
