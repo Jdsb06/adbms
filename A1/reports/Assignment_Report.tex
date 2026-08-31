@@ -1,0 +1,629 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=0.85in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{enumitem}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue
+}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    backgroundcolor=\color{gray!10},
+    frame=single,
+    framerule=0.5pt,
+    rulecolor=\color{gray!30},
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{orange}
+}
+
+\title{\textbf{Advanced Database Management Systems (ADBMS)}\\[0.5em] \Large Assignment 0 \& Assignment 1: Histogram Analysis Report}
+\author{\textbf{IIIT Bangalore}}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{Advanced Database Management Systems (ADBMS)}
+\subsection{ssignment 0 \& Assignment 1: Histogram Analysis Report}
+
+\hrule
+
+
+\section{Assignment 0}
+
+\subsection{etup}
+\begin{itemize}
+\item \textbf{CPU Model \& Specification}: 13th Gen Intel(R) Core(TM) i3-1315U (6 cores, 8 threads)
+\item \textbf{RAM Capacity}: 14 GiB
+\item \textbf{HDD / Storage Capacity}: 456 GiB NVMe SSD
+\item \textbf{Operating System}: Ubuntu 26.04 LTS
+\item \textbf{PostgreSQL Engine Version}: \texttt{PostgreSQL 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1) on x86\_64-pc-linux-gnu, compiled by gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0, 64-bit}
+\end{itemize}
+
+\subsection{atabase}
+\begin{itemize}
+\item \textbf{Database Name}: Join Order Benchmark (2013 Snapshot)
+\item \textbf{Total Tables}: 21
+\item \textbf{Total Relational Tuples}: 74,190,187
+\end{itemize}
+
+\subsubsection{able Cardinalities \& Primary Keys}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l | X | X}
+\toprule
+\textbf{Table Name} & \textbf{Primary Key Column} & \textbf{Cardinality (\texttt{count(*)})} \\
+\midrule
+\texttt{aka\_name} & \texttt{id} & 901,343 \\
+\texttt{aka\_title} & \texttt{id} & 361,472 \\
+\texttt{cast\_info} & \texttt{id} & 36,244,344 \\
+\texttt{char\_name} & \texttt{id} & 3,140,339 \\
+\texttt{comp\_cast\_type} & \texttt{id} & 4 \\
+\texttt{company\_name} & \texttt{id} & 234,997 \\
+\texttt{company\_type} & \texttt{id} & 4 \\
+\texttt{complete\_cast} & \texttt{id} & 135,086 \\
+\texttt{info\_type} & \texttt{id} & 113 \\
+\texttt{keyword} & \texttt{id} & 134,170 \\
+\texttt{kind\_type} & \texttt{id} & 7 \\
+\texttt{link\_type} & \texttt{id} & 18 \\
+\texttt{movie\_companies} & \texttt{id} & 2,609,129 \\
+\texttt{movie\_info} & \texttt{id} & 14,835,720 \\
+\texttt{movie\_info\_idx} & \texttt{id} & 1,380,035 \\
+\texttt{movie\_keyword} & \texttt{id} & 4,523,930 \\
+\texttt{movie\_link} & \texttt{id} & 29,997 \\
+\texttt{name} & \texttt{id} & 4,167,491 \\
+\texttt{person\_info} & \texttt{id} & 2,963,664 \\
+\texttt{role\_type} & \texttt{id} & 12 \\
+\texttt{title} & \texttt{id} & 2,528,312 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\hrule
+
+
+\section{Assignment 1: Histogram}
+
+\subsection{1. Histogram Analysis for `id` and `title` Columns of `title` Table}
+
+\subsubsection{. Corresponding SQL Query}
+to see what all colums needed form `pg\_stats'
+
+\begin{lstlisting}
+\d pg_stats;
+\end{lstlisting}
+to see histogram boundary values and other relevent  stored in \texttt{pg\_stats}:
+
+\begin{lstlisting}
+SELECT 
+    attname, 
+    null_frac, 
+    n_distinct, 
+    most_common_vals, 
+    most_common_freqs, 
+    histogram_bounds 
+FROM pg_stats
+WHERE tablename = 'title' 
+  AND attname IN ('id', 'title');
+\end{lstlisting}
+
+\subsubsection{. Kind of Histogram}
+PSQL uses an Equi Depth Histogram combined with a Most Common Values list. In an equidepth histogram, all buckets contain approximately the same number of rows ($approx N / B$), while bucket boundaries vary in width according to data distribution.
+
+
+\subsubsection{. Number of Buckets}
+\begin{itemize}
+\item Column \texttt{id}: \textbf{100 buckets} (101 bucket boundary values)
+\item Column \texttt{title}: \textbf{100 buckets} (101 bucket boundary values)
+\item extra -  to see the defualt
+\begin{lstlisting}
+SHOW default_statistics_target;
+\end{lstlisting}
+\end{itemize}
+\subsubsection{. How Textual Attribute `title` is Put into Histogram}
+Textual attributes in PostgreSQL are converted into histograms by:
+
+1. sorting the text strings in lexicographical order like bannana and apple will be apple, bannana after sorting
+
+2. Sampling string values from the table like table title has around 2.5M rows , it will only sample around 30K
+
+3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation like laptop will be broken to lap with l = 108, a=97, p=112 then by 256 as between 0 and 1 , lap will be around 0.42 , we can then see where a key belongs between two keeys
+
+4. Selecting quantile boundary string values at equal percentile intervals to form the 100 equi-depth bucket boundaries stored in \texttt{pg\_stats.histogram\_bounds}.
+
+
+\subsubsection{. Exact Bucket Boundaries List (From `pg\_stats`)}
+
+\paragraph{. Column `id` Bucket Boundaries (101 values, 100 buckets)}
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l | X | X}
+\toprule
+\textbf{Bucket Index} & \textbf{Boundary Value (\texttt{id})} & \textbf{Bucket Interval} \\
+\midrule
+B000 (Start) & \texttt{41} & Start of table data \\
+B001 & \texttt{25598} & Bucket 1: [\texttt{41} - \texttt{25598}] \\
+B002 & \texttt{50067} & Bucket 2: [\texttt{25598} - \texttt{50067}] \\
+B003 & \texttt{75257} & Bucket 3: [\texttt{50067} - \texttt{75257}] \\
+B004 & \texttt{101946} & Bucket 4: [\texttt{75257} - \texttt{101946}] \\
+B005 & \texttt{129223} & Bucket 5: [\texttt{101946} - \texttt{129223}] \\
+B006 & \texttt{155973} & Bucket 6: [\texttt{129223} - \texttt{155973}] \\
+B007 & \texttt{181990} & Bucket 7: [\texttt{155973} - \texttt{181990}] \\
+B008 & \texttt{208153} & Bucket 8: [\texttt{181990} - \texttt{208153}] \\
+B009 & \texttt{234525} & Bucket 9: [\texttt{208153} - \texttt{234525}] \\
+B010 & \texttt{259507} & Bucket 10: [\texttt{234525} - \texttt{259507}] \\
+B011 & \texttt{287845} & Bucket 11: [\texttt{259507} - \texttt{287845}] \\
+B012 & \texttt{314618} & Bucket 12: [\texttt{287845} - \texttt{314618}] \\
+B013 & \texttt{340479} & Bucket 13: [\texttt{314618} - \texttt{340479}] \\
+B014 & \texttt{366364} & Bucket 14: [\texttt{340479} - \texttt{366364}] \\
+B015 & \texttt{393076} & Bucket 15: [\texttt{366364} - \texttt{393076}] \\
+B016 & \texttt{418929} & Bucket 16: [\texttt{393076} - \texttt{418929}] \\
+B017 & \texttt{443204} & Bucket 17: [\texttt{418929} - \texttt{443204}] \\
+B018 & \texttt{472539} & Bucket 18: [\texttt{443204} - \texttt{472539}] \\
+B019 & \texttt{497095} & Bucket 19: [\texttt{472539} - \texttt{497095}] \\
+B020 & \texttt{521015} & Bucket 20: [\texttt{497095} - \texttt{521015}] \\
+B021 & \texttt{547008} & Bucket 21: [\texttt{521015} - \texttt{547008}] \\
+B022 & \texttt{571914} & Bucket 22: [\texttt{547008} - \texttt{571914}] \\
+B023 & \texttt{600124} & Bucket 23: [\texttt{571914} - \texttt{600124}] \\
+B024 & \texttt{624290} & Bucket 24: [\texttt{600124} - \texttt{624290}] \\
+B025 & \texttt{648346} & Bucket 25: [\texttt{624290} - \texttt{648346}] \\
+B026 & \texttt{673077} & Bucket 26: [\texttt{648346} - \texttt{673077}] \\
+B027 & \texttt{698192} & Bucket 27: [\texttt{673077} - \texttt{698192}] \\
+B028 & \texttt{723945} & Bucket 28: [\texttt{698192} - \texttt{723945}] \\
+B029 & \texttt{747971} & Bucket 29: [\texttt{723945} - \texttt{747971}] \\
+B030 & \texttt{774715} & Bucket 30: [\texttt{747971} - \texttt{774715}] \\
+B031 & \texttt{801886} & Bucket 31: [\texttt{774715} - \texttt{801886}] \\
+B032 & \texttt{825206} & Bucket 32: [\texttt{801886} - \texttt{825206}] \\
+B033 & \texttt{852044} & Bucket 33: [\texttt{825206} - \texttt{852044}] \\
+B034 & \texttt{878630} & Bucket 34: [\texttt{852044} - \texttt{878630}] \\
+B035 & \texttt{903227} & Bucket 35: [\texttt{878630} - \texttt{903227}] \\
+B036 & \texttt{929542} & Bucket 36: [\texttt{903227} - \texttt{929542}] \\
+B037 & \texttt{951992} & Bucket 37: [\texttt{929542} - \texttt{951992}] \\
+B038 & \texttt{976177} & Bucket 38: [\texttt{951992} - \texttt{976177}] \\
+B039 & \texttt{1002223} & Bucket 39: [\texttt{976177} - \texttt{1002223}] \\
+B040 & \texttt{1027496} & Bucket 40: [\texttt{1002223} - \texttt{1027496}] \\
+B041 & \texttt{1053013} & Bucket 41: [\texttt{1027496} - \texttt{1053013}] \\
+B042 & \texttt{1076669} & Bucket 42: [\texttt{1053013} - \texttt{1076669}] \\
+B043 & \texttt{1101644} & Bucket 43: [\texttt{1076669} - \texttt{1101644}] \\
+B044 & \texttt{1127312} & Bucket 44: [\texttt{1101644} - \texttt{1127312}] \\
+B045 & \texttt{1153408} & Bucket 45: [\texttt{1127312} - \texttt{1153408}] \\
+B046 & \texttt{1177087} & Bucket 46: [\texttt{1153408} - \texttt{1177087}] \\
+B047 & \texttt{1200809} & Bucket 47: [\texttt{1177087} - \texttt{1200809}] \\
+B048 & \texttt{1228132} & Bucket 48: [\texttt{1200809} - \texttt{1228132}] \\
+B049 & \texttt{1251987} & Bucket 49: [\texttt{1228132} - \texttt{1251987}] \\
+B050 & \texttt{1276194} & Bucket 50: [\texttt{1251987} - \texttt{1276194}] \\
+B051 & \texttt{1300208} & Bucket 51: [\texttt{1276194} - \texttt{1300208}] \\
+B052 & \texttt{1325279} & Bucket 52: [\texttt{1300208} - \texttt{1325279}] \\
+B053 & \texttt{1350079} & Bucket 53: [\texttt{1325279} - \texttt{1350079}] \\
+B054 & \texttt{1375217} & Bucket 54: [\texttt{1350079} - \texttt{1375217}] \\
+B055 & \texttt{1399305} & Bucket 55: [\texttt{1375217} - \texttt{1399305}] \\
+B056 & \texttt{1424915} & Bucket 56: [\texttt{1399305} - \texttt{1424915}] \\
+B057 & \texttt{1447763} & Bucket 57: [\texttt{1424915} - \texttt{1447763}] \\
+B058 & \texttt{1472187} & Bucket 58: [\texttt{1447763} - \texttt{1472187}] \\
+B059 & \texttt{1496066} & Bucket 59: [\texttt{1472187} - \texttt{1496066}] \\
+B060 & \texttt{1520933} & Bucket 60: [\texttt{1496066} - \texttt{1520933}] \\
+B061 & \texttt{1548374} & Bucket 61: [\texttt{1520933} - \texttt{1548374}] \\
+B062 & \texttt{1572984} & Bucket 62: [\texttt{1548374} - \texttt{1572984}] \\
+B063 & \texttt{1597331} & Bucket 63: [\texttt{1572984} - \texttt{1597331}] \\
+B064 & \texttt{1621524} & Bucket 64: [\texttt{1597331} - \texttt{1621524}] \\
+B065 & \texttt{1646529} & Bucket 65: [\texttt{1621524} - \texttt{1646529}] \\
+B066 & \texttt{1671841} & Bucket 66: [\texttt{1646529} - \texttt{1671841}] \\
+B067 & \texttt{1697305} & Bucket 67: [\texttt{1671841} - \texttt{1697305}] \\
+B068 & \texttt{1720750} & Bucket 68: [\texttt{1697305} - \texttt{1720750}] \\
+B069 & \texttt{1746578} & Bucket 69: [\texttt{1720750} - \texttt{1746578}] \\
+B070 & \texttt{1771397} & Bucket 70: [\texttt{1746578} - \texttt{1771397}] \\
+B071 & \texttt{1796312} & Bucket 71: [\texttt{1771397} - \texttt{1796312}] \\
+B072 & \texttt{1821069} & Bucket 72: [\texttt{1796312} - \texttt{1821069}] \\
+B073 & \texttt{1846620} & Bucket 73: [\texttt{1821069} - \texttt{1846620}] \\
+B074 & \texttt{1871455} & Bucket 74: [\texttt{1846620} - \texttt{1871455}] \\
+B075 & \texttt{1897069} & Bucket 75: [\texttt{1871455} - \texttt{1897069}] \\
+B076 & \texttt{1923039} & Bucket 76: [\texttt{1897069} - \texttt{1923039}] \\
+B077 & \texttt{1951619} & Bucket 77: [\texttt{1923039} - \texttt{1951619}] \\
+B078 & \texttt{1975550} & Bucket 78: [\texttt{1951619} - \texttt{1975550}] \\
+B079 & \texttt{2001398} & Bucket 79: [\texttt{1975550} - \texttt{2001398}] \\
+B080 & \texttt{2025488} & Bucket 80: [\texttt{2001398} - \texttt{2025488}] \\
+B081 & \texttt{2048645} & Bucket 81: [\texttt{2025488} - \texttt{2048645}] \\
+B082 & \texttt{2075506} & Bucket 82: [\texttt{2048645} - \texttt{2075506}] \\
+B083 & \texttt{2099704} & Bucket 83: [\texttt{2075506} - \texttt{2099704}] \\
+B084 & \texttt{2124027} & Bucket 84: [\texttt{2099704} - \texttt{2124027}] \\
+B085 & \texttt{2146547} & Bucket 85: [\texttt{2124027} - \texttt{2146547}] \\
+B086 & \texttt{2170970} & Bucket 86: [\texttt{2146547} - \texttt{2170970}] \\
+B087 & \texttt{2195637} & Bucket 87: [\texttt{2170970} - \texttt{2195637}] \\
+B088 & \texttt{2221366} & Bucket 88: [\texttt{2195637} - \texttt{2221366}] \\
+B089 & \texttt{2249864} & Bucket 89: [\texttt{2221366} - \texttt{2249864}] \\
+B090 & \texttt{2274023} & Bucket 90: [\texttt{2249864} - \texttt{2274023}] \\
+B091 & \texttt{2299152} & Bucket 91: [\texttt{2274023} - \texttt{2299152}] \\
+B092 & \texttt{2325178} & Bucket 92: [\texttt{2299152} - \texttt{2325178}] \\
+B093 & \texttt{2352562} & Bucket 93: [\texttt{2325178} - \texttt{2352562}] \\
+B094 & \texttt{2378000} & Bucket 94: [\texttt{2352562} - \texttt{2378000}] \\
+B095 & \texttt{2403761} & Bucket 95: [\texttt{2378000} - \texttt{2403761}] \\
+B096 & \texttt{2428038} & Bucket 96: [\texttt{2403761} - \texttt{2428038}] \\
+B097 & \texttt{2452338} & Bucket 97: [\texttt{2428038} - \texttt{2452338}] \\
+B098 & \texttt{2479928} & Bucket 98: [\texttt{2452338} - \texttt{2479928}] \\
+B099 & \texttt{2505988} & Bucket 99: [\texttt{2479928} - \texttt{2505988}] \\
+B100 & \texttt{2528305} & Bucket 100: [\texttt{2505988} - \texttt{2528305}] \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{. Column `title` Bucket Boundaries (101 values, 100 buckets)}
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l | X | X}
+\toprule
+\textbf{Bucket Index} & \textbf{Boundary Value (\texttt{title})} & \textbf{Lexicographical Interval} \\
+\midrule
+B000 (Start) & \texttt{...} & Start of text data \\
+B001 & \texttt{(\#1.1302)} & Bucket 1: [\texttt{...} - \texttt{(\#1.1302)}] \\
+B002 & \texttt{(\#1.219)} & Bucket 2: [\texttt{(\#1.1302)} - \texttt{(\#1.219)}] \\
+B003 & \texttt{(\#1.3662)} & Bucket 3: [\texttt{(\#1.219)} - \texttt{(\#1.3662)}] \\
+B004 & \texttt{(\#1.59)} & Bucket 4: [\texttt{(\#1.3662)} - \texttt{(\#1.59)}] \\
+B005 & \texttt{(\#1.846)} & Bucket 5: [\texttt{(\#1.59)} - \texttt{(\#1.846)}] \\
+B006 & \texttt{(1968-02-14)} & Bucket 6: [\texttt{(\#1.846)} - \texttt{(1968-02-14)}] \\
+B007 & \texttt{(1982-12-14)} & Bucket 7: [\texttt{(1968-02-14)} - \texttt{(1982-12-14)}] \\
+B008 & \texttt{(1994-07-07)} & Bucket 8: [\texttt{(1982-12-14)} - \texttt{(1994-07-07)}] \\
+B009 & \texttt{(1998-03-16)} & Bucket 9: [\texttt{(1994-07-07)} - \texttt{(1998-03-16)}] \\
+B010 & \texttt{(2000-01-22)} & Bucket 10: [\texttt{(1998-03-16)} - \texttt{(2000-01-22)}] \\
+B011 & \texttt{(2001-11-06)} & Bucket 11: [\texttt{(2000-01-22)} - \texttt{(2001-11-06)}] \\
+B012 & \texttt{(2003-08-29)} & Bucket 12: [\texttt{(2001-11-06)} - \texttt{(2003-08-29)}] \\
+B013 & \texttt{(2005-01-19)} & Bucket 13: [\texttt{(2003-08-29)} - \texttt{(2005-01-19)}] \\
+B014 & \texttt{(2006-05-17)} & Bucket 14: [\texttt{(2005-01-19)} - \texttt{(2006-05-17)}] \\
+B015 & \texttt{(2007-07-05)} & Bucket 15: [\texttt{(2006-05-17)} - \texttt{(2007-07-05)}] \\
+B016 & \texttt{(2009-02-02)} & Bucket 16: [\texttt{(2007-07-05)} - \texttt{(2009-02-02)}] \\
+B017 & \texttt{(2010-09-07)} & Bucket 17: [\texttt{(2009-02-02)} - \texttt{(2010-09-07)}] \\
+B018 & \texttt{(2011-08-29)} & Bucket 18: [\texttt{(2010-09-07)} - \texttt{(2011-08-29)}] \\
+B019 & \texttt{(2012-07-21)} & Bucket 19: [\texttt{(2011-08-29)} - \texttt{(2012-07-21)}] \\
+B020 & \texttt{(\#20.140)} & Bucket 20: [\texttt{(2012-07-21)} - \texttt{(\#20.140)}] \\
+B021 & \texttt{(\#2.92)} & Bucket 21: [\texttt{(\#20.140)} - \texttt{(\#2.92)}] \\
+B022 & \texttt{(\#4.172)} & Bucket 22: [\texttt{(\#2.92)} - \texttt{(\#4.172)}] \\
+B023 & \texttt{(\#6.163)} & Bucket 23: [\texttt{(\#4.172)} - \texttt{(\#6.163)}] \\
+B024 & \texttt{Aamu joutuu pesemään tekojensa jälkipyykkiä} & Bucket 24: [\texttt{(\#6.163)} - \texttt{Aamu joutuu pesemään tekojensa jälkipyykkiä}] \\
+B025 & \texttt{Aflevering 2559} & Bucket 25: [\texttt{Aamu joutuu pesemään tekojensa jälkipyykkiä} - \texttt{Aflevering 2559}] \\
+B026 & \texttt{A Little Trip} & Bucket 26: [\texttt{Aflevering 2559} - \texttt{A Little Trip}] \\
+B027 & \texttt{An Atheist Named Faith} & Bucket 27: [\texttt{A Little Trip} - \texttt{An Atheist Named Faith}] \\
+B028 & \texttt{Arabeskebi Pirosmanis temaze} & Bucket 28: [\texttt{An Atheist Named Faith} - \texttt{Arabeskebi Pirosmanis temaze}] \\
+B029 & \texttt{Attenborough's Ark: Natural World Special} & Bucket 29: [\texttt{Arabeskebi Pirosmanis temaze} - \texttt{Attenborough's Ark: Natural World Special}] \\
+B030 & \texttt{Baldur Blauzahn} & Bucket 30: [\texttt{Attenborough's Ark: Natural World Special} - \texttt{Baldur Blauzahn}] \\
+B031 & \texttt{Best in Show Cakes} & Bucket 31: [\texttt{Baldur Blauzahn} - \texttt{Best in Show Cakes}] \\
+B032 & \texttt{Blues} & Bucket 32: [\texttt{Best in Show Cakes} - \texttt{Blues}] \\
+B033 & \texttt{Brown Before Green} & Bucket 33: [\texttt{Blues} - \texttt{Brown Before Green}] \\
+B034 & \texttt{Captive Audience} & Bucket 34: [\texttt{Brown Before Green} - \texttt{Captive Audience}] \\
+B035 & \texttt{Cheryl Cole's Night In} & Bucket 35: [\texttt{Captive Audience} - \texttt{Cheryl Cole's Night In}] \\
+B036 & \texttt{Cobra Starship} & Bucket 36: [\texttt{Cheryl Cole's Night In} - \texttt{Cobra Starship}] \\
+B037 & \texttt{CPM 22 e Babado Novo} & Bucket 37: [\texttt{Cobra Starship} - \texttt{CPM 22 e Babado Novo}] \\
+B038 & \texttt{Dark Moon} & Bucket 38: [\texttt{CPM 22 e Babado Novo} - \texttt{Dark Moon}] \\
+B039 & \texttt{De intrede van de Sint - Antwerpen 2011} & Bucket 39: [\texttt{Dark Moon} - \texttt{De intrede van de Sint - Antwerpen 2011}] \\
+B040 & \texttt{Det' politiet: Part 2} & Bucket 40: [\texttt{De intrede van de Sint - Antwerpen 2011} - \texttt{Det' politiet: Part 2}] \\
+B041 & \texttt{DIY Network Holiday Celebration} & Bucket 41: [\texttt{Det' politiet: Part 2} - \texttt{DIY Network Holiday Celebration}] \\
+B042 & \texttt{Drugog puta nema!} & Bucket 42: [\texttt{DIY Network Holiday Celebration} - \texttt{Drugog puta nema!}] \\
+B043 & \texttt{Elements} & Bucket 43: [\texttt{Drugog puta nema!} - \texttt{Elements}] \\
+B044 & \texttt{Episode V - Tag der Abrechnung} & Bucket 44: [\texttt{Elements} - \texttt{Episode V - Tag der Abrechnung}] \\
+B045 & \texttt{Famiresu tenshi purin} & Bucket 45: [\texttt{Episode V - Tag der Abrechnung} - \texttt{Famiresu tenshi purin}] \\
+B046 & \texttt{Fleshdance} & Bucket 46: [\texttt{Famiresu tenshi purin} - \texttt{Fleshdance}] \\
+B047 & \texttt{Fuga y misterio} & Bucket 47: [\texttt{Fleshdance} - \texttt{Fuga y misterio}] \\
+B048 & \texttt{Girls' Generation and the Dangerous Boys} & Bucket 48: [\texttt{Fuga y misterio} - \texttt{Girls' Generation and the Dangerous Boys}] \\
+B049 & \texttt{Guadalcanal/Leckie} & Bucket 49: [\texttt{Girls' Generation and the Dangerous Boys} - \texttt{Guadalcanal/Leckie}] \\
+B050 & \texttt{Heaven on Earth} & Bucket 50: [\texttt{Guadalcanal/Leckie} - \texttt{Heaven on Earth}] \\
+B051 & \texttt{Holiday} & Bucket 51: [\texttt{Heaven on Earth} - \texttt{Holiday}] \\
+B052 & \texttt{Hurricane Katrina Aftermath} & Bucket 52: [\texttt{Holiday} - \texttt{Hurricane Katrina Aftermath}] \\
+B053 & \texttt{Inauguração na Estrela - Lisboa} & Bucket 53: [\texttt{Hurricane Katrina Aftermath} - \texttt{Inauguração na Estrela - Lisboa}] \\
+B054 & \texttt{Is There Still Hope for Gino and Mikay?} & Bucket 54: [\texttt{Inauguração na Estrela - Lisboa} - \texttt{Is There Still Hope for Gino and Mikay?}] \\
+B055 & \texttt{Jindalee Lady} & Bucket 55: [\texttt{Is There Still Hope for Gino and Mikay?} - \texttt{Jindalee Lady}] \\
+B056 & \texttt{Karina} & Bucket 56: [\texttt{Jindalee Lady} - \texttt{Karina}] \\
+B057 & \texttt{Know Thy Partner} & Bucket 57: [\texttt{Karina} - \texttt{Know Thy Partner}] \\
+B058 & \texttt{Ladrones de niños} & Bucket 58: [\texttt{Know Thy Partner} - \texttt{Ladrones de niños}] \\
+B059 & \texttt{Late as a Mother****er} & Bucket 59: [\texttt{Ladrones de niños} - \texttt{Late as a Mother****er}] \\
+B060 & \texttt{Les éperlans} & Bucket 60: [\texttt{Late as a Mother****er} - \texttt{Les éperlans}] \\
+B061 & \texttt{Living Room Upgrade} & Bucket 61: [\texttt{Les éperlans} - \texttt{Living Room Upgrade}] \\
+B062 & \texttt{Luha ng ina} & Bucket 62: [\texttt{Living Room Upgrade} - \texttt{Luha ng ina}] \\
+B063 & \texttt{Männer sind auch nur Menschen} & Bucket 63: [\texttt{Luha ng ina} - \texttt{Männer sind auch nur Menschen}] \\
+B064 & \texttt{Melissa} & Bucket 64: [\texttt{Männer sind auch nur Menschen} - \texttt{Melissa}] \\
+B065 & \texttt{Mission to Africa} & Bucket 65: [\texttt{Melissa} - \texttt{Mission to Africa}] \\
+B066 & \texttt{Mr. Deity and the Days} & Bucket 66: [\texttt{Mission to Africa} - \texttt{Mr. Deity and the Days}] \\
+B067 & \texttt{Nanna \& Lil' Puss Puss in 'The Honeymoonies'} & Bucket 67: [\texttt{Mr. Deity and the Days} - \texttt{Nanna \& Lil' Puss Puss in 'The Honeymoonies'}] \\
+B068 & \texttt{Ninna Hyttinen} & Bucket 68: [\texttt{Nanna \& Lil' Puss Puss in 'The Honeymoonies'} - \texttt{Ninna Hyttinen}] \\
+B069 & \texttt{Odoriko no yubiwa} & Bucket 69: [\texttt{Ninna Hyttinen} - \texttt{Odoriko no yubiwa}] \\
+B070 & \texttt{Operation: Bank Job} & Bucket 70: [\texttt{Odoriko no yubiwa} - \texttt{Operation: Bank Job}] \\
+B071 & \texttt{Papa wo sagashite!} & Bucket 71: [\texttt{Operation: Bank Job} - \texttt{Papa wo sagashite!}] \\
+B072 & \texttt{Phantom Fever} & Bucket 72: [\texttt{Papa wo sagashite!} - \texttt{Phantom Fever}] \\
+B073 & \texttt{Power of the South} & Bucket 73: [\texttt{Phantom Fever} - \texttt{Power of the South}] \\
+B074 & \texttt{Quatre acteurs à bout de souffle} & Bucket 74: [\texttt{Power of the South} - \texttt{Quatre acteurs à bout de souffle}] \\
+B075 & \texttt{Relative Air Pollution} & Bucket 75: [\texttt{Quatre acteurs à bout de souffle} - \texttt{Relative Air Pollution}] \\
+B076 & \texttt{Rolling Stones} & Bucket 76: [\texttt{Relative Air Pollution} - \texttt{Rolling Stones}] \\
+B077 & \texttt{San Diego, Bukarest, Paris} & Bucket 77: [\texttt{Rolling Stones} - \texttt{San Diego, Bukarest, Paris}] \\
+B078 & \texttt{Seekers} & Bucket 78: [\texttt{San Diego, Bukarest, Paris} - \texttt{Seekers}] \\
+B079 & \texttt{Shônen Tantei to Supai} & Bucket 79: [\texttt{Seekers} - \texttt{Shônen Tantei to Supai}] \\
+B080 & \texttt{Smash Hit: She} & Bucket 80: [\texttt{Shônen Tantei to Supai} - \texttt{Smash Hit: She}] \\
+B081 & \texttt{Spilling the Beans} & Bucket 81: [\texttt{Smash Hit: She} - \texttt{Spilling the Beans}] \\
+B082 & \texttt{Strider 2} & Bucket 82: [\texttt{Spilling the Beans} - \texttt{Strider 2}] \\
+B083 & \texttt{Take This Job and Shove It} & Bucket 83: [\texttt{Strider 2} - \texttt{Take This Job and Shove It}] \\
+B084 & \texttt{The Accident} & Bucket 84: [\texttt{Take This Job and Shove It} - \texttt{The Accident}] \\
+B085 & \texttt{The Captain's Son: Untitled} & Bucket 85: [\texttt{The Accident} - \texttt{The Captain's Son: Untitled}] \\
+B086 & \texttt{The End of the World as We Know It} & Bucket 86: [\texttt{The Captain's Son: Untitled} - \texttt{The End of the World as We Know It}] \\
+B087 & \texttt{The Healers} & Bucket 87: [\texttt{The End of the World as We Know It} - \texttt{The Healers}] \\
+B088 & \texttt{The Lobsters Cook} & Bucket 88: [\texttt{The Healers} - \texttt{The Lobsters Cook}] \\
+B089 & \texttt{The Odyssey} & Bucket 89: [\texttt{The Lobsters Cook} - \texttt{The Odyssey}] \\
+B090 & \texttt{The Ring of Ultimate Power} & Bucket 90: [\texttt{The Odyssey} - \texttt{The Ring of Ultimate Power}] \\
+B091 & \texttt{The Thing in Mrs. Faversham's Attic} & Bucket 91: [\texttt{The Ring of Ultimate Power} - \texttt{The Thing in Mrs. Faversham's Attic}] \\
+B092 & \texttt{Thin Ice} & Bucket 92: [\texttt{The Thing in Mrs. Faversham's Attic} - \texttt{Thin Ice}] \\
+B093 & \texttt{Tontolini e Lea fra le nuvole} & Bucket 93: [\texttt{Thin Ice} - \texttt{Tontolini e Lea fra le nuvole}] \\
+B094 & \texttt{Trust Me, I'm a Doctor!} & Bucket 94: [\texttt{Tontolini e Lea fra le nuvole} - \texttt{Trust Me, I'm a Doctor!}] \\
+B095 & \texttt{Undertryk} & Bucket 95: [\texttt{Trust Me, I'm a Doctor!} - \texttt{Undertryk}] \\
+B096 & \texttt{Verzaubert} & Bucket 96: [\texttt{Undertryk} - \texttt{Verzaubert}] \\
+B097 & \texttt{Watashi no ibasho} & Bucket 97: [\texttt{Verzaubert} - \texttt{Watashi no ibasho}] \\
+B098 & \texttt{Who Needs Sex Therapy?} & Bucket 98: [\texttt{Watashi no ibasho} - \texttt{Who Needs Sex Therapy?}] \\
+B099 & \texttt{Yasmina} & Bucket 99: [\texttt{Who Needs Sex Therapy?} - \texttt{Yasmina}] \\
+B100 & \texttt{Zzzzzz} & Bucket 100: [\texttt{Yasmina} - \texttt{Zzzzzz}] \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{. Histogram Visualization}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{../../plots/q1_histogram_id.png}
+\caption{Histogram for title.id}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{../../plots/q1_histogram_title.png}
+\caption{Histogram for title.title}
+\end{figure}
+
+\subsubsection{. Max Selectivity Error}
+\begin{itemize}
+\item \textbf{Max Selectivity Error}: Since \texttt{default\_statistics\_target} is 100, there are 100 buckets. Therefore, the maximum selectivity error for a range query is bounded by:
+\end{itemize}
+
+$$\text{Max Error} \le \frac{1}{B} = \frac{1}{100} = 0.01 \quad (1.0\%)$$
+
+
+For evaluated queries(q9), the observed maximum selectivity error is \textbf{0.8364\%} (0.008364), which strictly satisfies $\text{Max Error} \le 1.0\%$.
+
+
+
+\subsubsection{: Selectivity Estimation for Text Columns}
+
+Selectivity estimate is done for range query on text column such as “title” in PSQL such as:
+
+
+\begin{itemize}
+\item \textbf{Bucket Identification:} The engine scans the \texttt{histogram\_bounds} array stored under pg\_stats to locate the specific bucket where the target string (\texttt{'Race'})  is
+\item \textbf{Full Bucket Summation:} It counts all complete buckets preceding the target bucket. Each full bucket represents a fixed fraction of total rows (1/B).
+\item \textbf{Text-to-Numeric Conversion:} For the target bucket, PostgreSQL converts initial string bytes into floating-point numbers in $[0.0, 1.0]$ range for interpolation as explain in part 4
+\item \textbf{Linear Interpolation:} Assuming uniform distribution inside the target bucket, it calculates the target's position using:
+\end{itemize}
+
+$$\text{Fraction} = \frac{\text{Query Value} - \text{Bucket Min}}{\text{Bucket Max} - \text{Bucket Min}}$$
+
+
+\begin{itemize}
+\item   Final Calculation is done by adding the fractional bucket estimate to the sum of preceding full buckets to get the final estimated selectivity.
+\end{itemize}
+
+\hrule
+
+
+\subsubsection{: Estimated vs. Actual Selectivities}
+
+To calculate estimated and actual selectivities of the queries and moreover there accuracy we compare estimated rows (from \texttt{EXPLAIN}) against actual rows (from \texttt{EXPLAIN ANALYZE}).
+
+Total row count ($N$) for the \texttt{title} table is 2,528,312.
+
+
+\textbf{Query 1: \texttt{title < 'Race'}}
+
+\begin{lstlisting}
+EXPLAIN ANALYZE SELECT * FROM title WHERE title.title < 'Race';
+\end{lstlisting}
+\begin{itemize}
+\item \textbf{Actual Selectivity:} The query physically returned 1,918,141 matching rows: $S_{act} = \frac{1918141}{2528312} \approx 0.7587$ (75.87\%).
+\end{itemize}
+
+\begin{lstlisting}
+EXPLAIN SELECT * FROM title WHERE title.title < 'Race';
+\end{lstlisting}
+\begin{itemize}
+\item \textbf{Estimated Selectivity:} The planner estimated 1,939,288 rows: $S_{est} = \frac{1939288}{2528312} \approx 0.7670$ (76.70\%).
+\end{itemize}
+
+\begin{itemize}
+\item \textbf{Observation:} The absolute error is roughly 0.83\%.
+\end{itemize}
+
+\textbf{Query 2: \texttt{id < 350000}}
+
+\begin{lstlisting}
+EXPLAIN ANALYZE SELECT * FROM title WHERE title.id < '350000';
+\end{lstlisting}
+\begin{itemize}
+\item \textbf{Actual Selectivity:} The query returned 349,999 matching rows: $S_{act} = \frac{349999}{2528312} \approx 0.1384$ (13.84\%).
+\end{itemize}
+
+\begin{lstlisting}
+EXPLAIN SELECT * FROM title WHERE title.id < '350000';
+\end{lstlisting}
+\begin{itemize}
+\item \textbf{Estimated Selectivity:} The planner estimated 337,982 rows: $S_{est} = \frac{337982}{2528312} \approx 0.1337$ (13.37\%).
+\end{itemize}
+
+\begin{itemize}
+\item \textbf{Observation:} The absolute error here is about 0.47\%.
+\end{itemize}
+
+
+\subsection{2. Optimal Serial Histogram Construction ($B=20$ Buckets)}
+
+\subsubsection{. Histogram Visualizations for $N = 3000$ Samples (Horizontal Bar Plots)}
+*As specified in ques the histograms as a bar-plot with value-boundaries in the Y-axis and
+
+frequency in the X-axis*
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{../../plots/q2_histogram_id_3000.png}
+\caption{Optimal Serial Histogram for title.id (N=30000)}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{../../plots/q2_histogram_title_3000.png}
+\caption{Optimal Serial Histogram for title.title (N=3000)}
+\end{figure}
+
+\subsubsection{. Execution Build Time}
+\begin{itemize}
+\item for \textbf{$N=3000$}: \textbf{0.9947 seconds}
+\end{itemize}
+
+\subsubsection{. Frequency Bucket Boundaries ($N=3000$, $B=20$)}
+
+The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors (SSE). The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
+
+
+\paragraph{. Column `id` Frequency Bucket Boundaries ($N=3000$, $B=20$)}
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l | X | X}
+\toprule
+\textbf{Bucket \#} & \textbf{Value Interval (\texttt{id})} & \textbf{Frequency Count ($n_i$)} \\
+\midrule
+Bucket 01 & [\texttt{197} - \texttt{130,726}] & 162 \\
+Bucket 02 & [\texttt{132,128} - \texttt{264,204}] & 171 \\
+Bucket 03 & [\texttt{269,581} - \texttt{404,155}] & 179 \\
+Bucket 04 & [\texttt{406,915} - \texttt{538,304}] & 161 \\
+Bucket 05 & [\texttt{542,354} - \texttt{667,821}] & 141 \\
+Bucket 06 & [\texttt{668,815} - \texttt{788,223}] & 129 \\
+Bucket 07 & [\texttt{791,366} - \texttt{902,286}] & 129 \\
+Bucket 08 & [\texttt{904,088} - \texttt{1,026,697}] & 138 \\
+Bucket 09 & [\texttt{1,028,382} - \texttt{1,161,395}] & 170 \\
+Bucket 10 & [\texttt{1,164,157} - \texttt{1,297,392}] & 151 \\
+Bucket 11 & [\texttt{1,298,484} - \texttt{1,426,386}] & 166 \\
+Bucket 12 & [\texttt{1,428,016} - \texttt{1,547,072}] & 176 \\
+Bucket 13 & [\texttt{1,549,808} - \texttt{1,674,620}] & 134 \\
+Bucket 14 & [\texttt{1,679,481} - \texttt{1,808,283}] & 153 \\
+Bucket 15 & [\texttt{1,813,888} - \texttt{1,938,495}] & 138 \\
+Bucket 16 & [\texttt{1,939,500} - \texttt{2,062,177}] & 159 \\
+Bucket 17 & [\texttt{2,063,131} - \texttt{2,185,305}] & 144 \\
+Bucket 18 & [\texttt{2,186,749} - \texttt{2,302,858}] & 153 \\
+Bucket 19 & [\texttt{2,305,143} - \texttt{2,411,310}] & 118 \\
+Bucket 20 & [\texttt{2,412,939} - \texttt{2,522,416}] & 128 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{. Column `title` Frequency Bucket Boundaries ($N=3000$, $B=20$)}
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l | X | X}
+\toprule
+\textbf{Bucket \#} & \textbf{Value Interval (\texttt{title})} & \textbf{Frequency Count ($n_i$)} \\
+\midrule
+Bucket 01 & [\texttt{"\#7.1: Festival of the Hun"} - \texttt{"(323) Graffiti6"}] & 848 \\
+Bucket 02 & [\texttt{"...And a Good Slopping Out"} - \texttt{"38. dag"}] & 19 \\
+Bucket 03 & [\texttt{"404"} - \texttt{"99 Pieces"}] & 7 \\
+Bucket 04 & [\texttt{"A Bachelor's Babies"} - \texttt{"Ayaash"}] & 169 \\
+Bucket 05 & [\texttt{"BYTI - zivotni filosofie "} - \texttt{"Cyber-Raptors"}] & 234 \\
+Bucket 06 & [\texttt{"DMV"} - \texttt{"Dynowarz: Destruction of "}"] & 123 \\
+Bucket 07 & [\texttt{"ESPN Cheats Center"} - \texttt{"Futotta kimi to yaseta bo"}] & 141 \\
+Bucket 08 & [\texttt{"Födelsedag"} - \texttt{"Hush Girls Vacation Winte"}] & 133 \\
+Bucket 09 & [\texttt{"Hús vétkek"} - \texttt{"Jy Harris"}] & 109 \\
+Bucket 10 & [\texttt{"K.L.U"} - \texttt{"Luz del Fuego"}] & 181 \\
+Bucket 11 & [\texttt{"Láska rohatá"} - \texttt{"Nuretsuzuketa onna: Suits"}] & 165 \\
+Bucket 12 & [\texttt{"O Barato é Ser Careta"} - \texttt{"Qytetet ilire"}] & 162 \\
+Bucket 13 & [\texttt{"RKO Victory Special No. 3"} - \texttt{"Szép kis buli volt"}] & 229 \\
+Bucket 14 & [\texttt{"Så Här Är Det Nu"} - \texttt{"Urzulei"}] & 344 \\
+Bucket 15 & [\texttt{"Vaarwel"} - \texttt{"X Games 3D: The Movie"}] & 105 \\
+Bucket 16 & [\texttt{"Yog, Monster from Space"} - \texttt{"Zwembad"}] & 21 \\
+Bucket 17 & [\texttt{"desAliento"} - \texttt{"iDate Christ"}] & 2 \\
+Bucket 18 & [\texttt{"¡Eglantina sexy in stgo.!"} - \texttt{"¡Eglantina sexy in stgo.!"}] & 1 \\
+Bucket 19 & [\texttt{"¿Ligamos mucho los españo"} - \texttt{"Âme belge"}] & 3 \\
+Bucket 20 & [\texttt{"Ørkenens juvel"} - \texttt{"Übers Ziel hinaus"}] & 4 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\subsubsection{. Max Selectivity Error for Optimal Histogram ($N=3000$)}
+\begin{itemize}
+\item \textbf{Max Selectivity Error}: \textbf{0.003169}
+\item \textbf{Calculation}: Computed across 10 evaluation range quantiles comparing optimal bucket cumulative frequency estimation against empirical sample distribution.
+\end{itemize}
+
+\subsubsection{. Timings Across Sample Sizes}
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l | X | X}
+\toprule
+\textbf{Sample Size ($N$)} & \textbf{Build Time (Seconds)} & \textbf{Max Selectivity Error} \\
+\midrule
+**1000** & 0.2078s & 0.003292 \\
+**3000** & 0.9947s & 0.003169 \\
+**5000** & 2.1934s & 0.002944 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{. Linear Regression Extrapolation for Full Table ($N = 2,528,312$)}
+Using linear regression model $T(N) = m \cdot N + c$:
+
+\begin{itemize}
+\item \textbf{Slope ($m$)}: \texttt{0.00049640} seconds / sample
+\item \textbf{Intercept ($c$)}: \texttt{-0.357260} seconds
+\item \textbf{Extrapolated Time for Full Table ($N=2,528,312$)}:
+\end{itemize}
+
+$$T(2528312) = (0.00049640 \times 2528312) + (-0.357260) = 1254.70 \text{ seconds} \quad (20.91 \text{ minutes})$$
+
+
+
+
+\subsubsection{. Sample Size vs Time Relationship Plot}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{../../plots/q2_sample_size_vs_time.png}
+\caption{Sample Size vs Time}
+\end{figure}
+
+\subsubsection{. Sample Size vs Max Selectivity Error Relationship Plot}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{../../plots/q2_sample_size_vs_error.png}
+\caption{Sample Size vs Max Selectivity Error}
+\end{figure}
+
+\subsubsection{. Impact of Bucket Count ($B$) Choice}
+\begin{itemize}
+\item \textbf{Fewer Buckets (e.g., $B = 5$ or $10$)}:
+\item \textbf{Pros}: Lower memory footprint in system catalog, faster histogram build time ($O(B \cdot N^2)$ decreases), faster query optimization time.
+\item \textbf{Cons}: Coarser resolution, leading to higher selectivity estimation errors, especially for skewed or non-uniform data distributions.
+\item \textbf{More Buckets (e.g., $B = 50$ or $100$)}:
+\item \textbf{Pros}: Finer granularity, significantly lower selectivity estimation error, highly accurate cost estimation for complex query joins.
+\item \textbf{Cons}: Higher histogram construction time, larger storage overhead in catalog, and slightly higher plan generation latency during query execution.
+\end{itemize}
+\end{document}

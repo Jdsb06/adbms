@@ -360,19 +360,70 @@ EXPLAIN SELECT * FROM title WHERE title.id < '350000';
 ## Q2. Optimal Serial Histogram Construction ($B=20$ Buckets)
 
 ### 1. Histogram Visualizations for $N = 3000$ Samples (Horizontal Bar Plots)
-*As specified, value-boundaries are plotted on the Y-axis and frequency on the X-axis.*
+*As specified in ques the histograms as a bar-plot with value-boundaries in the Y-axis and
+frequency in the X-axis*
 
-![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
+![Optimal Serial Histogram for title.id (N=30000)](../plots/q2_histogram_id_3000.png)
 
 ![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
 
 ### 2. Execution Build Time
-- **$N=1000$**: **0.2078 seconds**
-- **$N=3000$**: **0.9947 seconds**
-- **$N=5000$**: **2.1934 seconds**
+<!-- - **$N=1000$**: **0.2078 seconds** -->
+- for **$N=3000$**: **0.9947 seconds**
+<!-- - **$N=5000$**: **2.1934 seconds** -->
 
 ### 3. Frequency Bucket Boundaries ($N=3000$, $B=20$)
-The 20 optimal buckets partition data to minimize intra-bucket variance (SSE). Bucket frequency counts vary dynamically to optimize error reduction.
+
+The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors (SSE). The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
+
+#### A. Column `id` Frequency Bucket Boundaries ($N=3000$, $B=20$)
+| Bucket # | Value Interval (`id`) | Frequency Count ($n_i$) |
+| :---: | :---: | :---: |
+| Bucket 01 | [`197` - `130,726`] | 162 |
+| Bucket 02 | [`132,128` - `264,204`] | 171 |
+| Bucket 03 | [`269,581` - `404,155`] | 179 |
+| Bucket 04 | [`406,915` - `538,304`] | 161 |
+| Bucket 05 | [`542,354` - `667,821`] | 141 |
+| Bucket 06 | [`668,815` - `788,223`] | 129 |
+| Bucket 07 | [`791,366` - `902,286`] | 129 |
+| Bucket 08 | [`904,088` - `1,026,697`] | 138 |
+| Bucket 09 | [`1,028,382` - `1,161,395`] | 170 |
+| Bucket 10 | [`1,164,157` - `1,297,392`] | 151 |
+| Bucket 11 | [`1,298,484` - `1,426,386`] | 166 |
+| Bucket 12 | [`1,428,016` - `1,547,072`] | 176 |
+| Bucket 13 | [`1,549,808` - `1,674,620`] | 134 |
+| Bucket 14 | [`1,679,481` - `1,808,283`] | 153 |
+| Bucket 15 | [`1,813,888` - `1,938,495`] | 138 |
+| Bucket 16 | [`1,939,500` - `2,062,177`] | 159 |
+| Bucket 17 | [`2,063,131` - `2,185,305`] | 144 |
+| Bucket 18 | [`2,186,749` - `2,302,858`] | 153 |
+| Bucket 19 | [`2,305,143` - `2,411,310`] | 118 |
+| Bucket 20 | [`2,412,939` - `2,522,416`] | 128 |
+
+#### B. Column `title` Frequency Bucket Boundaries ($N=3000$, $B=20$)
+| Bucket # | Value Interval (`title`) | Frequency Count ($n_i$) |
+| :---: | :--- | :---: |
+| Bucket 01 | [`"#7.1: Festival of the Hun"` - `"(323) Graffiti6"`] | 848 |
+| Bucket 02 | [`"...And a Good Slopping Out"` - `"38. dag"`] | 19 |
+| Bucket 03 | [`"404"` - `"99 Pieces"`] | 7 |
+| Bucket 04 | [`"A Bachelor's Babies"` - `"Ayaash"`] | 169 |
+| Bucket 05 | [`"BYTI - zivotni filosofie "` - `"Cyber-Raptors"`] | 234 |
+| Bucket 06 | [`"DMV"` - `"Dynowarz: Destruction of "`"] | 123 |
+| Bucket 07 | [`"ESPN Cheats Center"` - `"Futotta kimi to yaseta bo"`] | 141 |
+| Bucket 08 | [`"Födelsedag"` - `"Hush Girls Vacation Winte"`] | 133 |
+| Bucket 09 | [`"Hús vétkek"` - `"Jy Harris"`] | 109 |
+| Bucket 10 | [`"K.L.U"` - `"Luz del Fuego"`] | 181 |
+| Bucket 11 | [`"Láska rohatá"` - `"Nuretsuzuketa onna: Suits"`] | 165 |
+| Bucket 12 | [`"O Barato é Ser Careta"` - `"Qytetet ilire"`] | 162 |
+| Bucket 13 | [`"RKO Victory Special No. 3"` - `"Szép kis buli volt"`] | 229 |
+| Bucket 14 | [`"Så Här Är Det Nu"` - `"Urzulei"`] | 344 |
+| Bucket 15 | [`"Vaarwel"` - `"X Games 3D: The Movie"`] | 105 |
+| Bucket 16 | [`"Yog, Monster from Space"` - `"Zwembad"`] | 21 |
+| Bucket 17 | [`"desAliento"` - `"iDate Christ"`] | 2 |
+| Bucket 18 | [`"¡Eglantina sexy in stgo.!"` - `"¡Eglantina sexy in stgo.!"`] | 1 |
+| Bucket 19 | [`"¿Ligamos mucho los españo"` - `"Âme belge"`] | 3 |
+| Bucket 20 | [`"Ørkenens juvel"` - `"Übers Ziel hinaus"`] | 4 |
+
 
 ### 4. Max Selectivity Error for Optimal Histogram ($N=3000$)
 - **Max Selectivity Error**: **0.003169**
