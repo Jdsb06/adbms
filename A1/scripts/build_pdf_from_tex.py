@@ -47,7 +47,6 @@ def process_inline(text, escape_all_backslash=False):
     return ''.join(res)
 
 def clean_table_line(tline):
-    # Replace pipes inside math expressions $...$ or escaped \| with \vert before splitting row by |
     def replace_math_pipe(m):
         return m.group(0).replace('|', r'\vert ')
     tline = re.sub(r'\$.*?\$', replace_math_pipe, tline)
@@ -66,7 +65,7 @@ def md_to_tex(md_file, tex_file, is_log_file=False):
     tex_out.append(r'''\documentclass[11pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[margin=0.85in]{geometry}
+\usepackage[margin=0.75in]{geometry}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -77,6 +76,10 @@ def md_to_tex(md_file, tex_file, is_log_file=False):
 \usepackage{xcolor}
 \usepackage{float}
 \usepackage{enumitem}
+
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
 
 \graphicspath{{../plots/}{./plots/}{plots/}}
 
@@ -159,9 +162,22 @@ def md_to_tex(md_file, tex_file, is_log_file=False):
                     body = rows[1:]
 
                 num_cols = len(header)
-                col_spec = ' | '.join(['X' if i == len(header)-1 or i == 1 else 'l' for i in range(num_cols)])
+
+                # Format column specification dynamically based on table width
+                if num_cols >= 6:
+                    # Wide tables (e.g. 6 or 7 columns like Quantile Table)
+                    col_spec = ' | '.join(['C' for _ in range(num_cols)])
+                    font_cmd = r'\footnotesize' + '\n' + r'\setlength{\tabcolsep}{3.5pt}' + '\n'
+                elif num_cols == 3:
+                    # 3-column tables (e.g. Bucket Boundary tables)
+                    col_spec = 'l | C | C'
+                    font_cmd = r'\small' + '\n' + r'\setlength{\tabcolsep}{5pt}' + '\n'
+                else:
+                    # General 4 or 5 column tables
+                    col_spec = ' | '.join(['C' for _ in range(num_cols)])
+                    font_cmd = r'\small' + '\n' + r'\setlength{\tabcolsep}{4pt}' + '\n'
                 
-                tex_out.append(r'\small' + '\n')
+                tex_out.append(r'{\begingroup' + '\n' + font_cmd)
                 tex_out.append(r'\begin{xltabular}{\textwidth}{' + col_spec + r'}' + '\n')
                 tex_out.append(r'\toprule' + '\n')
                 
@@ -178,7 +194,7 @@ def md_to_tex(md_file, tex_file, is_log_file=False):
                     row_str = ' & '.join(row_cells) + r' \\' + '\n'
                     tex_out.append(row_str)
 
-                tex_out.append(r'\end{xltabular}' + '\n\n')
+                tex_out.append(r'\end{xltabular}' + '\n' + r'\endgroup}' + '\n\n')
                 table_lines = []
                 in_table = False
 

@@ -1,7 +1,7 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[margin=0.85in]{geometry}
+\usepackage[margin=0.75in]{geometry}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -12,6 +12,10 @@
 \usepackage{xcolor}
 \usepackage{float}
 \usepackage{enumitem}
+
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
 
 \graphicspath{{../plots/}{./plots/}{plots/}}
 
@@ -68,8 +72,10 @@
 
 \subsubsection{Table Cardinalities \& Primary Keys}
 
+{\begingroup
 \small
-\begin{xltabular}{\textwidth}{l | X | X}
+\setlength{\tabcolsep}{5pt}
+\begin{xltabular}{\textwidth}{l | C | C}
 \toprule
 \textbf{Table Name} & \textbf{Primary Key Column} & \textbf{Cardinality (\texttt{count(*)})} \\
 \midrule
@@ -105,6 +111,7 @@
 \texttt{role\_type} & \texttt{id} & 12 \\
 \texttt{title} & \texttt{id} & 2,528,312 \\
 \end{xltabular}
+\endgroup}
 
 
 \hrule
@@ -164,8 +171,10 @@ textual attribute “title” is put into histogram as:
 \subsubsection{5. Exact Bucket Boundaries List (From \texttt{pg\_stats})}
 
 \paragraph{A. Column \texttt{id} Bucket Boundaries (101 values, 100 buckets)}
+{\begingroup
 \small
-\begin{xltabular}{\textwidth}{l | X | X}
+\setlength{\tabcolsep}{5pt}
+\begin{xltabular}{\textwidth}{l | C | C}
 \toprule
 \textbf{Bucket Index} & \textbf{Boundary Value (\texttt{id})} & \textbf{Bucket Interval} \\
 \midrule
@@ -281,11 +290,14 @@ B098 & \texttt{2479928} & Bucket 98: [\texttt{2452338} - \texttt{2479928}] \\
 B099 & \texttt{2505988} & Bucket 99: [\texttt{2479928} - \texttt{2505988}] \\
 B100 & \texttt{2528305} & Bucket 100: [\texttt{2505988} - \texttt{2528305}] \\
 \end{xltabular}
+\endgroup}
 
 
 \paragraph{B. Column \texttt{title} Bucket Boundaries (101 values, 100 buckets)}
+{\begingroup
 \small
-\begin{xltabular}{\textwidth}{l | X | X}
+\setlength{\tabcolsep}{5pt}
+\begin{xltabular}{\textwidth}{l | C | C}
 \toprule
 \textbf{Bucket Index} & \textbf{Boundary Value (\texttt{title})} & \textbf{Lexicographical Interval} \\
 \midrule
@@ -401,6 +413,7 @@ B098 & \texttt{Who Needs Sex Therapy?} & Bucket 98: [\texttt{Watashi no ibasho} 
 B099 & \texttt{Yasmina} & Bucket 99: [\texttt{Who Needs Sex Therapy?} - \texttt{Yasmina}] \\
 B100 & \texttt{Zzzzzz} & Bucket 100: [\texttt{Yasmina} - \texttt{Zzzzzz}] \\
 \end{xltabular}
+\endgroup}
 
 
 \subsubsection{6. Histogram Visualization}
@@ -520,8 +533,10 @@ The optimal serial histogram algorithm partitions the 3,000 samples into 20 dyna
 
 
 \paragraph{A. Column \texttt{id} Frequency Bucket Boundaries ($N=3000$, $B=20$)}
+{\begingroup
 \small
-\begin{xltabular}{\textwidth}{l | X | X}
+\setlength{\tabcolsep}{5pt}
+\begin{xltabular}{\textwidth}{l | C | C}
 \toprule
 \textbf{Bucket \#} & \textbf{Value Interval (\texttt{id})} & \textbf{Frequency Count ($n_i$)} \\
 \midrule
@@ -556,11 +571,14 @@ Bucket 18 & [\texttt{2,137,263} - \texttt{2,272,201}] & 160 \\
 Bucket 19 & [\texttt{2,273,708} - \texttt{2,407,008}] & 153 \\
 Bucket 20 & [\texttt{2,407,834} - \texttt{2,528,054}] & 153 \\
 \end{xltabular}
+\endgroup}
 
 
 \paragraph{B. Column \texttt{title} Frequency Bucket Boundaries ($N=3000$, $B=20$)}
+{\begingroup
 \small
-\begin{xltabular}{\textwidth}{l | X | X}
+\setlength{\tabcolsep}{5pt}
+\begin{xltabular}{\textwidth}{l | C | C}
 \toprule
 \textbf{Bucket \#} & \textbf{Value Interval (\texttt{title})} & \textbf{Frequency Count ($n_i$)} \\
 \midrule
@@ -595,6 +613,7 @@ Bucket 18 & [\texttt{"Ya vozhatyy forposta"} - \texttt{"Zwischen uns beiden"}] &
 Bucket 19 & [\texttt{"¿Diana en peligro?"} - \texttt{"Åsa-Nisse i kronans kläde"}] & 3 \\
 Bucket 20 & [\texttt{"Ôjo-sama to eiyû"} - \texttt{"Öbergs på Lillöga"}] & 2 \\
 \end{xltabular}
+\endgroup}
 
 
 \subsubsection{4. Max Selectivity Error for Optimal Histogram ($N=3000$)}
@@ -636,8 +655,10 @@ Bucket 20 & [\texttt{"Ôjo-sama to eiyû"} - \texttt{"Öbergs på Lillöga"}] & 
 
 
 \paragraph{B. Quantile-by-Quantile Error Evaluation Table ($N=3000, B=20$)}
-\small
-\begin{xltabular}{\textwidth}{l | X | l | l | l | l | X}
+{\begingroup
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{xltabular}{\textwidth}{C | C | C | C | C | C | C}
 \toprule
 \textbf{Index ($k$)} & \textbf{Query Threshold ($q_k$)} & \textbf{Actual Count ($A$)} & \textbf{Actual Selectivity ($S_{\text{act}}$)} & \textbf{Estimated Count ($E$)} & \textbf{Estimated Selectivity ($S_{\text{est}}$)} & \textbf{Absolute Error $\vert S_{\text{est}} - S_{\text{act}} \vert$} \\
 \midrule
@@ -662,6 +683,7 @@ $q_7$ & \texttt{1,966,321.3} & 2345 & 0.781667 & 2335.25 & 0.778417 & 0.003250 \
 $q_8$ & \texttt{2,247,187.7} & 2669 & 0.889667 & 2664.34 & 0.888114 & 0.001553 \\
 $q_9$ & \texttt{2,528,054.0} & 3000 & 1.000000 & 3000.00 & 1.000000 & 0.000000 \\
 \end{xltabular}
+\endgroup}
 
 
 \subsubsection{5. Histograms Across Sample Sizes ($N = 1000$ and $N = 3000$)}
@@ -696,8 +718,10 @@ Below are the optimal serial histogram visualizations ($B=20$) for both sample s
 \end{figure}
 
 \paragraph{C. Summary Table Across Sample Sizes}
+{\begingroup
 \small
-\begin{xltabular}{\textwidth}{l | X | l | X}
+\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\textwidth}{C | C | C | C}
 \toprule
 \textbf{Sample Size ($N$)} & \textbf{Build Time (\texttt{id})} & \textbf{Build Time (\texttt{title})} & \textbf{Max Selectivity Error} \\
 \midrule
@@ -715,6 +739,7 @@ Below are the optimal serial histogram visualizations ($B=20$) for both sample s
 \textbf{3000} & 0.8290s & 0.8240s & 0.003720 \\
 \textbf{5000} & 2.1767s & 2.0974s & 0.002471 \\
 \end{xltabular}
+\endgroup}
 
 
 \hrule
@@ -741,8 +766,10 @@ To extrapolate the construction build time for the entire \texttt{title} table (
 \end{itemize}
 
 \paragraph{C. Deviations \& Sum of Products}
-\small
-\begin{xltabular}{\textwidth}{l | X | l | l | l | X}
+{\begingroup
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{xltabular}{\textwidth}{C | C | C | C | C | C}
 \toprule
 \textbf{$N_i$} & \textbf{$T_i$ (s)} & \textbf{$(N_i - \bar{N})$} & \textbf{$(T_i - \bar{T})$} & \textbf{$(N_i - \bar{N})^2$} & \textbf{$(N_i - \bar{N})(T_i - \bar{T})$} \\
 \midrule
@@ -761,6 +788,7 @@ To extrapolate the construction build time for the entire \texttt{title} table (
 5000 & 2.1767 & +2000 & 1.1084 & 4,000,000 & 2216.7320 \\
 \textbf{Sum} &  &  &  & \textbf{8,000,000} & \textbf{3954.7358} \\
 \end{xltabular}
+\endgroup}
 
 
 \paragraph{D. Slope ($m$) and Intercept ($c$) Formulas}
