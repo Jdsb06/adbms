@@ -2,32 +2,61 @@ import os
 import re
 import subprocess
 
-def escape_latex(text):
-    """Escapes special LaTeX characters in plain text while preserving TeX commands and math."""
+def fix_math_subscripts(text):
+    """Fix math subscript notations."""
+    text = re.sub(r'S_\{+act\}+', r'S_{\\text{act}}', text)
+    text = re.sub(r'S_\{+est\}+', r'S_{\\text{est}}', text)
+    return text
+
+def process_inline(text, escape_all_backslash=False):
+    """Escapes special LaTeX characters in plain text while preserving LaTeX math and inline formatting."""
+    text = fix_math_subscripts(text)
+    
+    if escape_all_backslash:
+        s = text
+        s = s.replace('\\', r'\textbackslash{}')
+        s = s.replace('&', r'\&')
+        s = s.replace('%', r'\%')
+        s = s.replace('#', r'\#')
+        s = s.replace('_', r'\_')
+        s = s.replace('~', r'\textasciitilde{}')
+        s = s.replace('^', r'\textasciicircum{}')
+        s = re.sub(r'`(.*?)`', r'\\texttt{\1}', s)
+        s = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', s)
+        return s
+
     # Split text into math segments ($...$ or $$...$$) and plain text
     parts = re.split(r'(\$\$.*?\$\$|\$.*?\$)', text, flags=re.DOTALL)
     res = []
     for p in parts:
         if p.startswith('$') and p.endswith('$'):
-            # Math block - preserve math
-            # Replace unescaped % inside math if any
             m = p
+            m = re.sub(r'(?<!\\)%', r'\%', m)
             res.append(m)
         else:
             s = p
+            # Escape TeX characters in non-math text
+            s = s.replace('\\', r'\textbackslash{}')
             s = s.replace('&', r'\&')
             s = s.replace('%', r'\%')
             s = s.replace('#', r'\#')
             s = s.replace('_', r'\_')
+            s = s.replace('~', r'\textasciitilde{}')
+            s = s.replace('^', r'\textasciicircum{}')
+            # Convert backticks to \texttt{} and **bold** to \textbf{}
+            s = re.sub(r'`(.*?)`', r'\\texttt{\1}', s)
+            s = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', s)
             res.append(s)
     return ''.join(res)
 
-def md_to_tex(md_file, tex_file):
+def md_to_tex(md_file, tex_file, is_log_file=False):
     with open(md_file, 'r', encoding='utf-8', errors='ignore') as f:
         content = f.read()
 
     lines = content.splitlines()
     tex_out = []
+
+    doc_title = "ADBMS LLM Conversation Log" if is_log_file else "Advanced Database Management Systems (ADBMS)\\\\[0.5em] \\Large Assignment 0 \\& Assignment 1: Histogram Analysis Report"
 
     tex_out.append(r'''\documentclass[11pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
@@ -42,6 +71,8 @@ def md_to_tex(md_file, tex_file):
 \usepackage{xcolor}
 \usepackage{float}
 \usepackage{enumitem}
+
+\graphicspath{{../plots/}{./plots/}{plots/}}
 
 \hypersetup{
     colorlinks=true,
@@ -62,7 +93,7 @@ def md_to_tex(md_file, tex_file):
     stringstyle=\color{orange}
 }
 
-\title{\textbf{Advanced Database Management Systems (ADBMS)}\\[0.5em] \Large Assignment 0 \& Assignment 1: Histogram Analysis Report}
+\title{\textbf{''' + doc_title + r'''}}
 \author{\textbf{IIIT Bangalore}}
 \date{\today}
 
@@ -81,7 +112,7 @@ def md_to_tex(md_file, tex_file):
     for line in lines:
         stripped = line.strip()
 
-        # Handle Code blocks
+        # Code blocks
         if stripped.startswith('```'):
             if in_code:
                 code_text = '\n'.join(code_lines)
@@ -97,11 +128,11 @@ def md_to_tex(md_file, tex_file):
             code_lines.append(line)
             continue
 
-        # Handle HTML comment lines
+        # HTML comments
         if stripped.startswith('<!--') and stripped.endswith('-->'):
             continue
 
-        # Handle Markdown Tables
+        # Markdown Tables
         if stripped.startswith('|') and stripped.endswith('|'):
             table_lines.append(stripped)
             in_table = True
@@ -126,20 +157,12 @@ def md_to_tex(md_file, tex_file):
                 tex_out.append(r'\begin{table}[H]' + '\n' + r'\centering' + '\n' + r'\small' + '\n')
                 tex_out.append(r'\begin{tabularx}{\textwidth}{' + col_spec + r'}' + '\n' + r'\toprule' + '\n')
                 
-                header_cells = []
-                for h in header:
-                    h_text = escape_latex(h)
-                    h_text = re.sub(r'`(.*?)`', r'\\texttt{\1}', h_text)
-                    header_cells.append(r'\textbf{' + h_text + '}')
+                header_cells = [r'\textbf{' + process_inline(h, is_log_file) + '}' for h in header]
                 header_str = ' & '.join(header_cells) + r' \\' + '\n' + r'\midrule' + '\n'
                 tex_out.append(header_str)
 
                 for row in body:
-                    row_cells = []
-                    for cell in row:
-                        c_text = escape_latex(cell)
-                        c_text = re.sub(r'`(.*?)`', r'\\texttt{\1}', c_text)
-                        row_cells.append(c_text)
+                    row_cells = [process_inline(cell, is_log_file) for cell in row]
                     row_str = ' & '.join(row_cells) + r' \\' + '\n'
                     tex_out.append(row_str)
 
@@ -147,60 +170,57 @@ def md_to_tex(md_file, tex_file):
                 table_lines = []
                 in_table = False
 
-        # Handle Images
+        # Images
         img_match = re.match(r'^!\[(.*?)\]\((.*?)\)', stripped)
         if img_match:
-            alt_text = escape_latex(img_match.group(1))
+            alt_text = process_inline(img_match.group(1), is_log_file)
             img_rel_path = img_match.group(2)
-            img_path = img_rel_path.replace('../plots/', '../plots/').replace('plots/', '../plots/')
-            if not img_path.startswith('../'):
-                img_path = '../' + img_path
-                
+            filename = os.path.basename(img_rel_path)
+            
             tex_out.append(r'\begin{figure}[H]' + '\n' + r'\centering' + '\n')
-            tex_out.append(r'\includegraphics[width=0.85\textwidth]{' + img_path + r'}' + '\n')
+            tex_out.append(r'\includegraphics[width=0.85\textwidth]{' + filename + r'}' + '\n')
             tex_out.append(r'\caption{' + alt_text + r'}' + '\n')
             tex_out.append(r'\end{figure}' + '\n')
             continue
 
-        # Handle Headings
+        # Headings - Regex extraction to keep entire title string intact
         if stripped.startswith('# '):
             if in_list:
                 tex_out.append(r'\end{itemize}' + '\n')
                 in_list = False
-            tex_out.append(r'\section{' + escape_latex(stripped[2:]) + r'}' + '\n')
+            title_text = re.sub(r'^#\s+', '', stripped)
+            tex_out.append(r'\section{' + process_inline(title_text, is_log_file) + r'}' + '\n')
             continue
         elif stripped.startswith('## '):
             if in_list:
                 tex_out.append(r'\end{itemize}' + '\n')
                 in_list = False
-            tex_out.append(r'\subsection{' + escape_latex(stripped[4:]) + r'}' + '\n')
+            title_text = re.sub(r'^##\s+', '', stripped)
+            tex_out.append(r'\subsection{' + process_inline(title_text, is_log_file) + r'}' + '\n')
             continue
         elif stripped.startswith('### '):
             if in_list:
                 tex_out.append(r'\end{itemize}' + '\n')
                 in_list = False
-            tex_out.append(r'\subsubsection{' + escape_latex(stripped[5:]) + r'}' + '\n')
+            title_text = re.sub(r'^###\s+', '', stripped)
+            tex_out.append(r'\subsubsection{' + process_inline(title_text, is_log_file) + r'}' + '\n')
             continue
         elif stripped.startswith('#### '):
             if in_list:
                 tex_out.append(r'\end{itemize}' + '\n')
                 in_list = False
-            tex_out.append(r'\paragraph{' + escape_latex(stripped[6:]) + r'}' + '\n')
+            title_text = re.sub(r'^####\s+', '', stripped)
+            tex_out.append(r'\paragraph{' + process_inline(title_text, is_log_file) + r'}' + '\n')
             continue
 
-        # Handle Lists
+        # Lists
         if stripped.startswith('- ') or stripped.startswith('* '):
             if not in_list:
                 tex_out.append(r'\begin{itemize}' + '\n')
                 in_list = True
-            item_text = escape_latex(stripped[2:])
-            item_text = re.sub(r'`(.*?)`', r'\\texttt{\1}', item_text)
-            item_text = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', item_text)
-            tex_out.append(r'\item ' + item_text + '\n')
+            item_text = stripped[2:]
+            tex_out.append(r'\item ' + process_inline(item_text, is_log_file) + '\n')
             continue
-        elif in_list and not stripped:
-            tex_out.append(r'\end{itemize}' + '\n')
-            in_list = False
 
         if not stripped:
             if in_list:
@@ -211,14 +231,25 @@ def md_to_tex(md_file, tex_file):
 
         # Horizontal Rule
         if stripped == '---':
+            if in_list:
+                tex_out.append(r'\end{itemize}' + '\n')
+                in_list = False
             tex_out.append(r'\hrule' + '\n\n')
             continue
 
+        # Standalone Block Math ($$ ... $$)
+        if not is_log_file and stripped.startswith('$$') and stripped.endswith('$$'):
+            if in_list:
+                tex_out.append(r'\end{itemize}' + '\n')
+                in_list = False
+            math_body = stripped[2:-2].strip()
+            math_body = fix_math_subscripts(math_body)
+            math_body = re.sub(r'(?<!\\)%', r'\%', math_body)
+            tex_out.append(r'\[ ' + math_body + r' \]' + '\n\n')
+            continue
+
         # Paragraph text
-        para_text = escape_latex(stripped)
-        para_text = re.sub(r'`(.*?)`', r'\\texttt{\1}', para_text)
-        para_text = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', para_text)
-        tex_out.append(para_text + '\n\n')
+        tex_out.append(process_inline(stripped, is_log_file) + '\n\n')
 
     if in_list:
         tex_out.append(r'\end{itemize}' + '\n')
@@ -245,16 +276,16 @@ def compile_pdf(tex_file):
     else:
         print(f"Error compiling PDF for {tex_file}. Check LaTeX log.")
         stdout_str = cmd.stdout.decode('utf-8', errors='replace')
-        print(stdout_str[-800:])
+        print(stdout_str[-1200:])
 
 if __name__ == '__main__':
     md_path = 'reports/Assignment_Report.md'
     tex_path = 'reports/Assignment_Report.tex'
-    md_to_tex(md_path, tex_path)
+    md_to_tex(md_path, tex_path, is_log_file=False)
     compile_pdf(tex_path)
 
     llm_md = 'reports/LLM_Conversations.md'
     llm_tex = 'reports/LLM_Conversations.tex'
     if os.path.exists(llm_md):
-        md_to_tex(llm_md, llm_tex)
+        md_to_tex(llm_md, llm_tex, is_log_file=True)
         compile_pdf(llm_tex)

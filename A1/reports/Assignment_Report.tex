@@ -12,6 +12,8 @@
 \usepackage{float}
 \usepackage{enumitem}
 
+\graphicspath{{../plots/}{./plots/}{plots/}}
+
 \hypersetup{
     colorlinks=true,
     linkcolor=blue,
@@ -31,7 +33,7 @@
     stringstyle=\color{orange}
 }
 
-\title{\textbf{Advanced Database Management Systems (ADBMS)}\\[0.5em] \Large Assignment 0 \& Assignment 1: Histogram Analysis Report}
+\title{\textbf{Advanced Database Management Systems (ADBMS)\\[0.5em] \Large Assignment 0 \& Assignment 1: Histogram Analysis Report}}
 \author{\textbf{IIIT Bangalore}}
 \date{\today}
 
@@ -40,14 +42,14 @@
 \tableofcontents
 \newpage
 \section{Advanced Database Management Systems (ADBMS)}
-\subsection{ssignment 0 \& Assignment 1: Histogram Analysis Report}
+\subsection{Assignment 0 \& Assignment 1: Histogram Analysis Report}
 
 \hrule
 
 
 \section{Assignment 0}
 
-\subsection{etup}
+\subsection{Setup}
 \begin{itemize}
 \item \textbf{CPU Model \& Specification}: 13th Gen Intel(R) Core(TM) i3-1315U (6 cores, 8 threads)
 \item \textbf{RAM Capacity}: 14 GiB
@@ -56,14 +58,14 @@
 \item \textbf{PostgreSQL Engine Version}: \texttt{PostgreSQL 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1) on x86\_64-pc-linux-gnu, compiled by gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0, 64-bit}
 \end{itemize}
 
-\subsection{atabase}
+\subsection{Database}
 \begin{itemize}
 \item \textbf{Database Name}: Join Order Benchmark (2013 Snapshot)
 \item \textbf{Total Tables}: 21
 \item \textbf{Total Relational Tuples}: 74,190,187
 \end{itemize}
 
-\subsubsection{able Cardinalities \& Primary Keys}
+\subsubsection{Table Cardinalities \& Primary Keys}
 
 \begin{table}[H]
 \centering
@@ -102,9 +104,9 @@
 
 \section{Assignment 1: Histogram}
 
-\subsection{1. Histogram Analysis for `id` and `title` Columns of `title` Table}
+\subsection{Q1. Histogram Analysis for \texttt{id} and \texttt{title} Columns of \texttt{title} Table}
 
-\subsubsection{. Corresponding SQL Query}
+\subsubsection{1. Corresponding SQL Query}
 to see what all colums needed form `pg\_stats'
 
 \begin{lstlisting}
@@ -125,11 +127,11 @@ WHERE tablename = 'title'
   AND attname IN ('id', 'title');
 \end{lstlisting}
 
-\subsubsection{. Kind of Histogram}
+\subsubsection{2. Kind of Histogram}
 PSQL uses an Equi Depth Histogram combined with a Most Common Values list. In an equidepth histogram, all buckets contain approximately the same number of rows ($approx N / B$), while bucket boundaries vary in width according to data distribution.
 
 
-\subsubsection{. Number of Buckets}
+\subsubsection{3. Number of Buckets}
 \begin{itemize}
 \item Column \texttt{id}: \textbf{100 buckets} (101 bucket boundary values)
 \item Column \texttt{title}: \textbf{100 buckets} (101 bucket boundary values)
@@ -138,7 +140,7 @@ PSQL uses an Equi Depth Histogram combined with a Most Common Values list. In an
 SHOW default_statistics_target;
 \end{lstlisting}
 \end{itemize}
-\subsubsection{. How Textual Attribute `title` is Put into Histogram}
+\subsubsection{4. How Textual Attribute \texttt{title} is Put into Histogram}
 Textual attributes in PostgreSQL are converted into histograms by:
 
 1. sorting the text strings in lexicographical order like bannana and apple will be apple, bannana after sorting
@@ -150,9 +152,9 @@ Textual attributes in PostgreSQL are converted into histograms by:
 4. Selecting quantile boundary string values at equal percentile intervals to form the 100 equi-depth bucket boundaries stored in \texttt{pg\_stats.histogram\_bounds}.
 
 
-\subsubsection{. Exact Bucket Boundaries List (From `pg\_stats`)}
+\subsubsection{5. Exact Bucket Boundaries List (From \texttt{pg\_stats})}
 
-\paragraph{. Column `id` Bucket Boundaries (101 values, 100 buckets)}
+\paragraph{A. Column \texttt{id} Bucket Boundaries (101 values, 100 buckets)}
 \begin{table}[H]
 \centering
 \small
@@ -265,7 +267,7 @@ B100 & \texttt{2528305} & Bucket 100: [\texttt{2505988} - \texttt{2528305}] \\
 \end{tabularx}
 \end{table}
 
-\paragraph{. Column `title` Bucket Boundaries (101 values, 100 buckets)}
+\paragraph{B. Column \texttt{title} Bucket Boundaries (101 values, 100 buckets)}
 \begin{table}[H]
 \centering
 \small
@@ -332,8 +334,8 @@ B055 & \texttt{Jindalee Lady} & Bucket 55: [\texttt{Is There Still Hope for Gino
 B056 & \texttt{Karina} & Bucket 56: [\texttt{Jindalee Lady} - \texttt{Karina}] \\
 B057 & \texttt{Know Thy Partner} & Bucket 57: [\texttt{Karina} - \texttt{Know Thy Partner}] \\
 B058 & \texttt{Ladrones de niños} & Bucket 58: [\texttt{Know Thy Partner} - \texttt{Ladrones de niños}] \\
-B059 & \texttt{Late as a Mother****er} & Bucket 59: [\texttt{Ladrones de niños} - \texttt{Late as a Mother****er}] \\
-B060 & \texttt{Les éperlans} & Bucket 60: [\texttt{Late as a Mother****er} - \texttt{Les éperlans}] \\
+B059 & \texttt{Late as a Mother\textbf{}er} & Bucket 59: [\texttt{Ladrones de niños} - \texttt{Late as a Mother\textbf{}er}] \\
+B060 & \texttt{Les éperlans} & Bucket 60: [\texttt{Late as a Mother\textbf{}er} - \texttt{Les éperlans}] \\
 B061 & \texttt{Living Room Upgrade} & Bucket 61: [\texttt{Les éperlans} - \texttt{Living Room Upgrade}] \\
 B062 & \texttt{Luha ng ina} & Bucket 62: [\texttt{Living Room Upgrade} - \texttt{Luha ng ina}] \\
 B063 & \texttt{Männer sind auch nur Menschen} & Bucket 63: [\texttt{Luha ng ina} - \texttt{Männer sind auch nur Menschen}] \\
@@ -378,32 +380,32 @@ B100 & \texttt{Zzzzzz} & Bucket 100: [\texttt{Yasmina} - \texttt{Zzzzzz}] \\
 \end{tabularx}
 \end{table}
 
-\subsubsection{. Histogram Visualization}
+\subsubsection{6. Histogram Visualization}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{../../plots/q1_histogram_id.png}
+\includegraphics[width=0.85\textwidth]{q1_histogram_id.png}
 \caption{Histogram for title.id}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{../../plots/q1_histogram_title.png}
+\includegraphics[width=0.85\textwidth]{q1_histogram_title.png}
 \caption{Histogram for title.title}
 \end{figure}
 
-\subsubsection{. Max Selectivity Error}
+\subsubsection{7. Max Selectivity Error}
 \begin{itemize}
 \item \textbf{Max Selectivity Error}: Since \texttt{default\_statistics\_target} is 100, there are 100 buckets. Therefore, the maximum selectivity error for a range query is bounded by:
 \end{itemize}
 
-$$\text{Max Error} \le \frac{1}{B} = \frac{1}{100} = 0.01 \quad (1.0\%)$$
+\[ \text{Max Error} \le \frac{1}{B} = \frac{1}{100} = 0.01 \quad (1.0\%) \]
 
 
 For evaluated queries(q9), the observed maximum selectivity error is \textbf{0.8364\%} (0.008364), which strictly satisfies $\text{Max Error} \le 1.0\%$.
 
 
 
-\subsubsection{: Selectivity Estimation for Text Columns}
+\subsubsection{8: Selectivity Estimation for Text Columns}
 
 Selectivity estimate is done for range query on text column such as “title” in PSQL such as:
 
@@ -415,7 +417,7 @@ Selectivity estimate is done for range query on text column such as “title” 
 \item \textbf{Linear Interpolation:} Assuming uniform distribution inside the target bucket, it calculates the target's position using:
 \end{itemize}
 
-$$\text{Fraction} = \frac{\text{Query Value} - \text{Bucket Min}}{\text{Bucket Max} - \text{Bucket Min}}$$
+\[ \text{Fraction} = \frac{\text{Query Value} - \text{Bucket Min}}{\text{Bucket Max} - \text{Bucket Min}} \]
 
 
 \begin{itemize}
@@ -425,7 +427,7 @@ $$\text{Fraction} = \frac{\text{Query Value} - \text{Bucket Min}}{\text{Bucket M
 \hrule
 
 
-\subsubsection{: Estimated vs. Actual Selectivities}
+\subsubsection{9: Estimated vs. Actual Selectivities}
 
 To calculate estimated and actual selectivities of the queries and moreover there accuracy we compare estimated rows (from \texttt{EXPLAIN}) against actual rows (from \texttt{EXPLAIN ANALYZE}).
 
@@ -438,14 +440,14 @@ Total row count ($N$) for the \texttt{title} table is 2,528,312.
 EXPLAIN ANALYZE SELECT * FROM title WHERE title.title < 'Race';
 \end{lstlisting}
 \begin{itemize}
-\item \textbf{Actual Selectivity:} The query physically returned 1,918,141 matching rows: $S_{act} = \frac{1918141}{2528312} \approx 0.7587$ (75.87\%).
+\item \textbf{Actual Selectivity:} The query physically returned 1,918,141 matching rows: $S_{\text{act}} = \frac{1918141}{2528312} \approx 0.7587$ (75.87\%).
 \end{itemize}
 
 \begin{lstlisting}
 EXPLAIN SELECT * FROM title WHERE title.title < 'Race';
 \end{lstlisting}
 \begin{itemize}
-\item \textbf{Estimated Selectivity:} The planner estimated 1,939,288 rows: $S_{est} = \frac{1939288}{2528312} \approx 0.7670$ (76.70\%).
+\item \textbf{Estimated Selectivity:} The planner estimated 1,939,288 rows: $S_{\text{est}} = \frac{1939288}{2528312} \approx 0.7670$ (76.70\%).
 \end{itemize}
 
 \begin{itemize}
@@ -458,14 +460,14 @@ EXPLAIN SELECT * FROM title WHERE title.title < 'Race';
 EXPLAIN ANALYZE SELECT * FROM title WHERE title.id < '350000';
 \end{lstlisting}
 \begin{itemize}
-\item \textbf{Actual Selectivity:} The query returned 349,999 matching rows: $S_{act} = \frac{349999}{2528312} \approx 0.1384$ (13.84\%).
+\item \textbf{Actual Selectivity:} The query returned 349,999 matching rows: $S_{\text{act}} = \frac{349999}{2528312} \approx 0.1384$ (13.84\%).
 \end{itemize}
 
 \begin{lstlisting}
 EXPLAIN SELECT * FROM title WHERE title.id < '350000';
 \end{lstlisting}
 \begin{itemize}
-\item \textbf{Estimated Selectivity:} The planner estimated 337,982 rows: $S_{est} = \frac{337982}{2528312} \approx 0.1337$ (13.37\%).
+\item \textbf{Estimated Selectivity:} The planner estimated 337,982 rows: $S_{\text{est}} = \frac{337982}{2528312} \approx 0.1337$ (13.37\%).
 \end{itemize}
 
 \begin{itemize}
@@ -473,9 +475,9 @@ EXPLAIN SELECT * FROM title WHERE title.id < '350000';
 \end{itemize}
 
 
-\subsection{2. Optimal Serial Histogram Construction ($B=20$ Buckets)}
+\subsection{Q2. Optimal Serial Histogram Construction ($B=20$ Buckets)}
 
-\subsubsection{. Histogram Visualizations for $N = 3000$ Samples (Horizontal Bar Plots)}
+\subsubsection{1. Histogram Visualizations for $N = 3000$ Samples (Horizontal Bar Plots)}
 *As specified in ques the histograms as a bar-plot with value-boundaries in the Y-axis and
 
 frequency in the X-axis*
@@ -483,27 +485,27 @@ frequency in the X-axis*
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{../../plots/q2_histogram_id_3000.png}
+\includegraphics[width=0.85\textwidth]{q2_histogram_id_3000.png}
 \caption{Optimal Serial Histogram for title.id (N=30000)}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{../../plots/q2_histogram_title_3000.png}
+\includegraphics[width=0.85\textwidth]{q2_histogram_title_3000.png}
 \caption{Optimal Serial Histogram for title.title (N=3000)}
 \end{figure}
 
-\subsubsection{. Execution Build Time}
+\subsubsection{2. Execution Build Time}
 \begin{itemize}
-\item for \textbf{$N=3000$}: \textbf{0.9947 seconds}
+\item for **$N=3000$\textbf{: }0.9947 seconds**
 \end{itemize}
 
-\subsubsection{. Frequency Bucket Boundaries ($N=3000$, $B=20$)}
+\subsubsection{3. Frequency Bucket Boundaries ($N=3000$, $B=20$)}
 
 The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors (SSE). The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
 
 
-\paragraph{. Column `id` Frequency Bucket Boundaries ($N=3000$, $B=20$)}
+\paragraph{A. Column \texttt{id} Frequency Bucket Boundaries ($N=3000$, $B=20$)}
 \begin{table}[H]
 \centering
 \small
@@ -535,7 +537,7 @@ Bucket 20 & [\texttt{2,412,939} - \texttt{2,522,416}] & 128 \\
 \end{tabularx}
 \end{table}
 
-\paragraph{. Column `title` Frequency Bucket Boundaries ($N=3000$, $B=20$)}
+\paragraph{B. Column \texttt{title} Frequency Bucket Boundaries ($N=3000$, $B=20$)}
 \begin{table}[H]
 \centering
 \small
@@ -568,13 +570,13 @@ Bucket 20 & [\texttt{"Ørkenens juvel"} - \texttt{"Übers Ziel hinaus"}] & 4 \\
 \end{table}
 
 
-\subsubsection{. Max Selectivity Error for Optimal Histogram ($N=3000$)}
+\subsubsection{4. Max Selectivity Error for Optimal Histogram ($N=3000$)}
 \begin{itemize}
 \item \textbf{Max Selectivity Error}: \textbf{0.003169}
 \item \textbf{Calculation}: Computed across 10 evaluation range quantiles comparing optimal bucket cumulative frequency estimation against empirical sample distribution.
 \end{itemize}
 
-\subsubsection{. Timings Across Sample Sizes}
+\subsubsection{5. Timings Across Sample Sizes}
 \begin{table}[H]
 \centering
 \small
@@ -582,47 +584,47 @@ Bucket 20 & [\texttt{"Ørkenens juvel"} - \texttt{"Übers Ziel hinaus"}] & 4 \\
 \toprule
 \textbf{Sample Size ($N$)} & \textbf{Build Time (Seconds)} & \textbf{Max Selectivity Error} \\
 \midrule
-**1000** & 0.2078s & 0.003292 \\
-**3000** & 0.9947s & 0.003169 \\
-**5000** & 2.1934s & 0.002944 \\
+\textbf{1000} & 0.2078s & 0.003292 \\
+\textbf{3000} & 0.9947s & 0.003169 \\
+\textbf{5000} & 2.1934s & 0.002944 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\subsubsection{. Linear Regression Extrapolation for Full Table ($N = 2,528,312$)}
+\subsubsection{6. Linear Regression Extrapolation for Full Table ($N = 2,528,312$)}
 Using linear regression model $T(N) = m \cdot N + c$:
 
 \begin{itemize}
-\item \textbf{Slope ($m$)}: \texttt{0.00049640} seconds / sample
-\item \textbf{Intercept ($c$)}: \texttt{-0.357260} seconds
-\item \textbf{Extrapolated Time for Full Table ($N=2,528,312$)}:
+\item **Slope ($m$)**: \texttt{0.00049640} seconds / sample
+\item **Intercept ($c$)**: \texttt{-0.357260} seconds
+\item **Extrapolated Time for Full Table ($N=2,528,312$)**:
 \end{itemize}
 
-$$T(2528312) = (0.00049640 \times 2528312) + (-0.357260) = 1254.70 \text{ seconds} \quad (20.91 \text{ minutes})$$
+\[ T(2528312) = (0.00049640 \times 2528312) + (-0.357260) = 1254.70 \text{ seconds} \quad (20.91 \text{ minutes}) \]
 
 
 
 
-\subsubsection{. Sample Size vs Time Relationship Plot}
+\subsubsection{7. Sample Size vs Time Relationship Plot}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{../../plots/q2_sample_size_vs_time.png}
+\includegraphics[width=0.85\textwidth]{q2_sample_size_vs_time.png}
 \caption{Sample Size vs Time}
 \end{figure}
 
-\subsubsection{. Sample Size vs Max Selectivity Error Relationship Plot}
+\subsubsection{8. Sample Size vs Max Selectivity Error Relationship Plot}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{../../plots/q2_sample_size_vs_error.png}
+\includegraphics[width=0.85\textwidth]{q2_sample_size_vs_error.png}
 \caption{Sample Size vs Max Selectivity Error}
 \end{figure}
 
-\subsubsection{. Impact of Bucket Count ($B$) Choice}
+\subsubsection{9. Impact of Bucket Count ($B$) Choice}
 \begin{itemize}
-\item \textbf{Fewer Buckets (e.g., $B = 5$ or $10$)}:
+\item **Fewer Buckets (e.g., $B = 5$ or $10$)**:
 \item \textbf{Pros}: Lower memory footprint in system catalog, faster histogram build time ($O(B \cdot N^2)$ decreases), faster query optimization time.
 \item \textbf{Cons}: Coarser resolution, leading to higher selectivity estimation errors, especially for skewed or non-uniform data distributions.
-\item \textbf{More Buckets (e.g., $B = 50$ or $100$)}:
+\item **More Buckets (e.g., $B = 50$ or $100$)**:
 \item \textbf{Pros}: Finer granularity, significantly lower selectivity estimation error, highly accurate cost estimation for complex query joins.
 \item \textbf{Cons}: Higher histogram construction time, larger storage overhead in catalog, and slightly higher plan generation latency during query execution.
 \end{itemize}
