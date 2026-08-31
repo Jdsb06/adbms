@@ -166,7 +166,11 @@ def generate_assignment_report():
 ## Q1. Histogram Analysis for `id` and `title` Columns of `title` Table
 
 ### 1. Corresponding SQL Query
-To inspect PostgreSQL internal statistics and histogram boundary values stored in `pg_stats`:
+to see what all colums needed form `pg_stats'
+```sql
+\\d pg_stats;
+```
+to see histogram boundary values and other relevent  stored in `pg_stats`:
 ```sql
 SELECT 
     attname, 
@@ -181,17 +185,21 @@ WHERE tablename = 'title'
 ```
 
 ### 2. Kind of Histogram
-PostgreSQL uses an **Equi-Depth (Equi-Height) Histogram** combined with a **Most Common Values (MCV)** list. In an equi-depth histogram, all buckets contain approximately the same number of rows ($\approx N / B$), while bucket boundaries vary in width according to data distribution.
+PSQL uses an Equi Depth Histogram combined with a Most Common Values list. In an equidepth histogram, all buckets contain approximately the same number of rows ($approx N / B$), while bucket boundaries vary in width according to data distribution
 
 ### 3. Number of Buckets
 - Column `id`: **100 buckets** (101 bucket boundary values)
 - Column `title`: **100 buckets** (101 bucket boundary values)
+- extra -  to see the defualt number of buckets
+```sql
+SHOW default_statistics_target;
+```
 
 ### 4. How Textual Attribute `title` is Put into Histogram
-Textual attributes in PostgreSQL are converted into histograms by:
-1. Sorting the text strings in lexicographical order (using the database collation).
-2. Sampling string values from the table.
-3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation.
+textual attribute “title” is put into histogram as:
+1. sorting the text strings in lexicographical order like bannana and apple will be apple, bannana after sorting
+2. Sampling string values from the table like table title has around 2.5M rows , it will only sample around 30K
+3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation like laptop will be broken to lap with l = 108, a=97, p=112 then by 256 as between 0 and 1 , lap will be around 0.42 , we can then see where a key belongs between two keeys 
 4. Selecting quantile boundary string values at equal percentile intervals to form the 100 equi-depth bucket boundaries stored in `pg_stats.histogram_bounds`.
 
 ### 5. Exact Bucket Boundaries List (From `pg_stats`)
@@ -225,79 +233,57 @@ Textual attributes in PostgreSQL are converted into histograms by:
 
 ![Histogram for title.title](../plots/q1_histogram_title.png)
 
-### 7. Max Selectivity Error Calculation & Explanation
-
-#### A. Mathematical Definition
-- **Actual Selectivity ($S_{{act}}$)**: The exact fraction of rows matching the query predicate:
-  $$S_{{act}} = \\frac{{A}}{{N}}$$
-  where $A$ is actual row count from `count(*)`, and $N = {total_title:,}$ is total table rows.
-
-- **Estimated Selectivity ($S_{{est}}$)**: The fraction of rows predicted by PostgreSQL's query optimizer:
-  $$S_{{est}} = \\frac{{E}}{{N}}$$
-  where $E$ is estimated row count from `EXPLAIN`.
-
-- **Absolute Selectivity Error**:
-  $$\\text{{Error}} = |S_{{est}} - S_{{act}}| = \\left|\\frac{{E - A}}{{N}}\\right|$$
-
-#### B. Step-by-Step Calculation for Evaluated Queries
-
-1. **Query 1 (`title.title < 'Race'`)**:
-   - Actual Count ($A_1$): `{act_race_cnt:,}` $\\implies S_{{act,1}} = \\frac{{{act_race_cnt}}}{{{total_title}}} = \\mathbf{{{act_race_sel:.6f}}}$
-   - Estimated Count ($E_1$): `{est_race_cnt:,}` $\\implies S_{{est,1}} = \\frac{{{est_race_cnt}}}{{{total_title}}} = \\mathbf{{{est_race_sel:.6f}}}$
-   - **Absolute Error**: $|{est_race_sel:.6f} - {act_race_sel:.6f}| = \\mathbf{{{err_race:.6f}}}$ ({err_race*100:.4f}% absolute error, {(err_race/act_race_sel)*100:.2f}% relative error).
-
-2. **Query 2 (`title.id < 350000`)**:
-   - Actual Count ($A_2$): `{act_id_cnt:,}` $\\implies S_{{act,2}} = \\frac{{{act_id_cnt}}}{{{total_title}}} = \\mathbf{{{act_id_sel:.6f}}}$
-   - Estimated Count ($E_2$): `{est_id_cnt:,}` $\\implies S_{{est,2}} = \\frac{{{est_id_cnt}}}{{{total_title}}} = \\mathbf{{{est_id_sel:.6f}}}$
-   - **Absolute Error**: $|{est_id_sel:.6f} - {act_id_sel:.6f}| = \\mathbf{{{err_id:.6f}}}$ ({err_id*100:.4f}% absolute error, {(err_id/act_id_sel)*100:.2f}% relative error).
-
-3. **Max Selectivity Error**:
-   $$\\text{{Max Selectivity Error}} = \\max(\\text{{Error}}_1, \\text{{Error}}_2) = \\max({err_race:.6f}, {err_id:.6f}) = \\mathbf{{{max_err:.6f}}} \\quad (\\mathbf{{{max_err*100:.4f}\\%}})$$
-
-#### C. PostgreSQL Internal Histogram Interpolation Breakdown (for `id < 350000`)
-- Search constant: `350000`.
-- Locate enclosing bucket boundaries in `histogram_bounds`:
-  - `B013 = 340479`
-  - `B014 = 366364`
-- Value `350000` falls in **Bucket 14** ($[340479, 366364]$).
-- All 13 preceding buckets are fully included: $13 \\times \\frac{{1}}{{100}} = 0.130000$.
-- Linear interpolation inside Bucket 14:
-  $$\\text{{Fraction in B14}} = \\frac{{350000 - 340479}}{{366364 - 340479}} \\times \\frac{{1}}{{100}} = \\frac{{9521}}{{25885}} \\times 0.01 = 0.003678$$
-- Base histogram selectivity: $0.130000 + 0.003678 = 0.133678$.
-- Adjusted by non-null fraction $(1 - \\text{{null\\_frac}})$ yielding optimizer estimate $E_2 = 356,446$ ($S_{{est,2}} = 0.140982$).
+### 7. Max Selectivity Error
+- **Max Selectivity Error**: Since `default_statistics_target` is 100, there are 100 buckets. Therefore, the maximum selectivity error for a range query is bounded by:
+$$\\text{{Max Error}} \\le \\frac{{1}}{{B}} = \\frac{{1}}{{100}} = 0.01 \\quad (1.0\\%)$$
+For evaluated queries(q9), the observed maximum selectivity error is **{max_err*100:.4f}%** ({max_err:.6f}), which strictly satisfies $\\text{{Max Error}} \\le 1.0\\%$.
 
 ---
+### 8: Selectivity Estimation for Text Columns
+Selectivity estimate is done for range query on text column such as “title” in PSQL such as:
+*The engine scans the `histogram_bounds` array stored under pg_stats to locate the specific bucket where the target string  is, after that it counts all complete buckets preceding the target bucket. Each full bucket represents a fixed fraction of total rows (1/B). For the target bucket, PostgreSQL converts initial string bytes into floating-point numbers in $[0.0, 1.0]$ range for interpolation as explain in part 4,  assuming uniform distribution inside the target bucket, it calculates the target's position using:
 
-### 8. Selectivity Estimation for Text Range Queries (`title < 'Race'`)
-For range queries on text columns:
-1. PostgreSQL checks if the search string lies within `pg_stats.histogram_bounds`.
-2. It identifies the lower boundary $S_i$ and upper boundary $S_{{i+1}}$ enclosing the search target.
-3. It counts all buckets strictly preceding $S_i$ ($i \\times \\text{{bucket\\_weight}}$).
-4. It computes linear interpolation within $[S_i, S_{{i+1}}]$ using prefix byte character encoding.
-5. The sum is multiplied by $(1 - \\text{{null\\_frac}} - \\sum \\text{{MCV\\_freq}})$ to produce estimated selectivity.
+$$\\text{{Fraction}} = \\frac{{\\text{{Query Value}} - \\text{{Bucket Min}}}}{{\\text{{Bucket Max}} - \\text{{Bucket Min}}}}$$
+*   Final Calculation is done by adding the fractional bucket estimate to the sum of preceding full buckets to get the final estimated selectivity.
 
-### 9. Estimated and Actual Selectivities
+### 9: Estimated vs. Actual Selectivities
 
-#### Query 1: `SELECT * FROM title WHERE title.title < 'Race';`
-- **Actual Row Count**: {act_race_cnt:,}
-- **Actual Selectivity**: **{act_race_sel:.6f}** ({act_race_sel*100:.2f}%)
-- **Estimated Row Count**: {est_race_cnt:,}
-- **Estimated Selectivity**: **{est_race_sel:.6f}** ({est_race_sel*100:.2f}%)
-- **Selectivity Error**: **{err_race:.6f}** (Relative Error: **{(err_race/act_race_sel)*100:.2f}%**)
+To calculate estimated and actual selectivities of the queries and moreover there accuracy we compare estimated rows (from `EXPLAIN`) against actual rows (from `EXPLAIN ANALYZE`).
+Total row count ($N$) for the `title` table is {total_title:,}.
 
-#### Query 2: `SELECT * FROM title WHERE title.id < 350000;`
-- **Actual Row Count**: {act_id_cnt:,}
-- **Actual Selectivity**: **{act_id_sel:.6f}** ({act_id_sel*100:.2f}%)
-- **Estimated Row Count**: {est_id_cnt:,}
-- **Estimated Selectivity**: **{est_id_sel:.6f}** ({est_id_sel*100:.2f}%)
-- **Selectivity Error**: **{err_id:.6f}** (Relative Error: **{(err_id/act_id_sel)*100:.2f}%**)
+**Query 1: `title < 'Race'`**
+```sql 
+EXPLAIN ANALYZE SELECT * FROM title WHERE title.title < 'Race';
+```
+- **Actual Selectivity:** The query physically returned {act_race_cnt:,} matching rows: $S_{{act}} = \\frac{{{act_race_cnt}}}{{{total_title}}} \\approx {act_race_sel:.4f}$ ({act_race_sel*100:.2f}%).
+
+```sql
+EXPLAIN SELECT * FROM title WHERE title.title < 'Race';
+```
+- **Estimated Selectivity:** The planner estimated {est_race_cnt:,} rows: $S_{{est}} = \\frac{{{est_race_cnt}}}{{{total_title}}} \\approx {est_race_sel:.4f}$ ({est_race_sel*100:.2f}%).
+
+- **Observation:** The absolute error is roughly {err_race*100:.2f}%.
+
+**Query 2: `id < 350000`**
+```sql
+EXPLAIN ANALYZE SELECT * FROM title WHERE title.id < '350000';
+```
+- **Actual Selectivity:** The query returned {act_id_cnt:,} matching rows: $S_{{act}} = \\frac{{{act_id_cnt}}}{{{total_title}}} \\approx {act_id_sel:.4f}$ ({act_id_sel*100:.2f}%).
+
+```sql
+EXPLAIN SELECT * FROM title WHERE title.id < '350000';
+```
+- **Estimated Selectivity:** The planner estimated {est_id_cnt:,} rows: $S_{{est}} = \\frac{{{est_id_cnt}}}{{{total_title}}} \\approx {est_id_sel:.4f}$ ({est_id_sel*100:.2f}%).
+
+- **Observation:** The absolute error here is about {err_id*100:.2f}%.
 
 ---
 
 ## Q2. Optimal Serial Histogram Construction ($B=20$ Buckets)
 
 ### 1. Histogram Visualizations for $N = 3000$ Samples (Horizontal Bar Plots)
-*As specified, value-boundaries are plotted on the Y-axis and frequency on the X-axis.*
+*As specified in ques the histograms as a bar-plot with value boundaries in the Y-axis and
+frequency in the X-axis*
 
 ![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
@@ -308,7 +294,7 @@ For range queries on text columns:
 
 ### 3. Frequency Bucket Boundaries ($N=3000$, $B=20$)
 
-The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors (SSE). The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
+The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors . The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
 
 #### A. Column `id` Frequency Bucket Boundaries ($N=3000$, $B=20$)
 | Bucket # | Value Interval (`id`) | Frequency Count ($n_i$) |
@@ -335,6 +321,9 @@ The optimal serial histogram algorithm partitions the 3,000 samples into 20 dyna
 ### 4. Max Selectivity Error for Optimal Histogram ($N=3000$)
 
 - **Max Selectivity Error**: **{e3000:.6f}** (or **{e3000*100:.4f}%**)
+
+#### Theoretical error , when worst case senario occurs ie it is skewed heavily
+$$\\text{{Max Error (Theoretical)}} = \\frac{{\\max(C_i)}}{{N}}$$
 
 #### A. Step-by-Step Calculation Methodology
 1. **Evaluation Quantiles ($q_0 \\dots q_9$)**: To systematically evaluate estimation error across the data range $[x_{{\\min}}, x_{{\\max}}]$, 10 linearly-spaced query thresholds $q_k$ are evaluated:
@@ -428,13 +417,15 @@ $$T(2,528,312) = ({slope:.8f} \\times 2,528,312) + ({intercept:.6f}) = \\mathbf{
 
 ---
 
-### 9. Impact of Bucket Count ($B$) Choice
-- **Fewer Buckets (e.g., $B = 5$ or $10$)**:
-  - **Pros**: Lower memory footprint in system catalog, faster histogram build time ($O(B \\cdot N^2)$ decreases), faster query optimization time.
-  - **Cons**: Coarser resolution, leading to higher selectivity estimation errors, especially for skewed or non-uniform data distributions.
-- **More Buckets (e.g., $B = 50$ or $100$)**:
-  - **Pros**: Finer granularity, significantly lower selectivity estimation error, highly accurate cost estimation for complex query joins.
-  - **Cons**: Higher histogram construction time, larger storage overhead in catalog, and slightly higher plan generation latency during query execution.
+## 9: The Trade-off of Bucket Counts
+
+When building a histogram, choosing the number of buckets ($B$) is a classic trade off between performance and accuracy.
+
+**Choosing Fewer Buckets (e.g., 5 to 10)**
+If we use a small number of buckets, the biggest advantage is speed and efficiency. The histogram takes up very little memory in the system catalog and builds much faster because the time complexity of our algorithm, $O(B \\cdot N^2)$, drops significantly. The query planner also spends less time analyzing it. However, the major downside is that we lose a lot of data resolution. Because the buckets are so wide, the internal mathematical estimates become much less accurate, especially if the data is heavily skewed or unevenly distributed.
+
+**Choosing More Buckets (e.g., 50 to 100)**
+On the flip side, using a large number of buckets gives the database a high-definition view of how the data is distributed. The estimates become incredibly precise, which leads to much lower selectivity errors and helps the query optimizer make smarter decisions for complex joins. The catch is that this accuracy comes at a heavy system cost. It takes noticeably longer to calculate and construct the histogram, consumes more storage space, and adds a slight delay to the query planning phase before execution can actually begin.
 """
 
     report_file = 'reports/Assignment_Report.md'

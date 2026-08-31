@@ -62,11 +62,13 @@ def string_to_float(s):
     return res
 
 def fetch_sample(cur, sample_size, col_name='id'):
+    cur.execute("SELECT setseed(0.42);")
     pct = max(0.01, (sample_size * 100.0) / 2528312)
     query = f"SELECT {col_name} FROM title TABLESAMPLE BERNOULLI({pct:.4f}) LIMIT {sample_size};"
     cur.execute(query)
     rows = [r[0] for r in cur.fetchall()]
     if len(rows) < sample_size:
+        cur.execute("SELECT setseed(0.42);")
         cur.execute(f"SELECT {col_name} FROM title ORDER BY random() LIMIT {sample_size};")
         rows = [r[0] for r in cur.fetchall()]
     return rows
