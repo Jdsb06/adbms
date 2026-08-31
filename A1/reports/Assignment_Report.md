@@ -54,7 +54,7 @@ to see what all colums needed form `pg_stats'
 ```sql
 \d pg_stats;
 ```
-To see histogram boundary values and other relevent  stored in `pg_stats`:
+to see histogram boundary values and other relevent  stored in `pg_stats`:
 ```sql
 SELECT 
     attname, 
@@ -69,7 +69,7 @@ WHERE tablename = 'title'
 ```
 
 ### 2. Kind of Histogram
-PSQL uses an **Equi-Depth Histogram** combined with a **Most Common Values** list. In an equidepth histogram, all buckets contain approximately the same number of rows ($approx N / B$), while bucket boundaries vary in width according to data distribution.
+PSQL uses an Equi Depth Histogram combined with a Most Common Values list. In an equidepth histogram, all buckets contain approximately the same number of rows ($approx N / B$), while bucket boundaries vary in width according to data distribution.
 
 ### 3. Number of Buckets
 - Column `id`: **100 buckets** (101 bucket boundary values)
@@ -80,9 +80,9 @@ SHOW default_statistics_target;
 ```
 ### 4. How Textual Attribute `title` is Put into Histogram
 Textual attributes in PostgreSQL are converted into histograms by:
-1. Sorting the text strings in lexicographical order(like bannana and apple will be apple, bannana)
-2. Sampling string values from the table(like table title has around 2.5M rows , it will only sample around 30K)
-3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation(like laptop will be broken to lap with l = 108, a=97, p=112 then by 256 as between 0 and 1 , lap will be around 0.42 , we can then see where a key belongs between two keeys )
+1. sorting the text strings in lexicographical order like bannana and apple will be apple, bannana after sorting
+2. Sampling string values from the table like table title has around 2.5M rows , it will only sample around 30K
+3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation like laptop will be broken to lap with l = 108, a=97, p=112 then by 256 as between 0 and 1 , lap will be around 0.42 , we can then see where a key belongs between two keeys 
 4. Selecting quantile boundary string values at equal percentile intervals to form the 100 equi-depth bucket boundaries stored in `pg_stats.histogram_bounds`.
 
 ### 5. Exact Bucket Boundaries List (From `pg_stats`)
@@ -307,27 +307,28 @@ Textual attributes in PostgreSQL are converted into histograms by:
 
 $$\text{Max Error} \le \frac{1}{B} = \frac{1}{100} = 0.01 \quad (1.0\%)$$
 
-For our evaluated queries, the observed maximum selectivity error is **0.8364%** (0.008364), which strictly satisfies $\text{Max Error} \le 1.0\%$.
+For evaluated queries(q9), the observed maximum selectivity error is **0.8364%** (0.008364), which strictly satisfies $\text{Max Error} \le 1.0\%$.
 
 
 ### 8: Selectivity Estimation for Text Columns
 
-To estimate the selectivity of a range query on a text column (such as `title < 'Race'`), PostgreSQL relies on its internal histogram and linear interpolation. The query planner follows this step-by-step process:
+Selectivity estimate is done for range query on text column such as “title” in PSQL such as:
 
-* **Bucket Identification:** The engine scans the `histogram_bounds` array to locate the specific bucket where the target string (`'Race'`) falls.
-* **Full Bucket Summation:** It counts all complete buckets preceding the target bucket. Each full bucket represents a fixed fraction of total rows ($\frac{1}{B} = 0.01$).
-* **Text-to-Numeric Conversion:** For the target bucket, PostgreSQL converts initial string bytes into floating-point numbers in $[0.0, 1.0]$ range for interpolation.
+* **Bucket Identification:** The engine scans the `histogram_bounds` array stored under pg_stats to locate the specific bucket where the target string (`'Race'`)  is
+* **Full Bucket Summation:** It counts all complete buckets preceding the target bucket. Each full bucket represents a fixed fraction of total rows (1/B).
+* **Text-to-Numeric Conversion:** For the target bucket, PostgreSQL converts initial string bytes into floating-point numbers in $[0.0, 1.0]$ range for interpolation as explain in part 4
 * **Linear Interpolation:** Assuming uniform distribution inside the target bucket, it calculates the target's position using:
 
 $$\text{Fraction} = \frac{\text{Query Value} - \text{Bucket Min}}{\text{Bucket Max} - \text{Bucket Min}}$$
 
-* **Final Calculation:** Adds the fractional bucket estimate to the sum of preceding full buckets to get the final estimated selectivity.
+*   Final Calculation is done by adding the fractional bucket estimate to the sum of preceding full buckets to get the final estimated selectivity.
 
 ---
 
 ### 9: Estimated vs. Actual Selectivities
 
-To evaluate query planner accuracy, we compare estimated rows (from `EXPLAIN`) against actual rows (from `EXPLAIN ANALYZE`). Total row count ($N$) for the `title` table is 2,528,312.
+To calculate estimated and actual selectivities of the queries and moreover there accuracy we compare estimated rows (from `EXPLAIN`) against actual rows (from `EXPLAIN ANALYZE`).
+Total row count ($N$) for the `title` table is 2,528,312.
 
 **Query 1: `title < 'Race'`**
 ```sql 
@@ -340,7 +341,7 @@ EXPLAIN SELECT * FROM title WHERE title.title < 'Race';
 ```
 - **Estimated Selectivity:** The planner estimated 1,939,288 rows: $S_{est} = \frac{1939288}{2528312} \approx 0.7670$ (76.70%).
 
-- **Observation:** The absolute error is roughly 0.83%. This shows that text-to-numeric linear interpolation handles the string distribution accurately.
+- **Observation:** The absolute error is roughly 0.83%.
 
 **Query 2: `id < 350000`**
 ```sql
@@ -353,8 +354,7 @@ EXPLAIN SELECT * FROM title WHERE title.id < '350000';
 ```
 - **Estimated Selectivity:** The planner estimated 337,982 rows: $S_{est} = \frac{337982}{2528312} \approx 0.1337$ (13.37%).
 
-- **Observation:** The absolute error here is about 0.47%. Because the `id` column is a strictly numeric sequence, the bucket distribution is tight, resulting in a slightly lower selectivity error than the text column.
-
+- **Observation:** The absolute error here is about 0.47%.
 
 
 ## Q2. Optimal Serial Histogram Construction ($B=20$ Buckets)
