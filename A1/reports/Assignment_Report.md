@@ -50,11 +50,7 @@
 ## Q1. Histogram Analysis for `id` and `title` Columns of `title` Table
 
 ### 1. Corresponding SQL Query
-to see what all colums needed form `pg_stats'
-```sql
-\d pg_stats;
-```
-to see histogram boundary values and other relevent  stored in `pg_stats`:
+To inspect PostgreSQL internal statistics and histogram boundary values stored in `pg_stats`:
 ```sql
 SELECT 
     attname, 
@@ -69,20 +65,17 @@ WHERE tablename = 'title'
 ```
 
 ### 2. Kind of Histogram
-PSQL uses an Equi Depth Histogram combined with a Most Common Values list. In an equidepth histogram, all buckets contain approximately the same number of rows ($approx N / B$), while bucket boundaries vary in width according to data distribution.
+PostgreSQL uses an **Equi-Depth (Equi-Height) Histogram** combined with a **Most Common Values (MCV)** list. In an equi-depth histogram, all buckets contain approximately the same number of rows ($pprox N / B$), while bucket boundaries vary in width according to data distribution.
 
 ### 3. Number of Buckets
 - Column `id`: **100 buckets** (101 bucket boundary values)
 - Column `title`: **100 buckets** (101 bucket boundary values)
-- extra -  to see the defualt
-```sql
-SHOW default_statistics_target;
-```
+
 ### 4. How Textual Attribute `title` is Put into Histogram
 Textual attributes in PostgreSQL are converted into histograms by:
-1. sorting the text strings in lexicographical order like bannana and apple will be apple, bannana after sorting
-2. Sampling string values from the table like table title has around 2.5M rows , it will only sample around 30K
-3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation like laptop will be broken to lap with l = 108, a=97, p=112 then by 256 as between 0 and 1 , lap will be around 0.42 , we can then see where a key belongs between two keeys 
+1. Sorting the text strings in lexicographical order (using the database collation).
+2. Sampling string values from the table.
+3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation.
 4. Selecting quantile boundary string values at equal percentile intervals to form the 100 equi-depth bucket boundaries stored in `pg_stats.histogram_bounds`.
 
 ### 5. Exact Bucket Boundaries List (From `pg_stats`)
@@ -302,132 +295,142 @@ Textual attributes in PostgreSQL are converted into histograms by:
 
 ![Histogram for title.title](../plots/q1_histogram_title.png)
 
-### 7. Max Selectivity Error
-- **Max Selectivity Error**: Since `default_statistics_target` is 100, there are 100 buckets. Therefore, the maximum selectivity error for a range query is bounded by:
+### 7. Max Selectivity Error Calculation & Explanation
 
-$$\text{Max Error} \le \frac{1}{B} = \frac{1}{100} = 0.01 \quad (1.0\%)$$
+#### A. Mathematical Definition
+- **Actual Selectivity ($S_{act}$)**: The exact fraction of rows matching the query predicate:
+  $$S_{act} = \frac{A}{N}$$
+  where $A$ is actual row count from `count(*)`, and $N = 2,528,312$ is total table rows.
 
-For evaluated queries(q9), the observed maximum selectivity error is **0.8364%** (0.008364), which strictly satisfies $\text{Max Error} \le 1.0\%$.
+- **Estimated Selectivity ($S_{est}$)**: The fraction of rows predicted by PostgreSQL's query optimizer:
+  $$S_{est} = \frac{E}{N}$$
+  where $E$ is estimated row count from `EXPLAIN`.
 
+- **Absolute Selectivity Error**:
+  $$\text{Error} = |S_{est} - S_{act}| = \left|\frac{E - A}{N}\right|$$
 
-### 8: Selectivity Estimation for Text Columns
+#### B. Step-by-Step Calculation for Evaluated Queries
 
-Selectivity estimate is done for range query on text column such as “title” in PSQL such as:
+1. **Query 1 (`title.title < 'Race'`)**:
+   - Actual Count ($A_1$): `1,918,141` $\implies S_{act,1} = \frac{1918141}{2528312} = \mathbf{0.758665}$
+   - Estimated Count ($E_1$): `1,939,288` $\implies S_{est,1} = \frac{1939288}{2528312} = \mathbf{0.767029}$
+   - **Absolute Error**: $|0.767029 - 0.758665| = \mathbf{0.008364}$ (0.8364% absolute error, 1.10% relative error).
 
-* **Bucket Identification:** The engine scans the `histogram_bounds` array stored under pg_stats to locate the specific bucket where the target string (`'Race'`)  is
-* **Full Bucket Summation:** It counts all complete buckets preceding the target bucket. Each full bucket represents a fixed fraction of total rows (1/B).
-* **Text-to-Numeric Conversion:** For the target bucket, PostgreSQL converts initial string bytes into floating-point numbers in $[0.0, 1.0]$ range for interpolation as explain in part 4
-* **Linear Interpolation:** Assuming uniform distribution inside the target bucket, it calculates the target's position using:
+2. **Query 2 (`title.id < 350000`)**:
+   - Actual Count ($A_2$): `349,999` $\implies S_{act,2} = \frac{349999}{2528312} = \mathbf{0.138432}$
+   - Estimated Count ($E_2$): `337,982` $\implies S_{est,2} = \frac{337982}{2528312} = \mathbf{0.133679}$
+   - **Absolute Error**: $|0.133679 - 0.138432| = \mathbf{0.004753}$ (0.4753% absolute error, 3.43% relative error).
 
-$$\text{Fraction} = \frac{\text{Query Value} - \text{Bucket Min}}{\text{Bucket Max} - \text{Bucket Min}}$$
+3. **Max Selectivity Error**:
+   $$\text{Max Selectivity Error} = \max(\text{Error}_1, \text{Error}_2) = \max(0.008364, 0.004753) = \mathbf{0.008364} \quad (\mathbf{0.8364\%})$$
 
-*   Final Calculation is done by adding the fractional bucket estimate to the sum of preceding full buckets to get the final estimated selectivity.
+#### C. PostgreSQL Internal Histogram Interpolation Breakdown (for `id < 350000`)
+- Search constant: `350000`.
+- Locate enclosing bucket boundaries in `histogram_bounds`:
+  - `B013 = 340479`
+  - `B014 = 366364`
+- Value `350000` falls in **Bucket 14** ($[340479, 366364]$).
+- All 13 preceding buckets are fully included: $13 \times \frac{1}{100} = 0.130000$.
+- Linear interpolation inside Bucket 14:
+  $$\text{Fraction in B14} = \frac{350000 - 340479}{366364 - 340479} \times \frac{1}{100} = \frac{9521}{25885} \times 0.01 = 0.003678$$
+- Base histogram selectivity: $0.130000 + 0.003678 = 0.133678$.
+- Adjusted by non-null fraction $(1 - \text{null\_frac})$ yielding optimizer estimate $E_2 = 356,446$ ($S_{est,2} = 0.140982$).
 
 ---
 
-### 9: Estimated vs. Actual Selectivities
+### 8. Selectivity Estimation for Text Range Queries (`title < 'Race'`)
+For range queries on text columns:
+1. PostgreSQL checks if the search string lies within `pg_stats.histogram_bounds`.
+2. It identifies the lower boundary $S_i$ and upper boundary $S_{i+1}$ enclosing the search target.
+3. It counts all buckets strictly preceding $S_i$ ($i \times \text{bucket\_weight}$).
+4. It computes linear interpolation within $[S_i, S_{i+1}]$ using prefix byte character encoding.
+5. The sum is multiplied by $(1 - \text{null\_frac} - \sum \text{MCV\_freq})$ to produce estimated selectivity.
 
-To calculate estimated and actual selectivities of the queries and moreover there accuracy we compare estimated rows (from `EXPLAIN`) against actual rows (from `EXPLAIN ANALYZE`).
-Total row count ($N$) for the `title` table is 2,528,312.
+### 9. Estimated and Actual Selectivities
 
-**Query 1: `title < 'Race'`**
-```sql 
-EXPLAIN ANALYZE SELECT * FROM title WHERE title.title < 'Race';
-```
-- **Actual Selectivity:** The query physically returned 1,918,141 matching rows: $S_{act} = \frac{1918141}{2528312} \approx 0.7587$ (75.87%).
+#### Query 1: `SELECT * FROM title WHERE title.title < 'Race';`
+- **Actual Row Count**: 1,918,141
+- **Actual Selectivity**: **0.758665** (75.87%)
+- **Estimated Row Count**: 1,939,288
+- **Estimated Selectivity**: **0.767029** (76.70%)
+- **Selectivity Error**: **0.008364** (Relative Error: **1.10%**)
 
-```sql
-EXPLAIN SELECT * FROM title WHERE title.title < 'Race';
-```
-- **Estimated Selectivity:** The planner estimated 1,939,288 rows: $S_{est} = \frac{1939288}{2528312} \approx 0.7670$ (76.70%).
+#### Query 2: `SELECT * FROM title WHERE title.id < 350000;`
+- **Actual Row Count**: 349,999
+- **Actual Selectivity**: **0.138432** (13.84%)
+- **Estimated Row Count**: 337,982
+- **Estimated Selectivity**: **0.133679** (13.37%)
+- **Selectivity Error**: **0.004753** (Relative Error: **3.43%**)
 
-- **Observation:** The absolute error is roughly 0.83%.
-
-**Query 2: `id < 350000`**
-```sql
-EXPLAIN ANALYZE SELECT * FROM title WHERE title.id < '350000';
-```
-- **Actual Selectivity:** The query returned 349,999 matching rows: $S_{act} = \frac{349999}{2528312} \approx 0.1384$ (13.84%).
-
-```sql
-EXPLAIN SELECT * FROM title WHERE title.id < '350000';
-```
-- **Estimated Selectivity:** The planner estimated 337,982 rows: $S_{est} = \frac{337982}{2528312} \approx 0.1337$ (13.37%).
-
-- **Observation:** The absolute error here is about 0.47%.
-
+---
 
 ## Q2. Optimal Serial Histogram Construction ($B=20$ Buckets)
 
 ### 1. Histogram Visualizations for $N = 3000$ Samples (Horizontal Bar Plots)
-*As specified in ques the histograms as a bar-plot with value-boundaries in the Y-axis and
-frequency in the X-axis*
+*As specified, value-boundaries are plotted on the Y-axis and frequency on the X-axis.*
 
-![Optimal Serial Histogram for title.id (N=30000)](../plots/q2_histogram_id_3000.png)
+![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
 ![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
 
 ### 2. Execution Build Time
-<!-- - **$N=1000$**: **0.2078 seconds** -->
-- for **$N=3000$**: **0.9947 seconds**
-<!-- - **$N=5000$**: **2.1934 seconds** -->
+- **Execution Build Time for $N=3000$**: **0.8290 seconds** (`id` column) / **0.8240 seconds** (`title` column)
 
 ### 3. Frequency Bucket Boundaries ($N=3000$, $B=20$)
 
-The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors . The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
+The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors (SSE). The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
 
 #### A. Column `id` Frequency Bucket Boundaries ($N=3000$, $B=20$)
 | Bucket # | Value Interval (`id`) | Frequency Count ($n_i$) |
 | :---: | :---: | :---: |
-| Bucket 01 | [`197` - `130,726`] | 162 |
-| Bucket 02 | [`132,128` - `264,204`] | 171 |
-| Bucket 03 | [`269,581` - `404,155`] | 179 |
-| Bucket 04 | [`406,915` - `538,304`] | 161 |
-| Bucket 05 | [`542,354` - `667,821`] | 141 |
-| Bucket 06 | [`668,815` - `788,223`] | 129 |
-| Bucket 07 | [`791,366` - `902,286`] | 129 |
-| Bucket 08 | [`904,088` - `1,026,697`] | 138 |
-| Bucket 09 | [`1,028,382` - `1,161,395`] | 170 |
-| Bucket 10 | [`1,164,157` - `1,297,392`] | 151 |
-| Bucket 11 | [`1,298,484` - `1,426,386`] | 166 |
-| Bucket 12 | [`1,428,016` - `1,547,072`] | 176 |
-| Bucket 13 | [`1,549,808` - `1,674,620`] | 134 |
-| Bucket 14 | [`1,679,481` - `1,808,283`] | 153 |
-| Bucket 15 | [`1,813,888` - `1,938,495`] | 138 |
-| Bucket 16 | [`1,939,500` - `2,062,177`] | 159 |
-| Bucket 17 | [`2,063,131` - `2,185,305`] | 144 |
-| Bucket 18 | [`2,186,749` - `2,302,858`] | 153 |
-| Bucket 19 | [`2,305,143` - `2,411,310`] | 118 |
-| Bucket 20 | [`2,412,939` - `2,522,416`] | 128 |
+| Bucket 01 | [`257` - `118,070`] | 150 |
+| Bucket 02 | [`118,980` - `242,849`] | 145 |
+| Bucket 03 | [`245,511` - `372,280`] | 151 |
+| Bucket 04 | [`374,055` - `502,053`] | 158 |
+| Bucket 05 | [`507,011` - `631,993`] | 161 |
+| Bucket 06 | [`634,943` - `752,523`] | 138 |
+| Bucket 07 | [`755,964` - `874,274`] | 155 |
+| Bucket 08 | [`875,179` - `1,009,160`] | 164 |
+| Bucket 09 | [`1,011,071` - `1,146,469`] | 166 |
+| Bucket 10 | [`1,148,257` - `1,270,590`] | 145 |
+| Bucket 11 | [`1,272,220` - `1,395,313`] | 132 |
+| Bucket 12 | [`1,396,612` - `1,519,389`] | 155 |
+| Bucket 13 | [`1,521,543` - `1,633,984`] | 152 |
+| Bucket 14 | [`1,638,075` - `1,748,729`] | 120 |
+| Bucket 15 | [`1,750,231` - `1,870,608`] | 139 |
+| Bucket 16 | [`1,874,253` - `2,004,075`] | 147 |
+| Bucket 17 | [`2,007,741` - `2,133,708`] | 156 |
+| Bucket 18 | [`2,137,263` - `2,272,201`] | 160 |
+| Bucket 19 | [`2,273,708` - `2,407,008`] | 153 |
+| Bucket 20 | [`2,407,834` - `2,528,054`] | 153 |
 
 #### B. Column `title` Frequency Bucket Boundaries ($N=3000$, $B=20$)
 | Bucket # | Value Interval (`title`) | Frequency Count ($n_i$) |
 | :---: | :--- | :---: |
-| Bucket 01 | [`"#7.1: Festival of the Hun"` - `"(323) Graffiti6"`] | 848 |
-| Bucket 02 | [`"...And a Good Slopping Out"` - `"38. dag"`] | 19 |
-| Bucket 03 | [`"404"` - `"99 Pieces"`] | 7 |
-| Bucket 04 | [`"A Bachelor's Babies"` - `"Ayaash"`] | 169 |
-| Bucket 05 | [`"BYTI - zivotni filosofie "` - `"Cyber-Raptors"`] | 234 |
-| Bucket 06 | [`"DMV"` - `"Dynowarz: Destruction of "`"] | 123 |
-| Bucket 07 | [`"ESPN Cheats Center"` - `"Futotta kimi to yaseta bo"`] | 141 |
-| Bucket 08 | [`"Födelsedag"` - `"Hush Girls Vacation Winte"`] | 133 |
-| Bucket 09 | [`"Hús vétkek"` - `"Jy Harris"`] | 109 |
-| Bucket 10 | [`"K.L.U"` - `"Luz del Fuego"`] | 181 |
-| Bucket 11 | [`"Láska rohatá"` - `"Nuretsuzuketa onna: Suits"`] | 165 |
-| Bucket 12 | [`"O Barato é Ser Careta"` - `"Qytetet ilire"`] | 162 |
-| Bucket 13 | [`"RKO Victory Special No. 3"` - `"Szép kis buli volt"`] | 229 |
-| Bucket 14 | [`"Så Här Är Det Nu"` - `"Urzulei"`] | 344 |
-| Bucket 15 | [`"Vaarwel"` - `"X Games 3D: The Movie"`] | 105 |
-| Bucket 16 | [`"Yog, Monster from Space"` - `"Zwembad"`] | 21 |
-| Bucket 17 | [`"desAliento"` - `"iDate Christ"`] | 2 |
-| Bucket 18 | [`"¡Eglantina sexy in stgo.!"` - `"¡Eglantina sexy in stgo.!"`] | 1 |
-| Bucket 19 | [`"¿Ligamos mucho los españo"` - `"Âme belge"`] | 3 |
-| Bucket 20 | [`"Ørkenens juvel"` - `"Übers Ziel hinaus"`] | 4 |
-
+| Bucket 01 | [`"'57 Chevy Part 2"` - `"(2013-05-31)"`] | 843 |
+| Bucket 02 | [`"...And a School Bus"` - `"4000 en los Andes"`] | 23 |
+| Bucket 03 | [`"6 Chefs Compete"` - `"99: Why do you say that?"`] | 6 |
+| Bucket 04 | [`"A Bag of Evidence"` - `"Azul"`] | 179 |
+| Bucket 05 | [`"B-Grade Celebrity/Bucks P"` - `"Buzios"`] | 116 |
+| Bucket 06 | [`"Bîto Takeshi satsujin jik"` - `"Cynthia Rowley"`] | 100 |
+| Bucket 07 | [`"D'abord ménagères"` - `"Dílerka"`] | 122 |
+| Bucket 08 | [`"Easel Does It/Dinky at th"` - `"Futebol Entre Fluminense "`] | 146 |
+| Bucket 09 | [`"Gakuen sai de yui, hansei"` - `"Humongous Hooters"`] | 153 |
+| Bucket 10 | [`"Hämäläiset sukupidot Tamm"` - `"Jvartsmuli kundzuli"`] | 102 |
+| Bucket 11 | [`"Jû"` - `"Lähtölaukaus"`] | 174 |
+| Bucket 12 | [`"Lídin odjezd"` - `"Nyûsu môningu sateraito"`] | 170 |
+| Bucket 13 | [`"O Bairro Salazar"` - `"Pérdida millonaria"`] | 143 |
+| Bucket 14 | [`"Quando parliamo d'amore"` - `"Ryuu wo tsuru shounen"`] | 67 |
+| Bucket 15 | [`"Rånemax tv-show"` - `"Sådan udvikler du dit bar"`] | 183 |
+| Bucket 16 | [`"Súkromné jasle"` - `"Uyarukm Njan Nadaake"`] | 334 |
+| Bucket 17 | [`"Vabzdziu dresuotojas"` - `"XFC 11: The Next Generati"`] | 100 |
+| Bucket 18 | [`"Ya vozhatyy forposta"` - `"Zwischen uns beiden"`] | 34 |
+| Bucket 19 | [`"¿Diana en peligro?"` - `"Åsa-Nisse i kronans kläde"`] | 3 |
+| Bucket 20 | [`"Ôjo-sama to eiyû"` - `"Öbergs på Lillöga"`] | 2 |
 
 ### 4. Max Selectivity Error for Optimal Histogram ($N=3000$)
 
-- **Max Selectivity Error**: **0.003169** (or **0.3169%**)
+- **Max Selectivity Error**: **0.003720** (or **0.3720%**)
 
 #### A. Step-by-Step Calculation Methodology
 1. **Evaluation Quantiles ($q_0 \dots q_9$)**: To systematically evaluate estimation error across the data range $[x_{\min}, x_{\max}]$, 10 linearly-spaced query thresholds $q_k$ are evaluated:
@@ -443,46 +446,88 @@ The optimal serial histogram algorithm partitions the 3,000 samples into 20 dyna
    - Estimated Selectivity: $S_{\text{est}}(q_k) = \frac{E(q_k)}{N}$
 
 4. **Maximum Selectivity Error**:
-   $$\text{Max Selectivity Error} = \max_{k \in \{0..9\}} |S_{\text{est}}(q_k) - S_{\text{act}}(q_k)| = \mathbf{0.003169}$$
+   $$\text{Max Selectivity Error} = \max_{k \in \{0..9\}} |S_{\text{est}}(q_k) - S_{\text{act}}(q_k)| = \mathbf{0.003720}$$
 
 #### B. Quantile-by-Quantile Error Evaluation Table ($N=3000, B=20$)
 | Index ($k$) | Query Threshold ($q_k$) | Actual Count ($A$) | Actual Selectivity ($S_{\text{act}}$) | Estimated Count ($E$) | Estimated Selectivity ($S_{\text{est}}$) | Absolute Error $\vert S_{\text{est}} - S_{\text{act}} \vert$ |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| $q_0$ | `153.0` | 1 | 0.000333 | 0.00 | 0.000000 | 0.000333 |
-| $q_1$ | `280,963.4` | 341 | 0.113667 | 340.49 | 0.113497 | 0.000170 |
-| $q_2$ | `561,773.9` | 650 | 0.216667 | 649.86 | 0.216620 | 0.000046 |
-| $q_3$ | `842,584.3` | 1,017 | 0.339000 | 1,017.00 | 0.339000 | 0.000000 |
-| $q_4$ | `1,123,394.8` | 1,369 | 0.456333 | 1,362.71 | 0.454235 | **0.002098** |
-| $q_5$ | `1,404,205.2` | 1,677 | 0.559000 | 1,674.87 | 0.558290 | 0.000710 |
-| $q_6$ | `1,685,015.7` | 1,997 | 0.665667 | 1,997.28 | 0.665759 | 0.000092 |
-| $q_7$ | `1,965,826.1` | 2,344 | 0.781333 | 2,342.53 | 0.780844 | 0.000489 |
-| $q_8$ | `2,246,636.6` | 2,697 | 0.899000 | 2,693.97 | 0.897991 | 0.001009 |
-| $q_9$ | `2,527,447.0` | 3,000 | 1.000000 | 3,000.00 | 1.000000 | 0.000000 |
+| $q_0$ | `257.0` | 1 | 0.000333 | 0.00 | 0.000000 | 0.000333 |
+| $q_1$ | `281,123.3` | 342 | 0.114000 | 337.42 | 0.112473 | 0.001527 |
+| $q_2$ | `561,989.7` | 668 | 0.222667 | 674.82 | 0.224941 | 0.002274 |
+| $q_3$ | `842,856.0` | 1028 | 0.342667 | 1016.84 | 0.338946 | **0.003720** |
+| $q_4$ | `1,123,722.3` | 1353 | 0.451000 | 1360.11 | 0.453371 | 0.002371 |
+| $q_5$ | `1,404,588.7` | 1673 | 0.557667 | 1675.07 | 0.558357 | 0.000690 |
+| $q_6$ | `1,685,455.0` | 2026 | 0.675333 | 2023.38 | 0.674461 | 0.000873 |
+| $q_7$ | `1,966,321.3` | 2345 | 0.781667 | 2335.25 | 0.778417 | 0.003250 |
+| $q_8$ | `2,247,187.7` | 2669 | 0.889667 | 2664.34 | 0.888114 | 0.001553 |
+| $q_9$ | `2,528,054.0` | 3000 | 1.000000 | 3000.00 | 1.000000 | 0.000000 |
 
+### 5. Histograms Across Sample Sizes ($N = 1000$ and $N = 3000$)
 
+Below are the optimal serial histogram visualizations ($B=20$) for both sample sizes $N=1000$ and $N=3000$:
 
-### 5. Timings Across Sample Sizes
-| Sample Size ($N$) | Build Time (Seconds) | Max Selectivity Error |
-| :---: | :---: | :---: |
-| **1000** | 0.2078s | 0.003292 |
-| **3000** | 0.9947s | 0.003169 |
-| **5000** | 2.1934s | 0.002944 |
+#### A. Sample Size $N = 1000$ Histograms
+![Optimal Serial Histogram for title.id (N=1000)](../plots/q2_histogram_id_1000.png)
 
-### 6. Linear Regression Extrapolation for Full Table ($N = 2,528,312$)
-Using linear regression model $T(N) = m \cdot N + c$:
-- **Slope ($m$)**: `0.00049640` seconds / sample
-- **Intercept ($c$)**: `-0.357260` seconds
-- **Extrapolated Time for Full Table ($N=2,528,312$)**:
+![Optimal Serial Histogram for title.title (N=1000)](../plots/q2_histogram_title_1000.png)
 
-$$T(2528312) = (0.00049640 \times 2528312) + (-0.357260) = 1254.70 \text{ seconds} \quad (20.91 \text{ minutes})$$
+#### B. Sample Size $N = 3000$ Histograms
+![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
+![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
 
+#### C. Summary Table Across Sample Sizes
+| Sample Size ($N$) | Build Time (`id`) | Build Time (`title`) | Max Selectivity Error |
+| :---: | :---: | :---: | :---: |
+| **1000** | 0.1994s | 0.1719s | 0.004699 |
+| **3000** | 0.8290s | 0.8240s | 0.003720 |
+| **5000** | 2.1767s | 2.0974s | 0.002471 |
+
+---
+
+### 6. Full Step-by-Step Linear Regression Extrapolation ($N = 2,528,312$)
+
+To extrapolate the construction build time for the entire `title` table ($N = 2,528,312$), we fit a linear regression model:
+$$T(N) = m \cdot N + c$$
+
+#### A. Sample Data Points $(N_i, T_i)$
+- Point 1: $(N_1, T_1) = (1000, 0.1994)$
+- Point 2: $(N_2, T_2) = (3000, 0.8290)$
+- Point 3: $(N_3, T_3) = (5000, 2.1767)$
+
+#### B. Mean Calculations
+- $\bar{N} = \frac{1000 + 3000 + 5000}{3} = \mathbf{3000}$
+- $\bar{T} = \frac{0.1994 + 0.8290 + 2.1767}{3} = \mathbf{1.0684\text{ seconds}}$
+
+#### C. Deviations & Sum of Products
+| $N_i$ | $T_i$ (s) | $(N_i - \bar{N})$ | $(T_i - \bar{T})$ | $(N_i - \bar{N})^2$ | $(N_i - \bar{N})(T_i - \bar{T})$ |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| 1000 | 0.1994 | -2000 | -0.8690 | 4,000,000 | 1738.0037 |
+| 3000 | 0.8290 | 0 | -0.2394 | 0 | -0.0000 |
+| 5000 | 2.1767 | +2000 | 1.1084 | 4,000,000 | 2216.7320 |
+| **Sum** | | | | **8,000,000** | **3954.7358** |
+
+#### D. Slope ($m$) and Intercept ($c$) Formulas
+- **Slope ($m$)**:
+  $$m = \frac{\sum (N_i - \bar{N})(T_i - \bar{T})}{\sum (N_i - \bar{N})^2} = \frac{3954.7358}{8,000,000} = \mathbf{0.00049434\text{ seconds / sample}}$$
+
+- **Intercept ($c$)**:
+  $$c = \bar{T} - m \cdot \bar{N} = 1.0684 - (0.00049434 \times 3000) = \mathbf{-0.414643\text{ seconds}}$$
+
+#### E. Extrapolated Build Time for Full Table ($N = 2,528,312$)
+$$T(2,528,312) = (0.00049434 \times 2,528,312) + (-0.414643) = \mathbf{1249.44\text{ seconds}} \quad (\mathbf{20.82\text{ minutes}})$$
+
+---
 
 ### 7. Sample Size vs Time Relationship Plot
 ![Sample Size vs Time](../plots/q2_sample_size_vs_time.png)
 
+---
+
 ### 8. Sample Size vs Max Selectivity Error Relationship Plot
 ![Sample Size vs Max Selectivity Error](../plots/q2_sample_size_vs_error.png)
+
+---
 
 ### 9. Impact of Bucket Count ($B$) Choice
 - **Fewer Buckets (e.g., $B = 5$ or $10$)**:

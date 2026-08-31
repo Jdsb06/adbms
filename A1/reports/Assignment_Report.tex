@@ -115,12 +115,7 @@
 \subsection{Q1. Histogram Analysis for \texttt{id} and \texttt{title} Columns of \texttt{title} Table}
 
 \subsubsection{1. Corresponding SQL Query}
-to see what all colums needed form `pg\_stats'
-
-\begin{lstlisting}
-\d pg_stats;
-\end{lstlisting}
-to see histogram boundary values and other relevent  stored in \texttt{pg\_stats}:
+To inspect PostgreSQL internal statistics and histogram boundary values stored in \texttt{pg\_stats}:
 
 \begin{lstlisting}
 SELECT 
@@ -136,26 +131,23 @@ WHERE tablename = 'title'
 \end{lstlisting}
 
 \subsubsection{2. Kind of Histogram}
-PSQL uses an Equi Depth Histogram combined with a Most Common Values list. In an equidepth histogram, all buckets contain approximately the same number of rows ($approx N / B$), while bucket boundaries vary in width according to data distribution.
+PostgreSQL uses an \textbf{Equi-Depth (Equi-Height) Histogram} combined with a \textbf{Most Common Values (MCV)} list. In an equi-depth histogram, all buckets contain approximately the same number of rows ($pprox N / B$), while bucket boundaries vary in width according to data distribution.
 
 
 \subsubsection{3. Number of Buckets}
 \begin{itemize}
 \item Column \texttt{id}: \textbf{100 buckets} (101 bucket boundary values)
 \item Column \texttt{title}: \textbf{100 buckets} (101 bucket boundary values)
-\item extra -  to see the defualt
-\begin{lstlisting}
-SHOW default_statistics_target;
-\end{lstlisting}
 \end{itemize}
+
 \subsubsection{4. How Textual Attribute \texttt{title} is Put into Histogram}
 Textual attributes in PostgreSQL are converted into histograms by:
 
-1. sorting the text strings in lexicographical order like bannana and apple will be apple, bannana after sorting
+1. Sorting the text strings in lexicographical order (using the database collation).
 
-2. Sampling string values from the table like table title has around 2.5M rows , it will only sample around 30K
+2. Sampling string values from the table.
 
-3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation like laptop will be broken to lap with l = 108, a=97, p=112 then by 256 as between 0 and 1 , lap will be around 0.42 , we can then see where a key belongs between two keeys
+3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation.
 
 4. Selecting quantile boundary string values at equal percentile intervals to form the 100 equi-depth bucket boundaries stored in \texttt{pg\_stats.histogram\_bounds}.
 
@@ -415,100 +407,121 @@ B100 & \texttt{Zzzzzz} & Bucket 100: [\texttt{Yasmina} - \texttt{Zzzzzz}] \\
 \caption{Histogram for title.title}
 \end{figure}
 
-\subsubsection{7. Max Selectivity Error}
+\subsubsection{7. Max Selectivity Error Calculation \& Explanation}
+
+\paragraph{A. Mathematical Definition}
 \begin{itemize}
-\item \textbf{Max Selectivity Error}: Since \texttt{default\_statistics\_target} is 100, there are 100 buckets. Therefore, the maximum selectivity error for a range query is bounded by:
+\item **Actual Selectivity ($S_{\text{act}}$)**: The exact fraction of rows matching the query predicate:
+\end{itemize}
+\[ S_{\text{act}} = \frac{A}{N} \]
+
+where $A$ is actual row count from \texttt{count(*)}, and $N = 2,528,312$ is total table rows.
+
+
+\begin{itemize}
+\item **Estimated Selectivity ($S_{\text{est}}$)**: The fraction of rows predicted by PostgreSQL's query optimizer:
+\end{itemize}
+\[ S_{\text{est}} = \frac{E}{N} \]
+
+where $E$ is estimated row count from \texttt{EXPLAIN}.
+
+
+\begin{itemize}
+\item \textbf{Absolute Selectivity Error}:
+\end{itemize}
+\[ \text{Error} = |S_{\text{est}} - S_{\text{act}}| = \left|\frac{E - A}{N}\right| \]
+
+
+\paragraph{B. Step-by-Step Calculation for Evaluated Queries}
+
+1. \textbf{Query 1 (\texttt{title.title < 'Race'})}:
+
+\begin{itemize}
+\item Actual Count ($A_1$): \texttt{1,918,141} $\implies S_{act,1} = \frac{1918141}{2528312} = \mathbf{0.758665}$
+\item Estimated Count ($E_1$): \texttt{1,939,288} $\implies S_{est,1} = \frac{1939288}{2528312} = \mathbf{0.767029}$
+\item \textbf{Absolute Error}: $|0.767029 - 0.758665| = \mathbf{0.008364}$ (0.8364\% absolute error, 1.10\% relative error).
 \end{itemize}
 
-\[ \text{Max Error} \le \frac{1}{B} = \frac{1}{100} = 0.01 \quad (1.0\%) \]
-
-
-For evaluated queries(q9), the observed maximum selectivity error is \textbf{0.8364\%} (0.008364), which strictly satisfies $\text{Max Error} \le 1.0\%$.
-
-
-
-\subsubsection{8: Selectivity Estimation for Text Columns}
-
-Selectivity estimate is done for range query on text column such as “title” in PSQL such as:
-
+2. \textbf{Query 2 (\texttt{title.id < 350000})}:
 
 \begin{itemize}
-\item \textbf{Bucket Identification:} The engine scans the \texttt{histogram\_bounds} array stored under pg\_stats to locate the specific bucket where the target string (\texttt{'Race'})  is
-\item \textbf{Full Bucket Summation:} It counts all complete buckets preceding the target bucket. Each full bucket represents a fixed fraction of total rows (1/B).
-\item \textbf{Text-to-Numeric Conversion:} For the target bucket, PostgreSQL converts initial string bytes into floating-point numbers in $[0.0, 1.0]$ range for interpolation as explain in part 4
-\item \textbf{Linear Interpolation:} Assuming uniform distribution inside the target bucket, it calculates the target's position using:
+\item Actual Count ($A_2$): \texttt{349,999} $\implies S_{act,2} = \frac{349999}{2528312} = \mathbf{0.138432}$
+\item Estimated Count ($E_2$): \texttt{337,982} $\implies S_{est,2} = \frac{337982}{2528312} = \mathbf{0.133679}$
+\item \textbf{Absolute Error}: $|0.133679 - 0.138432| = \mathbf{0.004753}$ (0.4753\% absolute error, 3.43\% relative error).
 \end{itemize}
 
-\[ \text{Fraction} = \frac{\text{Query Value} - \text{Bucket Min}}{\text{Bucket Max} - \text{Bucket Min}} \]
+3. \textbf{Max Selectivity Error}:
 
+\[ \text{Max Selectivity Error} = \max(\text{Error}_1, \text{Error}_2) = \max(0.008364, 0.004753) = \mathbf{0.008364} \quad (\mathbf{0.8364\%}) \]
+
+
+\paragraph{C. PostgreSQL Internal Histogram Interpolation Breakdown (for \texttt{id < 350000})}
+\begin{itemize}
+\item Search constant: \texttt{350000}.
+\item Locate enclosing bucket boundaries in \texttt{histogram\_bounds}:
+\item \texttt{B013 = 340479}
+\item \texttt{B014 = 366364}
+\item Value \texttt{350000} falls in \textbf{Bucket 14} ($[340479, 366364]$).
+\item All 13 preceding buckets are fully included: $13 \times \frac{1}{100} = 0.130000$.
+\item Linear interpolation inside Bucket 14:
+\end{itemize}
+\[ \text{Fraction in B14} = \frac{350000 - 340479}{366364 - 340479} \times \frac{1}{100} = \frac{9521}{25885} \times 0.01 = 0.003678 \]
 
 \begin{itemize}
-\item   Final Calculation is done by adding the fractional bucket estimate to the sum of preceding full buckets to get the final estimated selectivity.
+\item Base histogram selectivity: $0.130000 + 0.003678 = 0.133678$.
+\item Adjusted by non-null fraction $(1 - \text{null\_frac})$ yielding optimizer estimate $E_2 = 356,446$ ($S_{est,2} = 0.140982$).
 \end{itemize}
 
 \hrule
 
 
-\subsubsection{9: Estimated vs. Actual Selectivities}
+\subsubsection{8. Selectivity Estimation for Text Range Queries (\texttt{title < 'Race'})}
+For range queries on text columns:
 
-To calculate estimated and actual selectivities of the queries and moreover there accuracy we compare estimated rows (from \texttt{EXPLAIN}) against actual rows (from \texttt{EXPLAIN ANALYZE}).
+1. PostgreSQL checks if the search string lies within \texttt{pg\_stats.histogram\_bounds}.
 
-Total row count ($N$) for the \texttt{title} table is 2,528,312.
+2. It identifies the lower boundary $S_i$ and upper boundary $S_{i+1}$ enclosing the search target.
+
+3. It counts all buckets strictly preceding $S_i$ ($i \times \text{bucket\_weight}$).
+
+4. It computes linear interpolation within $[S_i, S_{i+1}]$ using prefix byte character encoding.
+
+5. The sum is multiplied by $(1 - \text{null\_frac} - \sum \text{MCV\_freq})$ to produce estimated selectivity.
 
 
-\textbf{Query 1: \texttt{title < 'Race'}}
+\subsubsection{9. Estimated and Actual Selectivities}
 
-\begin{lstlisting}
-EXPLAIN ANALYZE SELECT * FROM title WHERE title.title < 'Race';
-\end{lstlisting}
+\paragraph{Query 1: \texttt{SELECT * FROM title WHERE title.title < 'Race';}}
 \begin{itemize}
-\item \textbf{Actual Selectivity:} The query physically returned 1,918,141 matching rows: $S_{\text{act}} = \frac{1918141}{2528312} \approx 0.7587$ (75.87\%).
+\item \textbf{Actual Row Count}: 1,918,141
+\item \textbf{Actual Selectivity}: \textbf{0.758665} (75.87\%)
+\item \textbf{Estimated Row Count}: 1,939,288
+\item \textbf{Estimated Selectivity}: \textbf{0.767029} (76.70\%)
+\item \textbf{Selectivity Error}: \textbf{0.008364} (Relative Error: \textbf{1.10\%})
 \end{itemize}
 
-\begin{lstlisting}
-EXPLAIN SELECT * FROM title WHERE title.title < 'Race';
-\end{lstlisting}
+\paragraph{Query 2: \texttt{SELECT * FROM title WHERE title.id < 350000;}}
 \begin{itemize}
-\item \textbf{Estimated Selectivity:} The planner estimated 1,939,288 rows: $S_{\text{est}} = \frac{1939288}{2528312} \approx 0.7670$ (76.70\%).
+\item \textbf{Actual Row Count}: 349,999
+\item \textbf{Actual Selectivity}: \textbf{0.138432} (13.84\%)
+\item \textbf{Estimated Row Count}: 337,982
+\item \textbf{Estimated Selectivity}: \textbf{0.133679} (13.37\%)
+\item \textbf{Selectivity Error}: \textbf{0.004753} (Relative Error: \textbf{3.43\%})
 \end{itemize}
 
-\begin{itemize}
-\item \textbf{Observation:} The absolute error is roughly 0.83\%.
-\end{itemize}
-
-\textbf{Query 2: \texttt{id < 350000}}
-
-\begin{lstlisting}
-EXPLAIN ANALYZE SELECT * FROM title WHERE title.id < '350000';
-\end{lstlisting}
-\begin{itemize}
-\item \textbf{Actual Selectivity:} The query returned 349,999 matching rows: $S_{\text{act}} = \frac{349999}{2528312} \approx 0.1384$ (13.84\%).
-\end{itemize}
-
-\begin{lstlisting}
-EXPLAIN SELECT * FROM title WHERE title.id < '350000';
-\end{lstlisting}
-\begin{itemize}
-\item \textbf{Estimated Selectivity:} The planner estimated 337,982 rows: $S_{\text{est}} = \frac{337982}{2528312} \approx 0.1337$ (13.37\%).
-\end{itemize}
-
-\begin{itemize}
-\item \textbf{Observation:} The absolute error here is about 0.47\%.
-\end{itemize}
+\hrule
 
 
 \subsection{Q2. Optimal Serial Histogram Construction ($B=20$ Buckets)}
 
 \subsubsection{1. Histogram Visualizations for $N = 3000$ Samples (Horizontal Bar Plots)}
-*As specified in ques the histograms as a bar-plot with value-boundaries in the Y-axis and
-
-frequency in the X-axis*
+*As specified, value-boundaries are plotted on the Y-axis and frequency on the X-axis.*
 
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{q2_histogram_id_3000.png}
-\caption{Optimal Serial Histogram for title.id (N=30000)}
+\caption{Optimal Serial Histogram for title.id (N=3000)}
 \end{figure}
 
 \begin{figure}[H]
@@ -519,12 +532,12 @@ frequency in the X-axis*
 
 \subsubsection{2. Execution Build Time}
 \begin{itemize}
-\item for **$N=3000$\textbf{: }0.9947 seconds**
+\item **Execution Build Time for $N=3000$\textbf{: }0.8290 seconds\textbf{ (\texttt{id} column) / }0.8240 seconds** (\texttt{title} column)
 \end{itemize}
 
 \subsubsection{3. Frequency Bucket Boundaries ($N=3000$, $B=20$)}
 
-The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors . The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
+The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors (SSE). The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
 
 
 \paragraph{A. Column \texttt{id} Frequency Bucket Boundaries ($N=3000$, $B=20$)}
@@ -543,26 +556,26 @@ The optimal serial histogram algorithm partitions the 3,000 samples into 20 dyna
 \endfoot
 \bottomrule
 \endlastfoot
-Bucket 01 & [\texttt{197} - \texttt{130,726}] & 162 \\
-Bucket 02 & [\texttt{132,128} - \texttt{264,204}] & 171 \\
-Bucket 03 & [\texttt{269,581} - \texttt{404,155}] & 179 \\
-Bucket 04 & [\texttt{406,915} - \texttt{538,304}] & 161 \\
-Bucket 05 & [\texttt{542,354} - \texttt{667,821}] & 141 \\
-Bucket 06 & [\texttt{668,815} - \texttt{788,223}] & 129 \\
-Bucket 07 & [\texttt{791,366} - \texttt{902,286}] & 129 \\
-Bucket 08 & [\texttt{904,088} - \texttt{1,026,697}] & 138 \\
-Bucket 09 & [\texttt{1,028,382} - \texttt{1,161,395}] & 170 \\
-Bucket 10 & [\texttt{1,164,157} - \texttt{1,297,392}] & 151 \\
-Bucket 11 & [\texttt{1,298,484} - \texttt{1,426,386}] & 166 \\
-Bucket 12 & [\texttt{1,428,016} - \texttt{1,547,072}] & 176 \\
-Bucket 13 & [\texttt{1,549,808} - \texttt{1,674,620}] & 134 \\
-Bucket 14 & [\texttt{1,679,481} - \texttt{1,808,283}] & 153 \\
-Bucket 15 & [\texttt{1,813,888} - \texttt{1,938,495}] & 138 \\
-Bucket 16 & [\texttt{1,939,500} - \texttt{2,062,177}] & 159 \\
-Bucket 17 & [\texttt{2,063,131} - \texttt{2,185,305}] & 144 \\
-Bucket 18 & [\texttt{2,186,749} - \texttt{2,302,858}] & 153 \\
-Bucket 19 & [\texttt{2,305,143} - \texttt{2,411,310}] & 118 \\
-Bucket 20 & [\texttt{2,412,939} - \texttt{2,522,416}] & 128 \\
+Bucket 01 & [\texttt{257} - \texttt{118,070}] & 150 \\
+Bucket 02 & [\texttt{118,980} - \texttt{242,849}] & 145 \\
+Bucket 03 & [\texttt{245,511} - \texttt{372,280}] & 151 \\
+Bucket 04 & [\texttt{374,055} - \texttt{502,053}] & 158 \\
+Bucket 05 & [\texttt{507,011} - \texttt{631,993}] & 161 \\
+Bucket 06 & [\texttt{634,943} - \texttt{752,523}] & 138 \\
+Bucket 07 & [\texttt{755,964} - \texttt{874,274}] & 155 \\
+Bucket 08 & [\texttt{875,179} - \texttt{1,009,160}] & 164 \\
+Bucket 09 & [\texttt{1,011,071} - \texttt{1,146,469}] & 166 \\
+Bucket 10 & [\texttt{1,148,257} - \texttt{1,270,590}] & 145 \\
+Bucket 11 & [\texttt{1,272,220} - \texttt{1,395,313}] & 132 \\
+Bucket 12 & [\texttt{1,396,612} - \texttt{1,519,389}] & 155 \\
+Bucket 13 & [\texttt{1,521,543} - \texttt{1,633,984}] & 152 \\
+Bucket 14 & [\texttt{1,638,075} - \texttt{1,748,729}] & 120 \\
+Bucket 15 & [\texttt{1,750,231} - \texttt{1,870,608}] & 139 \\
+Bucket 16 & [\texttt{1,874,253} - \texttt{2,004,075}] & 147 \\
+Bucket 17 & [\texttt{2,007,741} - \texttt{2,133,708}] & 156 \\
+Bucket 18 & [\texttt{2,137,263} - \texttt{2,272,201}] & 160 \\
+Bucket 19 & [\texttt{2,273,708} - \texttt{2,407,008}] & 153 \\
+Bucket 20 & [\texttt{2,407,834} - \texttt{2,528,054}] & 153 \\
 \end{xltabular}
 
 
@@ -582,34 +595,33 @@ Bucket 20 & [\texttt{2,412,939} - \texttt{2,522,416}] & 128 \\
 \endfoot
 \bottomrule
 \endlastfoot
-Bucket 01 & [\texttt{"\#7.1: Festival of the Hun"} - \texttt{"(323) Graffiti6"}] & 848 \\
-Bucket 02 & [\texttt{"...And a Good Slopping Out"} - \texttt{"38. dag"}] & 19 \\
-Bucket 03 & [\texttt{"404"} - \texttt{"99 Pieces"}] & 7 \\
-Bucket 04 & [\texttt{"A Bachelor's Babies"} - \texttt{"Ayaash"}] & 169 \\
-Bucket 05 & [\texttt{"BYTI - zivotni filosofie "} - \texttt{"Cyber-Raptors"}] & 234 \\
-Bucket 06 & [\texttt{"DMV"} - \texttt{"Dynowarz: Destruction of "}"] & 123 \\
-Bucket 07 & [\texttt{"ESPN Cheats Center"} - \texttt{"Futotta kimi to yaseta bo"}] & 141 \\
-Bucket 08 & [\texttt{"Födelsedag"} - \texttt{"Hush Girls Vacation Winte"}] & 133 \\
-Bucket 09 & [\texttt{"Hús vétkek"} - \texttt{"Jy Harris"}] & 109 \\
-Bucket 10 & [\texttt{"K.L.U"} - \texttt{"Luz del Fuego"}] & 181 \\
-Bucket 11 & [\texttt{"Láska rohatá"} - \texttt{"Nuretsuzuketa onna: Suits"}] & 165 \\
-Bucket 12 & [\texttt{"O Barato é Ser Careta"} - \texttt{"Qytetet ilire"}] & 162 \\
-Bucket 13 & [\texttt{"RKO Victory Special No. 3"} - \texttt{"Szép kis buli volt"}] & 229 \\
-Bucket 14 & [\texttt{"Så Här Är Det Nu"} - \texttt{"Urzulei"}] & 344 \\
-Bucket 15 & [\texttt{"Vaarwel"} - \texttt{"X Games 3D: The Movie"}] & 105 \\
-Bucket 16 & [\texttt{"Yog, Monster from Space"} - \texttt{"Zwembad"}] & 21 \\
-Bucket 17 & [\texttt{"desAliento"} - \texttt{"iDate Christ"}] & 2 \\
-Bucket 18 & [\texttt{"¡Eglantina sexy in stgo.!"} - \texttt{"¡Eglantina sexy in stgo.!"}] & 1 \\
-Bucket 19 & [\texttt{"¿Ligamos mucho los españo"} - \texttt{"Âme belge"}] & 3 \\
-Bucket 20 & [\texttt{"Ørkenens juvel"} - \texttt{"Übers Ziel hinaus"}] & 4 \\
+Bucket 01 & [\texttt{"'57 Chevy Part 2"} - \texttt{"(2013-05-31)"}] & 843 \\
+Bucket 02 & [\texttt{"...And a School Bus"} - \texttt{"4000 en los Andes"}] & 23 \\
+Bucket 03 & [\texttt{"6 Chefs Compete"} - \texttt{"99: Why do you say that?"}] & 6 \\
+Bucket 04 & [\texttt{"A Bag of Evidence"} - \texttt{"Azul"}] & 179 \\
+Bucket 05 & [\texttt{"B-Grade Celebrity/Bucks P"} - \texttt{"Buzios"}] & 116 \\
+Bucket 06 & [\texttt{"Bîto Takeshi satsujin jik"} - \texttt{"Cynthia Rowley"}] & 100 \\
+Bucket 07 & [\texttt{"D'abord ménagères"} - \texttt{"Dílerka"}] & 122 \\
+Bucket 08 & [\texttt{"Easel Does It/Dinky at th"} - \texttt{"Futebol Entre Fluminense "}] & 146 \\
+Bucket 09 & [\texttt{"Gakuen sai de yui, hansei"} - \texttt{"Humongous Hooters"}] & 153 \\
+Bucket 10 & [\texttt{"Hämäläiset sukupidot Tamm"} - \texttt{"Jvartsmuli kundzuli"}] & 102 \\
+Bucket 11 & [\texttt{"Jû"} - \texttt{"Lähtölaukaus"}] & 174 \\
+Bucket 12 & [\texttt{"Lídin odjezd"} - \texttt{"Nyûsu môningu sateraito"}] & 170 \\
+Bucket 13 & [\texttt{"O Bairro Salazar"} - \texttt{"Pérdida millonaria"}] & 143 \\
+Bucket 14 & [\texttt{"Quando parliamo d'amore"} - \texttt{"Ryuu wo tsuru shounen"}] & 67 \\
+Bucket 15 & [\texttt{"Rånemax tv-show"} - \texttt{"Sådan udvikler du dit bar"}] & 183 \\
+Bucket 16 & [\texttt{"Súkromné jasle"} - \texttt{"Uyarukm Njan Nadaake"}] & 334 \\
+Bucket 17 & [\texttt{"Vabzdziu dresuotojas"} - \texttt{"XFC 11: The Next Generati"}] & 100 \\
+Bucket 18 & [\texttt{"Ya vozhatyy forposta"} - \texttt{"Zwischen uns beiden"}] & 34 \\
+Bucket 19 & [\texttt{"¿Diana en peligro?"} - \texttt{"Åsa-Nisse i kronans kläde"}] & 3 \\
+Bucket 20 & [\texttt{"Ôjo-sama to eiyû"} - \texttt{"Öbergs på Lillöga"}] & 2 \\
 \end{xltabular}
-
 
 
 \subsubsection{4. Max Selectivity Error for Optimal Histogram ($N=3000$)}
 
 \begin{itemize}
-\item \textbf{Max Selectivity Error}: \textbf{0.003169} (or \textbf{0.3169\%})
+\item \textbf{Max Selectivity Error}: \textbf{0.003720} (or \textbf{0.3720\%})
 \end{itemize}
 
 \paragraph{A. Step-by-Step Calculation Methodology}
@@ -637,7 +649,7 @@ Bucket 20 & [\texttt{"Ørkenens juvel"} - \texttt{"Übers Ziel hinaus"}] & 4 \\
 
 4. \textbf{Maximum Selectivity Error}:
 
-\[ \text{Max Selectivity Error} = \max_{k \in \{0..9\}} |S_{\text{est}}(q_k) - S_{\text{act}}(q_k)| = \mathbf{0.003169} \]
+\[ \text{Max Selectivity Error} = \max_{k \in \{0..9\}} |S_{\text{est}}(q_k) - S_{\text{act}}(q_k)| = \mathbf{0.003720} \]
 
 
 \paragraph{B. Quantile-by-Quantile Error Evaluation Table ($N=3000, B=20$)}
@@ -656,30 +668,59 @@ Bucket 20 & [\texttt{"Ørkenens juvel"} - \texttt{"Übers Ziel hinaus"}] & 4 \\
 \endfoot
 \bottomrule
 \endlastfoot
-$q_0$ & \texttt{153.0} & 1 & 0.000333 & 0.00 & 0.000000 & 0.000333 \\
-$q_1$ & \texttt{280,963.4} & 341 & 0.113667 & 340.49 & 0.113497 & 0.000170 \\
-$q_2$ & \texttt{561,773.9} & 650 & 0.216667 & 649.86 & 0.216620 & 0.000046 \\
-$q_3$ & \texttt{842,584.3} & 1,017 & 0.339000 & 1,017.00 & 0.339000 & 0.000000 \\
-$q_4$ & \texttt{1,123,394.8} & 1,369 & 0.456333 & 1,362.71 & 0.454235 & \textbf{0.002098} \\
-$q_5$ & \texttt{1,404,205.2} & 1,677 & 0.559000 & 1,674.87 & 0.558290 & 0.000710 \\
-$q_6$ & \texttt{1,685,015.7} & 1,997 & 0.665667 & 1,997.28 & 0.665759 & 0.000092 \\
-$q_7$ & \texttt{1,965,826.1} & 2,344 & 0.781333 & 2,342.53 & 0.780844 & 0.000489 \\
-$q_8$ & \texttt{2,246,636.6} & 2,697 & 0.899000 & 2,693.97 & 0.897991 & 0.001009 \\
-$q_9$ & \texttt{2,527,447.0} & 3,000 & 1.000000 & 3,000.00 & 1.000000 & 0.000000 \\
+$q_0$ & \texttt{257.0} & 1 & 0.000333 & 0.00 & 0.000000 & 0.000333 \\
+$q_1$ & \texttt{281,123.3} & 342 & 0.114000 & 337.42 & 0.112473 & 0.001527 \\
+$q_2$ & \texttt{561,989.7} & 668 & 0.222667 & 674.82 & 0.224941 & 0.002274 \\
+$q_3$ & \texttt{842,856.0} & 1028 & 0.342667 & 1016.84 & 0.338946 & \textbf{0.003720} \\
+$q_4$ & \texttt{1,123,722.3} & 1353 & 0.451000 & 1360.11 & 0.453371 & 0.002371 \\
+$q_5$ & \texttt{1,404,588.7} & 1673 & 0.557667 & 1675.07 & 0.558357 & 0.000690 \\
+$q_6$ & \texttt{1,685,455.0} & 2026 & 0.675333 & 2023.38 & 0.674461 & 0.000873 \\
+$q_7$ & \texttt{1,966,321.3} & 2345 & 0.781667 & 2335.25 & 0.778417 & 0.003250 \\
+$q_8$ & \texttt{2,247,187.7} & 2669 & 0.889667 & 2664.34 & 0.888114 & 0.001553 \\
+$q_9$ & \texttt{2,528,054.0} & 3000 & 1.000000 & 3000.00 & 1.000000 & 0.000000 \\
 \end{xltabular}
 
 
+\subsubsection{5. Histograms Across Sample Sizes ($N = 1000$ and $N = 3000$)}
+
+Below are the optimal serial histogram visualizations ($B=20$) for both sample sizes $N=1000$ and $N=3000$:
 
 
-\subsubsection{5. Timings Across Sample Sizes}
+\paragraph{A. Sample Size $N = 1000$ Histograms}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{q2_histogram_id_1000.png}
+\caption{Optimal Serial Histogram for title.id (N=1000)}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{q2_histogram_title_1000.png}
+\caption{Optimal Serial Histogram for title.title (N=1000)}
+\end{figure}
+
+\paragraph{B. Sample Size $N = 3000$ Histograms}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{q2_histogram_id_3000.png}
+\caption{Optimal Serial Histogram for title.id (N=3000)}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{q2_histogram_title_3000.png}
+\caption{Optimal Serial Histogram for title.title (N=3000)}
+\end{figure}
+
+\paragraph{C. Summary Table Across Sample Sizes}
 \small
-\begin{xltabular}{\textwidth}{l | X | X}
+\begin{xltabular}{\textwidth}{l | X | l | X}
 \toprule
-\textbf{Sample Size ($N$)} & \textbf{Build Time (Seconds)} & \textbf{Max Selectivity Error} \\
+\textbf{Sample Size ($N$)} & \textbf{Build Time (\texttt{id})} & \textbf{Build Time (\texttt{title})} & \textbf{Max Selectivity Error} \\
 \midrule
 \endfirsthead
 \toprule
-\textbf{Sample Size ($N$)} & \textbf{Build Time (Seconds)} & \textbf{Max Selectivity Error} \\
+\textbf{Sample Size ($N$)} & \textbf{Build Time (\texttt{id})} & \textbf{Build Time (\texttt{title})} & \textbf{Max Selectivity Error} \\
 \midrule
 \endfirsthead
 \endhead
@@ -687,24 +728,76 @@ $q_9$ & \texttt{2,527,447.0} & 3,000 & 1.000000 & 3,000.00 & 1.000000 & 0.000000
 \endfoot
 \bottomrule
 \endlastfoot
-\textbf{1000} & 0.2078s & 0.003292 \\
-\textbf{3000} & 0.9947s & 0.003169 \\
-\textbf{5000} & 2.1934s & 0.002944 \\
+\textbf{1000} & 0.1994s & 0.1719s & 0.004699 \\
+\textbf{3000} & 0.8290s & 0.8240s & 0.003720 \\
+\textbf{5000} & 2.1767s & 2.0974s & 0.002471 \\
 \end{xltabular}
 
 
-\subsubsection{6. Linear Regression Extrapolation for Full Table ($N = 2,528,312$)}
-Using linear regression model $T(N) = m \cdot N + c$:
+\hrule
 
+
+\subsubsection{6. Full Step-by-Step Linear Regression Extrapolation ($N = 2,528,312$)}
+
+To extrapolate the construction build time for the entire \texttt{title} table ($N = 2,528,312$), we fit a linear regression model:
+
+\[ T(N) = m \cdot N + c \]
+
+
+\paragraph{A. Sample Data Points $(N_i, T_i)$}
 \begin{itemize}
-\item **Slope ($m$)**: \texttt{0.00049640} seconds / sample
-\item **Intercept ($c$)**: \texttt{-0.357260} seconds
-\item **Extrapolated Time for Full Table ($N=2,528,312$)**:
+\item Point 1: $(N_1, T_1) = (1000, 0.1994)$
+\item Point 2: $(N_2, T_2) = (3000, 0.8290)$
+\item Point 3: $(N_3, T_3) = (5000, 2.1767)$
 \end{itemize}
 
-\[ T(2528312) = (0.00049640 \times 2528312) + (-0.357260) = 1254.70 \text{ seconds} \quad (20.91 \text{ minutes}) \]
+\paragraph{B. Mean Calculations}
+\begin{itemize}
+\item $\bar{N} = \frac{1000 + 3000 + 5000}{3} = \mathbf{3000}$
+\item $\bar{T} = \frac{0.1994 + 0.8290 + 2.1767}{3} = \mathbf{1.0684\text{ seconds}}$
+\end{itemize}
+
+\paragraph{C. Deviations \& Sum of Products}
+\small
+\begin{xltabular}{\textwidth}{l | X | l | l | l | X}
+\toprule
+\textbf{$N_i$} & \textbf{$T_i$ (s)} & \textbf{$(N_i - \bar{N})$} & \textbf{$(T_i - \bar{T})$} & \textbf{$(N_i - \bar{N})^2$} & \textbf{$(N_i - \bar{N})(T_i - \bar{T})$} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{$N_i$} & \textbf{$T_i$ (s)} & \textbf{$(N_i - \bar{N})$} & \textbf{$(T_i - \bar{T})$} & \textbf{$(N_i - \bar{N})^2$} & \textbf{$(N_i - \bar{N})(T_i - \bar{T})$} \\
+\midrule
+\endfirsthead
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
+1000 & 0.1994 & -2000 & -0.8690 & 4,000,000 & 1738.0037 \\
+3000 & 0.8290 & 0 & -0.2394 & 0 & -0.0000 \\
+5000 & 2.1767 & +2000 & 1.1084 & 4,000,000 & 2216.7320 \\
+\textbf{Sum} &  &  &  & \textbf{8,000,000} & \textbf{3954.7358} \\
+\end{xltabular}
 
 
+\paragraph{D. Slope ($m$) and Intercept ($c$) Formulas}
+\begin{itemize}
+\item **Slope ($m$)**:
+\end{itemize}
+\[ m = \frac{\sum (N_i - \bar{N})(T_i - \bar{T})}{\sum (N_i - \bar{N})^2} = \frac{3954.7358}{8,000,000} = \mathbf{0.00049434\text{ seconds / sample}} \]
+
+
+\begin{itemize}
+\item **Intercept ($c$)**:
+\end{itemize}
+\[ c = \bar{T} - m \cdot \bar{N} = 1.0684 - (0.00049434 \times 3000) = \mathbf{-0.414643\text{ seconds}} \]
+
+
+\paragraph{E. Extrapolated Build Time for Full Table ($N = 2,528,312$)}
+\[ T(2,528,312) = (0.00049434 \times 2,528,312) + (-0.414643) = \mathbf{1249.44\text{ seconds}} \quad (\mathbf{20.82\text{ minutes}}) \]
+
+
+\hrule
 
 
 \subsubsection{7. Sample Size vs Time Relationship Plot}
@@ -714,12 +807,18 @@ Using linear regression model $T(N) = m \cdot N + c$:
 \caption{Sample Size vs Time}
 \end{figure}
 
+\hrule
+
+
 \subsubsection{8. Sample Size vs Max Selectivity Error Relationship Plot}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{q2_sample_size_vs_error.png}
 \caption{Sample Size vs Max Selectivity Error}
 \end{figure}
+
+\hrule
+
 
 \subsubsection{9. Impact of Bucket Count ($B$) Choice}
 \begin{itemize}

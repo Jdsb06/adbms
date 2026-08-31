@@ -46,6 +46,14 @@ def process_inline(text, escape_all_backslash=False):
             res.append(s)
     return ''.join(res)
 
+def clean_table_line(tline):
+    # Replace pipes inside math expressions $...$ or escaped \| with \vert before splitting row by |
+    def replace_math_pipe(m):
+        return m.group(0).replace('|', r'\vert ')
+    tline = re.sub(r'\$.*?\$', replace_math_pipe, tline)
+    tline = tline.replace(r'\|', r'\vert ')
+    return tline
+
 def md_to_tex(md_file, tex_file, is_log_file=False):
     with open(md_file, 'r', encoding='utf-8', errors='ignore') as f:
         content = f.read()
@@ -139,7 +147,8 @@ def md_to_tex(md_file, tex_file, is_log_file=False):
             if table_lines:
                 rows = []
                 for tline in table_lines:
-                    cols = [c.strip() for c in tline.split('|')[1:-1]]
+                    tline_clean = clean_table_line(tline)
+                    cols = [c.strip() for c in tline_clean.split('|')[1:-1]]
                     rows.append(cols)
 
                 if len(rows) > 1 and all(set(c) <= set(':- ') for c in rows[1]):
@@ -150,10 +159,8 @@ def md_to_tex(md_file, tex_file, is_log_file=False):
                     body = rows[1:]
 
                 num_cols = len(header)
-                # Determine column specification
                 col_spec = ' | '.join(['X' if i == len(header)-1 or i == 1 else 'l' for i in range(num_cols)])
                 
-                # Use xltabular so long tables (e.g. 101 rows) break seamlessly across multiple pages!
                 tex_out.append(r'\small' + '\n')
                 tex_out.append(r'\begin{xltabular}{\textwidth}{' + col_spec + r'}' + '\n')
                 tex_out.append(r'\toprule' + '\n')
@@ -162,7 +169,6 @@ def md_to_tex(md_file, tex_file, is_log_file=False):
                 header_str = ' & '.join(header_cells) + r' \\' + '\n' + r'\midrule' + '\n' + r'\endfirsthead' + '\n'
                 tex_out.append(header_str)
 
-                # Headings on subsequent pages
                 tex_out.append(r'\toprule' + '\n' + header_str + r'\endhead' + '\n')
                 tex_out.append(r'\bottomrule' + '\n' + r'\endfoot' + '\n')
                 tex_out.append(r'\bottomrule' + '\n' + r'\endlastfoot' + '\n')

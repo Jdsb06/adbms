@@ -93,6 +93,33 @@ def compute_max_selectivity_error(bucket_boundaries, bucket_counts, sample_data)
         
     return max(errors) if errors else 0.0
 
+def generate_histogram_plot(bounds, counts, sample_data, title_str, save_path, is_string=False):
+    plt.figure(figsize=(10, 8))
+    labels = []
+    if is_string:
+        cum_cnt = 0
+        for cnt in counts:
+            start_str = sample_data[cum_cnt][:15]
+            cum_cnt += cnt
+            end_str = sample_data[cum_cnt - 1][:15]
+            labels.append(f"['{start_str}' - '{end_str}']")
+        color_choice = '#4682b4'
+        ylabel_str = 'Value Boundaries String Buckets (Y-axis)'
+    else:
+        labels = [f"[{int(b[0])} - {int(b[1])}]" for b in bounds]
+        color_choice = '#2e8b57'
+        ylabel_str = 'Value Boundaries Bucket Intervals (Y-axis)'
+
+    plt.barh(range(len(counts)), counts, color=color_choice, edgecolor='black', alpha=0.8)
+    plt.yticks(range(len(counts)), labels, fontsize=8)
+    plt.xlabel('Frequency (X-axis)')
+    plt.ylabel(ylabel_str)
+    plt.title(title_str)
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300)
+    plt.close()
+
 def run_q2():
     os.makedirs('plots', exist_ok=True)
     conn = psycopg2.connect(dbname='imdbload')
@@ -134,42 +161,32 @@ def run_q2():
         timings_title[N] = elapsed_title
         print(f"[title] N={N}: Build Time = {elapsed_title:.4f}s")
 
-        if N == 3000:
-            hist_results['id_3000'] = (id_bounds, id_counts, elapsed_id, err_id)
-            hist_results['title_3000'] = (title_bounds_num, title_counts, title_sample, elapsed_title)
+        hist_results[N] = {
+            'id_bounds': id_bounds,
+            'id_counts': id_counts,
+            'id_sample': id_sample,
+            'elapsed_id': elapsed_id,
+            'err_id': err_id,
+            'title_bounds_num': title_bounds_num,
+            'title_counts': title_counts,
+            'title_sample': title_sample,
+            'elapsed_title': elapsed_title
+        }
 
-    id_b_3000, id_c_3000, t_id_3000, e_id_3000 = hist_results['id_3000']
-    plt.figure(figsize=(10, 8))
-    y_labels = [f"[{int(b[0])} - {int(b[1])}]" for b in id_b_3000]
-    plt.barh(range(len(id_c_3000)), id_c_3000, color='#2e8b57', edgecolor='black', alpha=0.8)
-    plt.yticks(range(len(id_c_3000)), y_labels, fontsize=8)
-    plt.xlabel('Frequency (X-axis)')
-    plt.ylabel('Value Boundaries Bucket Intervals (Y-axis)')
-    plt.title(f'Optimal Serial Histogram (B={num_buckets}) for title.id (N=3000)')
-    plt.grid(True, linestyle='--', alpha=0.5)
-    plt.tight_layout()
-    plt.savefig('plots/q2_histogram_id_3000.png', dpi=300)
-    plt.close()
-
-    t_b_3000, t_c_3000, t_samp_3000, t_time_3000 = hist_results['title_3000']
-    plt.figure(figsize=(10, 8))
-    t_labels = []
-    cum_cnt = 0
-    for cnt in t_c_3000:
-        start_str = t_samp_3000[cum_cnt][:15]
-        cum_cnt += cnt
-        end_str = t_samp_3000[cum_cnt - 1][:15]
-        t_labels.append(f"['{start_str}' - '{end_str}']")
-
-    plt.barh(range(len(t_c_3000)), t_c_3000, color='#4682b4', edgecolor='black', alpha=0.8)
-    plt.yticks(range(len(t_c_3000)), t_labels, fontsize=8)
-    plt.xlabel('Frequency (X-axis)')
-    plt.ylabel('Value Boundaries String Buckets (Y-axis)')
-    plt.title(f'Optimal Serial Histogram (B={num_buckets}) for title.title (N=3000)')
-    plt.grid(True, linestyle='--', alpha=0.5)
-    plt.tight_layout()
-    plt.savefig('plots/q2_histogram_title_3000.png', dpi=300)
-    plt.close()
+        # Generate plots for N=1000 and N=3000
+        if N in [1000, 3000]:
+            generate_histogram_plot(
+                id_bounds, id_counts, id_sample,
+                f'Optimal Serial Histogram (B={num_buckets}) for title.id (N={N})',
+                f'plots/q2_histogram_id_{N}.png',
+                is_string=False
+            )
+            generate_histogram_plot(
+                title_bounds_num, title_counts, title_sample,
+                f'Optimal Serial Histogram (B={num_buckets}) for title.title (N={N})',
+                f'plots/q2_histogram_title_{N}.png',
+                is_string=True
+            )
 
     X = np.array(sample_sizes)
     Y = np.array([timings_id[n] for n in sample_sizes])
@@ -215,10 +232,7 @@ def run_q2():
         'extrapolated_time': extrapolated_time,
         'slope': slope,
         'intercept': intercept,
-        'id_bounds_3000': id_b_3000,
-        'id_counts_3000': id_c_3000,
-        'title_labels_3000': t_labels,
-        'title_counts_3000': t_c_3000
+        'hist_results': hist_results
     }
 
 if __name__ == '__main__':

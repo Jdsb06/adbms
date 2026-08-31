@@ -77,6 +77,60 @@ def generate_assignment_report():
 
     q2_res = run_q2()
 
+    # Extract Q2 details from fresh run
+    h_res = q2_res['hist_results']
+    res_3000 = h_res[3000]
+    res_1000 = h_res[1000]
+    res_5000 = h_res[5000]
+
+    t1000 = q2_res['timings_id'][1000]
+    t3000 = q2_res['timings_id'][3000]
+    t5000 = q2_res['timings_id'][5000]
+
+    e1000 = q2_res['errors_id'][1000]
+    e3000 = q2_res['errors_id'][3000]
+    e5000 = q2_res['errors_id'][5000]
+
+    slope = q2_res['slope']
+    intercept = q2_res['intercept']
+    extrapolated_time = q2_res['extrapolated_time']
+
+    # Compute step-by-step linear regression numbers
+    mean_N = 3000.0
+    mean_T = (t1000 + t3000 + t5000) / 3.0
+
+    dev_N = [1000 - mean_N, 3000 - mean_N, 5000 - mean_N]
+    dev_T = [t1000 - mean_T, t3000 - mean_T, t5000 - mean_T]
+
+    sum_sq_N = sum(d**2 for d in dev_N)
+    sum_cross = sum(dN * dT for dN, dT in zip(dev_N, dev_T))
+
+    # Compute 10-quantile table for N=3000 id histogram
+    id_sample_3000 = res_3000['id_sample']
+    id_bounds_3000 = res_3000['id_bounds']
+    id_counts_3000 = res_3000['id_counts']
+    n_samp = len(id_sample_3000)
+
+    quantiles_3000 = np.linspace(min(id_sample_3000), max(id_sample_3000), 10)
+    q_table_rows = []
+    max_q_err = 0.0
+
+    for k, q in enumerate(quantiles_3000):
+        a_cnt = sum(1 for x in id_sample_3000 if x <= q)
+        a_sel = a_cnt / n_samp
+        e_cnt = 0.0
+        for (low, high), cnt in zip(id_bounds_3000, id_counts_3000):
+            if high <= q:
+                e_cnt += cnt
+            elif low <= q < high:
+                frac = (q - low) / max(1e-6, (high - low))
+                e_cnt += cnt * frac
+        e_sel = e_cnt / n_samp
+        q_err = abs(e_sel - a_sel)
+        if q_err > max_q_err:
+            max_q_err = q_err
+        q_table_rows.append((k, q, a_cnt, a_sel, e_cnt, e_sel, q_err))
+
     report = f"""# Advanced Database Management Systems (ADBMS)
 ## Assignment 0 & Assignment 1: Histogram Analysis Report
 
@@ -140,7 +194,7 @@ Textual attributes in PostgreSQL are converted into histograms by:
 3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation.
 4. Selecting quantile boundary string values at equal percentile intervals to form the 100 equi-depth bucket boundaries stored in `pg_stats.histogram_bounds`.
 
-### 5. Exact Bucket Boundaries List (From `pg_stats` / `/tmp/stats.csv`)
+### 5. Exact Bucket Boundaries List (From `pg_stats`)
 
 #### A. Column `id` Bucket Boundaries ({len(id_bounds_list)} values, 100 buckets)
 | Bucket Index | Boundary Value (`id`) | Bucket Interval |
@@ -250,36 +304,129 @@ For range queries on text columns:
 ![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
 
 ### 2. Execution Build Time
-- **$N=1000$**: **{q2_res['timings_id'][1000]:.4f} seconds**
-- **$N=3000$**: **{q2_res['timings_id'][3000]:.4f} seconds**
-- **$N=5000$**: **{q2_res['timings_id'][5000]:.4f} seconds**
+- **Execution Build Time for $N=3000$**: **{t3000:.4f} seconds** (`id` column) / **{res_3000['elapsed_title']:.4f} seconds** (`title` column)
 
 ### 3. Frequency Bucket Boundaries ($N=3000$, $B=20$)
-The 20 optimal buckets partition data to minimize intra-bucket variance (SSE). Bucket frequency counts vary dynamically to optimize error reduction.
 
-### 4. Max Selectivity Error for Optimal Histogram ($N=3000$)
-- **Max Selectivity Error**: **{q2_res['errors_id'][3000]:.6f}**
-- **Calculation**: Computed across 10 evaluation range quantiles comparing optimal bucket cumulative frequency estimation against empirical sample distribution.
+The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors (SSE). The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
 
-### 5. Timings Across Sample Sizes
-| Sample Size ($N$) | Build Time (Seconds) | Max Selectivity Error |
+#### A. Column `id` Frequency Bucket Boundaries ($N=3000$, $B=20$)
+| Bucket # | Value Interval (`id`) | Frequency Count ($n_i$) |
 | :---: | :---: | :---: |
-| **1000** | {q2_res['timings_id'][1000]:.4f}s | {q2_res['errors_id'][1000]:.6f} |
-| **3000** | {q2_res['timings_id'][3000]:.4f}s | {q2_res['errors_id'][3000]:.6f} |
-| **5000** | {q2_res['timings_id'][5000]:.4f}s | {q2_res['errors_id'][5000]:.6f} |
+"""
+    for idx, ((low, high), cnt) in enumerate(zip(id_bounds_3000, id_counts_3000)):
+        report += f"| Bucket {idx+1:02d} | [`{int(low):,}` - `{int(high):,}`] | {cnt} |\n"
 
-### 6. Linear Regression Extrapolation for Full Table ($N = 2,528,312$)
-Using linear regression model $T(N) = m \\cdot N + c$:
-- **Slope ($m$)**: `{q2_res['slope']:.8f}` seconds / sample
-- **Intercept ($c$)**: `{q2_res['intercept']:.6f}` seconds
-- **Extrapolated Time for Full Table ($N=2,528,312$)**:
-  $$T(2,528,312) = ({q2_res['slope']:.8f} \\times 2,528,312) + ({q2_res['intercept']:.6f}) = \\mathbf{{{q2_res['extrapolated_time']:.2f}\\text{{ seconds}}}} \\quad (\\mathbf{{{q2_res['extrapolated_time']/60:.2f}\\text{{ minutes}}}})$$
+    report += f"""
+#### B. Column `title` Frequency Bucket Boundaries ($N=3000$, $B=20$)
+| Bucket # | Value Interval (`title`) | Frequency Count ($n_i$) |
+| :---: | :--- | :---: |
+"""
+    t_samp = res_3000['title_sample']
+    t_counts = res_3000['title_counts']
+    cum_cnt = 0
+    for idx, cnt in enumerate(t_counts):
+        start_str = t_samp[cum_cnt][:25].replace('|', '\\|')
+        cum_cnt += cnt
+        end_str = t_samp[cum_cnt - 1][:25].replace('|', '\\|')
+        report += f'| Bucket {idx+1:02d} | [`"{start_str}"` - `"{end_str}"`] | {cnt} |\n'
+
+    report += f"""
+### 4. Max Selectivity Error for Optimal Histogram ($N=3000$)
+
+- **Max Selectivity Error**: **{e3000:.6f}** (or **{e3000*100:.4f}%**)
+
+#### A. Step-by-Step Calculation Methodology
+1. **Evaluation Quantiles ($q_0 \\dots q_9$)**: To systematically evaluate estimation error across the data range $[x_{{\\min}}, x_{{\\max}}]$, 10 linearly-spaced query thresholds $q_k$ are evaluated:
+   $$q_k = x_{{\\min}} + k \\times \\frac{{x_{{\\max}} - x_{{\\min}}}}{{9}}, \\quad k \\in \\{{0, 1, \\dots, 9\\}}$$
+
+2. **Actual Selectivity ($S_{{\\text{{act}}}}(q_k)$)**: Computed directly from the empirical sample of $N = 3,000$ points:
+   $$S_{{\\text{{act}}}}(q_k) = \\frac{{\\text{{Count}}(x \\le q_k)}}{{N}}$$
+
+3. **Optimal Histogram Estimated Selectivity ($S_{{\\text{{est}}}}(q_k)$)**:
+   - For all buckets $[L_i, H_i]$ lying fully below $q_k$ ($H_i \\le q_k$), add full bucket count $n_i$.
+   - For the enclosing bucket ($L_i \\le q_k < H_i$), perform linear interpolation:
+     $$\\text{{Estimated Count }} E(q_k) = \\sum_{{H_i \\le q_k}} n_i + \\left( n_i \\times \\frac{{q_k - L_i}}{{H_i - L_i}} \\right)$$
+   - Estimated Selectivity: $S_{{\\text{{est}}}}(q_k) = \\frac{{E(q_k)}}{{N}}$
+
+4. **Maximum Selectivity Error**:
+   $$\\text{{Max Selectivity Error}} = \\max_{{k \\in \\{{0..9\\}}}} |S_{{\\text{{est}}}}(q_k) - S_{{\\text{{act}}}}(q_k)| = \\mathbf{{{e3000:.6f}}}$$
+
+#### B. Quantile-by-Quantile Error Evaluation Table ($N=3000, B=20$)
+| Index ($k$) | Query Threshold ($q_k$) | Actual Count ($A$) | Actual Selectivity ($S_{{\\text{{act}}}}$) | Estimated Count ($E$) | Estimated Selectivity ($S_{{\\text{{est}}}}$) | Absolute Error $\\vert S_{{\\text{{est}}}} - S_{{\\text{{act}}}} \\vert$ |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+"""
+    for (k, q, a_cnt, a_sel, e_cnt, e_sel, q_err) in q_table_rows:
+        highlight = "**" if q_err == max_q_err else ""
+        report += f"| $q_{k}$ | `{q:,.1f}` | {a_cnt} | {a_sel:.6f} | {e_cnt:.2f} | {e_sel:.6f} | {highlight}{q_err:.6f}{highlight} |\n"
+
+    report += f"""
+### 5. Histograms Across Sample Sizes ($N = 1000$ and $N = 3000$)
+
+Below are the optimal serial histogram visualizations ($B=20$) for both sample sizes $N=1000$ and $N=3000$:
+
+#### A. Sample Size $N = 1000$ Histograms
+![Optimal Serial Histogram for title.id (N=1000)](../plots/q2_histogram_id_1000.png)
+
+![Optimal Serial Histogram for title.title (N=1000)](../plots/q2_histogram_title_1000.png)
+
+#### B. Sample Size $N = 3000$ Histograms
+![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
+
+![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
+
+#### C. Summary Table Across Sample Sizes
+| Sample Size ($N$) | Build Time (`id`) | Build Time (`title`) | Max Selectivity Error |
+| :---: | :---: | :---: | :---: |
+| **1000** | {t1000:.4f}s | {res_1000['elapsed_title']:.4f}s | {e1000:.6f} |
+| **3000** | {t3000:.4f}s | {res_3000['elapsed_title']:.4f}s | {e3000:.6f} |
+| **5000** | {t5000:.4f}s | {res_5000['elapsed_title']:.4f}s | {e5000:.6f} |
+
+---
+
+### 6. Full Step-by-Step Linear Regression Extrapolation ($N = 2,528,312$)
+
+To extrapolate the construction build time for the entire `title` table ($N = 2,528,312$), we fit a linear regression model:
+$$T(N) = m \\cdot N + c$$
+
+#### A. Sample Data Points $(N_i, T_i)$
+- Point 1: $(N_1, T_1) = (1000, {t1000:.4f})$
+- Point 2: $(N_2, T_2) = (3000, {t3000:.4f})$
+- Point 3: $(N_3, T_3) = (5000, {t5000:.4f})$
+
+#### B. Mean Calculations
+- $\\bar{{N}} = \\frac{{1000 + 3000 + 5000}}{{3}} = \\mathbf{{3000}}$
+- $\\bar{{T}} = \\frac{{{t1000:.4f} + {t3000:.4f} + {t5000:.4f}}}{{3}} = \\mathbf{{{mean_T:.4f}\\text{{ seconds}}}}$
+
+#### C. Deviations & Sum of Products
+| $N_i$ | $T_i$ (s) | $(N_i - \\bar{{N}})$ | $(T_i - \\bar{{T}})$ | $(N_i - \\bar{{N}})^2$ | $(N_i - \\bar{{N}})(T_i - \\bar{{T}})$ |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| 1000 | {t1000:.4f} | -2000 | {dev_T[0]:.4f} | 4,000,000 | {dev_N[0]*dev_T[0]:.4f} |
+| 3000 | {t3000:.4f} | 0 | {dev_T[1]:.4f} | 0 | {dev_N[1]*dev_T[1]:.4f} |
+| 5000 | {t5000:.4f} | +2000 | {dev_T[2]:.4f} | 4,000,000 | {dev_N[2]*dev_T[2]:.4f} |
+| **Sum** | | | | **8,000,000** | **{sum_cross:.4f}** |
+
+#### D. Slope ($m$) and Intercept ($c$) Formulas
+- **Slope ($m$)**:
+  $$m = \\frac{{\\sum (N_i - \\bar{{N}})(T_i - \\bar{{T}})}}{{\\sum (N_i - \\bar{{N}})^2}} = \\frac{{{sum_cross:.4f}}}{{8,000,000}} = \\mathbf{{{slope:.8f}\\text{{ seconds / sample}}}}$$
+
+- **Intercept ($c$)**:
+  $$c = \\bar{{T}} - m \\cdot \\bar{{N}} = {mean_T:.4f} - ({slope:.8f} \\times 3000) = \\mathbf{{{intercept:.6f}\\text{{ seconds}}}}$$
+
+#### E. Extrapolated Build Time for Full Table ($N = 2,528,312$)
+$$T(2,528,312) = ({slope:.8f} \\times 2,528,312) + ({intercept:.6f}) = \\mathbf{{{extrapolated_time:.2f}\\text{{ seconds}}}} \\quad (\\mathbf{{{extrapolated_time/60:.2f}\\text{{ minutes}}}})$$
+
+---
 
 ### 7. Sample Size vs Time Relationship Plot
 ![Sample Size vs Time](../plots/q2_sample_size_vs_time.png)
 
+---
+
 ### 8. Sample Size vs Max Selectivity Error Relationship Plot
 ![Sample Size vs Max Selectivity Error](../plots/q2_sample_size_vs_error.png)
+
+---
 
 ### 9. Impact of Bucket Count ($B$) Choice
 - **Fewer Buckets (e.g., $B = 5$ or $10$)**:
