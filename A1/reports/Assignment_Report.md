@@ -518,10 +518,12 @@ $$T(2,528,312) = (0.00049434 \times 2,528,312) + (-0.414643) = \mathbf{1249.44\t
 
 ---
 
-### 9. Impact of Bucket Count ($B$) Choice
-- **Fewer Buckets (e.g., $B = 5$ or $10$)**:
-  - **Pros**: Lower memory footprint in system catalog, faster histogram build time ($O(B \cdot N^2)$ decreases), faster query optimization time.
-  - **Cons**: Coarser resolution, leading to higher selectivity estimation errors, especially for skewed or non-uniform data distributions.
-- **More Buckets (e.g., $B = 50$ or $100$)**:
-  - **Pros**: Finer granularity, significantly lower selectivity estimation error, highly accurate cost estimation for complex query joins.
-  - **Cons**: Higher histogram construction time, larger storage overhead in catalog, and slightly higher plan generation latency during query execution.
+## 9: The Trade-off of Bucket Counts
+
+When building a histogram, choosing the number of buckets ($B$) is a classic trade off between performance and accuracy.
+
+**Choosing Fewer Buckets (e.g., 5 to 10)**
+If we use a small number of buckets, the biggest advantage is speed and efficiency. The histogram takes up very little memory in the system catalog and builds much faster because the time complexity of our algorithm, $O(B \cdot N^2)$, drops significantly. The query planner also spends less time analyzing it. However, the major downside is that we lose a lot of data resolution. Because the buckets are so wide, the internal mathematical estimates become much less accurate, especially if the data is heavily skewed or unevenly distributed.
+
+**Choosing More Buckets (e.g., 50 to 100)**
+On the flip side, using a large number of buckets gives the database a high-definition view of how the data is distributed. The estimates become incredibly precise, which leads to much lower selectivity errors and helps the query optimizer make smarter decisions for complex joins. The catch is that this accuracy comes at a heavy system cost. It takes noticeably longer to calculate and construct the histogram, consumes more storage space, and adds a slight delay to the query planning phase before execution can actually begin.
