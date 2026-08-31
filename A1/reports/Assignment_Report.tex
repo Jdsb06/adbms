@@ -524,7 +524,7 @@ frequency in the X-axis*
 
 \subsubsection{3. Frequency Bucket Boundaries ($N=3000$, $B=20$)}
 
-The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors (SSE). The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
+The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors . The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
 
 
 \paragraph{A. Column \texttt{id} Frequency Bucket Boundaries ($N=3000$, $B=20$)}
@@ -607,10 +607,69 @@ Bucket 20 & [\texttt{"Ørkenens juvel"} - \texttt{"Übers Ziel hinaus"}] & 4 \\
 
 
 \subsubsection{4. Max Selectivity Error for Optimal Histogram ($N=3000$)}
+
 \begin{itemize}
-\item \textbf{Max Selectivity Error}: \textbf{0.003169}
-\item \textbf{Calculation}: Computed across 10 evaluation range quantiles comparing optimal bucket cumulative frequency estimation against empirical sample distribution.
+\item \textbf{Max Selectivity Error}: \textbf{0.003169} (or \textbf{0.3169\%})
 \end{itemize}
+
+\paragraph{A. Step-by-Step Calculation Methodology}
+1. **Evaluation Quantiles ($q_0 \dots q_9$)**: To systematically evaluate estimation error across the data range $[x_{\min}, x_{\max}]$, 10 linearly-spaced query thresholds $q_k$ are evaluated:
+
+\[ q_k = x_{\min} + k \times \frac{x_{\max} - x_{\min}}{9}, \quad k \in \{0, 1, \dots, 9\} \]
+
+
+2. **Actual Selectivity ($S_{\text{act}}(q_k)$)**: Computed directly from the empirical sample of $N = 3,000$ points:
+
+\[ S_{\text{act}}(q_k) = \frac{\text{Count}(x \le q_k)}{N} \]
+
+
+3. **Optimal Histogram Estimated Selectivity ($S_{\text{est}}(q_k)$)**:
+
+\begin{itemize}
+\item For all buckets $[L_i, H_i]$ lying fully below $q_k$ ($H_i \le q_k$), add full bucket count $n_i$.
+\item For the enclosing bucket ($L_i \le q_k < H_i$), perform linear interpolation:
+\end{itemize}
+\[ \text{Estimated Count } E(q_k) = \sum_{H_i \le q_k} n_i + \left( n_i \times \frac{q_k - L_i}{H_i - L_i} \right) \]
+
+\begin{itemize}
+\item Estimated Selectivity: $S_{\text{est}}(q_k) = \frac{E(q_k)}{N}$
+\end{itemize}
+
+4. \textbf{Maximum Selectivity Error}:
+
+\[ \text{Max Selectivity Error} = \max_{k \in \{0..9\}} |S_{\text{est}}(q_k) - S_{\text{act}}(q_k)| = \mathbf{0.003169} \]
+
+
+\paragraph{B. Quantile-by-Quantile Error Evaluation Table ($N=3000, B=20$)}
+\small
+\begin{xltabular}{\textwidth}{l | X | l | l | l | l | X}
+\toprule
+\textbf{Index ($k$)} & \textbf{Query Threshold ($q_k$)} & \textbf{Actual Count ($A$)} & \textbf{Actual Selectivity ($S_{\text{act}}$)} & \textbf{Estimated Count ($E$)} & \textbf{Estimated Selectivity ($S_{\text{est}}$)} & \textbf{Absolute Error $\vert S_{\text{est}} - S_{\text{act}} \vert$} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Index ($k$)} & \textbf{Query Threshold ($q_k$)} & \textbf{Actual Count ($A$)} & \textbf{Actual Selectivity ($S_{\text{act}}$)} & \textbf{Estimated Count ($E$)} & \textbf{Estimated Selectivity ($S_{\text{est}}$)} & \textbf{Absolute Error $\vert S_{\text{est}} - S_{\text{act}} \vert$} \\
+\midrule
+\endfirsthead
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
+$q_0$ & \texttt{153.0} & 1 & 0.000333 & 0.00 & 0.000000 & 0.000333 \\
+$q_1$ & \texttt{280,963.4} & 341 & 0.113667 & 340.49 & 0.113497 & 0.000170 \\
+$q_2$ & \texttt{561,773.9} & 650 & 0.216667 & 649.86 & 0.216620 & 0.000046 \\
+$q_3$ & \texttt{842,584.3} & 1,017 & 0.339000 & 1,017.00 & 0.339000 & 0.000000 \\
+$q_4$ & \texttt{1,123,394.8} & 1,369 & 0.456333 & 1,362.71 & 0.454235 & \textbf{0.002098} \\
+$q_5$ & \texttt{1,404,205.2} & 1,677 & 0.559000 & 1,674.87 & 0.558290 & 0.000710 \\
+$q_6$ & \texttt{1,685,015.7} & 1,997 & 0.665667 & 1,997.28 & 0.665759 & 0.000092 \\
+$q_7$ & \texttt{1,965,826.1} & 2,344 & 0.781333 & 2,342.53 & 0.780844 & 0.000489 \\
+$q_8$ & \texttt{2,246,636.6} & 2,697 & 0.899000 & 2,693.97 & 0.897991 & 0.001009 \\
+$q_9$ & \texttt{2,527,447.0} & 3,000 & 1.000000 & 3,000.00 & 1.000000 & 0.000000 \\
+\end{xltabular}
+
+
+
 
 \subsubsection{5. Timings Across Sample Sizes}
 \small
