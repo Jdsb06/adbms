@@ -50,7 +50,11 @@
 ## Q1. Histogram Analysis for `id` and `title` Columns of `title` Table
 
 ### 1. Corresponding SQL Query
-To inspect PostgreSQL internal statistics and histogram boundary values stored in `pg_stats`:
+to see what all colums needed form `pg_stats'
+```sql
+\d pg_stats;
+```
+to see histogram boundary values and other relevent  stored in `pg_stats`:
 ```sql
 SELECT 
     attname, 
@@ -65,17 +69,21 @@ WHERE tablename = 'title'
 ```
 
 ### 2. Kind of Histogram
-PostgreSQL uses an **Equi-Depth (Equi-Height) Histogram** combined with a **Most Common Values (MCV)** list. In an equi-depth histogram, all buckets contain approximately the same number of rows ($pprox N / B$), while bucket boundaries vary in width according to data distribution.
+PSQL uses an Equi Depth Histogram combined with a Most Common Values list. In an equidepth histogram, all buckets contain approximately the same number of rows ($approx N / B$), while bucket boundaries vary in width according to data distribution
 
 ### 3. Number of Buckets
 - Column `id`: **100 buckets** (101 bucket boundary values)
 - Column `title`: **100 buckets** (101 bucket boundary values)
+- extra -  to see the defualt number of buckets
+```sql
+SHOW default_statistics_target;
+```
 
 ### 4. How Textual Attribute `title` is Put into Histogram
-Textual attributes in PostgreSQL are converted into histograms by:
-1. Sorting the text strings in lexicographical order (using the database collation).
-2. Sampling string values from the table.
-3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation.
+textual attribute “title” is put into histogram as:
+1. sorting the text strings in lexicographical order like bannana and apple will be apple, bannana after sorting
+2. Sampling string values from the table like table title has around 2.5M rows , it will only sample around 30K
+3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation like laptop will be broken to lap with l = 108, a=97, p=112 then by 256 as between 0 and 1 , lap will be around 0.42 , we can then see where a key belongs between two keeys 
 4. Selecting quantile boundary string values at equal percentile intervals to form the 100 equi-depth bucket boundaries stored in `pg_stats.histogram_bounds`.
 
 ### 5. Exact Bucket Boundaries List (From `pg_stats`)
@@ -295,79 +303,57 @@ Textual attributes in PostgreSQL are converted into histograms by:
 
 ![Histogram for title.title](../plots/q1_histogram_title.png)
 
-### 7. Max Selectivity Error Calculation & Explanation
-
-#### A. Mathematical Definition
-- **Actual Selectivity ($S_{act}$)**: The exact fraction of rows matching the query predicate:
-  $$S_{act} = \frac{A}{N}$$
-  where $A$ is actual row count from `count(*)`, and $N = 2,528,312$ is total table rows.
-
-- **Estimated Selectivity ($S_{est}$)**: The fraction of rows predicted by PostgreSQL's query optimizer:
-  $$S_{est} = \frac{E}{N}$$
-  where $E$ is estimated row count from `EXPLAIN`.
-
-- **Absolute Selectivity Error**:
-  $$\text{Error} = |S_{est} - S_{act}| = \left|\frac{E - A}{N}\right|$$
-
-#### B. Step-by-Step Calculation for Evaluated Queries
-
-1. **Query 1 (`title.title < 'Race'`)**:
-   - Actual Count ($A_1$): `1,918,141` $\implies S_{act,1} = \frac{1918141}{2528312} = \mathbf{0.758665}$
-   - Estimated Count ($E_1$): `1,939,288` $\implies S_{est,1} = \frac{1939288}{2528312} = \mathbf{0.767029}$
-   - **Absolute Error**: $|0.767029 - 0.758665| = \mathbf{0.008364}$ (0.8364% absolute error, 1.10% relative error).
-
-2. **Query 2 (`title.id < 350000`)**:
-   - Actual Count ($A_2$): `349,999` $\implies S_{act,2} = \frac{349999}{2528312} = \mathbf{0.138432}$
-   - Estimated Count ($E_2$): `337,982` $\implies S_{est,2} = \frac{337982}{2528312} = \mathbf{0.133679}$
-   - **Absolute Error**: $|0.133679 - 0.138432| = \mathbf{0.004753}$ (0.4753% absolute error, 3.43% relative error).
-
-3. **Max Selectivity Error**:
-   $$\text{Max Selectivity Error} = \max(\text{Error}_1, \text{Error}_2) = \max(0.008364, 0.004753) = \mathbf{0.008364} \quad (\mathbf{0.8364\%})$$
-
-#### C. PostgreSQL Internal Histogram Interpolation Breakdown (for `id < 350000`)
-- Search constant: `350000`.
-- Locate enclosing bucket boundaries in `histogram_bounds`:
-  - `B013 = 340479`
-  - `B014 = 366364`
-- Value `350000` falls in **Bucket 14** ($[340479, 366364]$).
-- All 13 preceding buckets are fully included: $13 \times \frac{1}{100} = 0.130000$.
-- Linear interpolation inside Bucket 14:
-  $$\text{Fraction in B14} = \frac{350000 - 340479}{366364 - 340479} \times \frac{1}{100} = \frac{9521}{25885} \times 0.01 = 0.003678$$
-- Base histogram selectivity: $0.130000 + 0.003678 = 0.133678$.
-- Adjusted by non-null fraction $(1 - \text{null\_frac})$ yielding optimizer estimate $E_2 = 356,446$ ($S_{est,2} = 0.140982$).
+### 7. Max Selectivity Error
+- **Max Selectivity Error**: Since `default_statistics_target` is 100, there are 100 buckets. Therefore, the maximum selectivity error for a range query is bounded by:
+$$\text{Max Error} \le \frac{1}{B} = \frac{1}{100} = 0.01 \quad (1.0\%)$$
+For evaluated queries(q9), the observed maximum selectivity error is **0.8364%** (0.008364), which strictly satisfies $\text{Max Error} \le 1.0\%$.
 
 ---
+### 8: Selectivity Estimation for Text Columns
+Selectivity estimate is done for range query on text column such as “title” in PSQL such as:
+*The engine scans the `histogram_bounds` array stored under pg_stats to locate the specific bucket where the target string  is, after that it counts all complete buckets preceding the target bucket. Each full bucket represents a fixed fraction of total rows (1/B). For the target bucket, PostgreSQL converts initial string bytes into floating-point numbers in $[0.0, 1.0]$ range for interpolation as explain in part 4,  assuming uniform distribution inside the target bucket, it calculates the target's position using:
 
-### 8. Selectivity Estimation for Text Range Queries (`title < 'Race'`)
-For range queries on text columns:
-1. PostgreSQL checks if the search string lies within `pg_stats.histogram_bounds`.
-2. It identifies the lower boundary $S_i$ and upper boundary $S_{i+1}$ enclosing the search target.
-3. It counts all buckets strictly preceding $S_i$ ($i \times \text{bucket\_weight}$).
-4. It computes linear interpolation within $[S_i, S_{i+1}]$ using prefix byte character encoding.
-5. The sum is multiplied by $(1 - \text{null\_frac} - \sum \text{MCV\_freq})$ to produce estimated selectivity.
+$$\text{Fraction} = \frac{\text{Query Value} - \text{Bucket Min}}{\text{Bucket Max} - \text{Bucket Min}}$$
+*   Final Calculation is done by adding the fractional bucket estimate to the sum of preceding full buckets to get the final estimated selectivity.
 
-### 9. Estimated and Actual Selectivities
+### 9: Estimated vs. Actual Selectivities
 
-#### Query 1: `SELECT * FROM title WHERE title.title < 'Race';`
-- **Actual Row Count**: 1,918,141
-- **Actual Selectivity**: **0.758665** (75.87%)
-- **Estimated Row Count**: 1,939,288
-- **Estimated Selectivity**: **0.767029** (76.70%)
-- **Selectivity Error**: **0.008364** (Relative Error: **1.10%**)
+To calculate estimated and actual selectivities of the queries and moreover there accuracy we compare estimated rows (from `EXPLAIN`) against actual rows (from `EXPLAIN ANALYZE`).
+Total row count ($N$) for the `title` table is 2,528,312.
 
-#### Query 2: `SELECT * FROM title WHERE title.id < 350000;`
-- **Actual Row Count**: 349,999
-- **Actual Selectivity**: **0.138432** (13.84%)
-- **Estimated Row Count**: 337,982
-- **Estimated Selectivity**: **0.133679** (13.37%)
-- **Selectivity Error**: **0.004753** (Relative Error: **3.43%**)
+**Query 1: `title < 'Race'`**
+```sql 
+EXPLAIN ANALYZE SELECT * FROM title WHERE title.title < 'Race';
+```
+- **Actual Selectivity:** The query physically returned 1,918,141 matching rows: $S_{act} = \frac{1918141}{2528312} \approx 0.7587$ (75.87%).
+
+```sql
+EXPLAIN SELECT * FROM title WHERE title.title < 'Race';
+```
+- **Estimated Selectivity:** The planner estimated 1,939,288 rows: $S_{est} = \frac{1939288}{2528312} \approx 0.7670$ (76.70%).
+
+- **Observation:** The absolute error is roughly 0.83%.
+
+**Query 2: `id < 350000`**
+```sql
+EXPLAIN ANALYZE SELECT * FROM title WHERE title.id < '350000';
+```
+- **Actual Selectivity:** The query returned 349,999 matching rows: $S_{act} = \frac{349999}{2528312} \approx 0.1384$ (13.84%).
+
+```sql
+EXPLAIN SELECT * FROM title WHERE title.id < '350000';
+```
+- **Estimated Selectivity:** The planner estimated 337,982 rows: $S_{est} = \frac{337982}{2528312} \approx 0.1337$ (13.37%).
+
+- **Observation:** The absolute error here is about 0.47%.
 
 ---
 
 ## Q2. Optimal Serial Histogram Construction ($B=20$ Buckets)
 
 ### 1. Histogram Visualizations for $N = 3000$ Samples (Horizontal Bar Plots)
-*As specified, value-boundaries are plotted on the Y-axis and frequency on the X-axis.*
+*As specified in ques the histograms as a bar-plot with value boundaries in the Y-axis and
+frequency in the X-axis*
 
 ![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
@@ -378,7 +364,7 @@ For range queries on text columns:
 
 ### 3. Frequency Bucket Boundaries ($N=3000$, $B=20$)
 
-The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors (SSE). The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
+The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors . The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
 
 #### A. Column `id` Frequency Bucket Boundaries ($N=3000$, $B=20$)
 | Bucket # | Value Interval (`id`) | Frequency Count ($n_i$) |
@@ -431,6 +417,9 @@ The optimal serial histogram algorithm partitions the 3,000 samples into 20 dyna
 ### 4. Max Selectivity Error for Optimal Histogram ($N=3000$)
 
 - **Max Selectivity Error**: **0.003720** (or **0.3720%**)
+
+#### Theoretical error , when worst case senario occurs ie it is skewed heavily
+$$\text{Max Error (Theoretical)} = \frac{\max(C_i)}{N}$$
 
 #### A. Step-by-Step Calculation Methodology
 1. **Evaluation Quantiles ($q_0 \dots q_9$)**: To systematically evaluate estimation error across the data range $[x_{\min}, x_{\max}]$, 10 linearly-spaced query thresholds $q_k$ are evaluated:
