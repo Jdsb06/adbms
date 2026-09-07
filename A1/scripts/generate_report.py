@@ -120,7 +120,7 @@ WHERE tablename = 'title'
 ```
 
 ### 2. Kind of Histogram
-PSQL uses an Equi Depth Histogram combined with a Most Common Values list. In an equidepth histogram, all buckets contain approximately the same number of rows ($approx N / B$), while bucket boundaries vary in width according to data distribution
+psql uses an equi depth histogram , where bucket bounderies are as such so that roughly the same number of tuples in each bucket
 
 ### 3. Number of Buckets
 - Column `id`: **100 buckets** (101 bucket boundary values)
@@ -134,7 +134,7 @@ SHOW default_statistics_target;
 textual attribute “title” is put into histogram as:
 1. sorting the text strings in lexicographical order like bannana and apple will be apple, bannana after sorting
 2. Sampling string values from the table like table title has around 2.5M rows , it will only sample around 30K
-3. Encoding initial string prefix bytes into floating-point numbers in $[0.0, 1.0]$ range for quantitative interpolation like laptop will be broken to lap with l = 108, a=97, p=112 then by 256 as between 0 and 1 , lap will be around 0.42 , we can then see where a key belongs between two keeys 
+3. Encoding initial string prefix bytes into floating point numbers in $[0.0, 1.0]$ range for quantitative interpolation like laptop will be broken to lap with l = 108, a=97, p=112 then by 256 as between 0 and 1 , lap will be around 0.42 , we can then see where a key belongs between two keeys 
 4. Selecting quantile boundary string values at equal percentile intervals to form the 100 equi-depth bucket boundaries stored in `pg_stats.histogram_bounds`.
 
 ### 5. Exact Bucket Boundaries List (From `pg_stats`)
@@ -175,11 +175,7 @@ For evaluated queries(q9), the observed maximum selectivity error is **{max_err*
 
 ---
 ### 8: Selectivity Estimation for Text Columns
-Selectivity estimate is done for range query on text column such as “title” in PSQL such as:
-*The engine scans the `histogram_bounds` array stored under pg_stats to locate the specific bucket where the target string  is, after that it counts all complete buckets preceding the target bucket. Each full bucket represents a fixed fraction of total rows (1/B). For the target bucket, PostgreSQL converts initial string bytes into floating-point numbers in $[0.0, 1.0]$ range for interpolation as explain in part 4,  assuming uniform distribution inside the target bucket, it calculates the target's position using:
-
-$$\\text{{Fraction}} = \\frac{{\\text{{Query Value}} - \\text{{Bucket Min}}}}{{\\text{{Bucket Max}} - \\text{{Bucket Min}}}}$$
-*   Final Calculation is done by adding the fractional bucket estimate to the sum of preceding full buckets to get the final estimated selectivity.
+To estimate selectivity for a range query on a text column like title, psql first looks at the histogrambounds array in pgstats to figure out which bucket contains the query string, once it finds the target bucket, it counts all the full buckets that come before it. since it uses an equidepth histogram, each full bucket represents a fixed fraction of the total rows.   For the specific bucket where the string actually falls, psql assumes the data is uniformly distributed and uses linear interpolation. It converts the first few bytes of the strings into floating point numbers between 0 and 1. This allows it to calculate the mathematical fraction of exactly where the query string sits between the buckets minimum and maximum boundaries. finally it adds this fractional piece to the sum of the preceding full buckets to get the final overall selectivity estimate
 
 ### 9: Estimated vs. Actual Selectivities
 
@@ -352,14 +348,7 @@ $$T(2,528,312) = ({slope:.8f} \\times 2,528,312) + ({intercept:.6f}) = \\mathbf{
 ---
 
 ## 9: The Trade-off of Bucket Counts
-
-When building a histogram, choosing the number of buckets ($B$) is a classic trade off between performance and accuracy.
-
-**Choosing Fewer Buckets (e.g., 5 to 10)**
-If we use a small number of buckets, the biggest advantage is speed and efficiency. The histogram takes up very little memory in the system catalog and builds much faster because the time complexity of our algorithm, $O(B \\cdot N^2)$, drops significantly. The query planner also spends less time analyzing it. However, the major downside is that we lose a lot of data resolution. Because the buckets are so wide, the internal mathematical estimates become much less accurate, especially if the data is heavily skewed or unevenly distributed.
-
-**Choosing More Buckets (e.g., 50 to 100)**
-On the flip side, using a large number of buckets gives the database a high-definition view of how the data is distributed. The estimates become incredibly precise, which leads to much lower selectivity errors and helps the query optimizer make smarter decisions for complex joins. The catch is that this accuracy comes at a heavy system cost. It takes noticeably longer to calculate and construct the histogram, consumes more storage space, and adds a slight delay to the query planning phase before execution can actually begin.
+Picking the number of buckets B is basically a trade off between how fast the histogram builds and how accurate the query planners estimates are.  If we use a small number of buckets, the DP algo runs much faster since its time complexity is O(B*N^2). It also saves memory in the system catalog and keeps query planning times short. The major downside is that wide buckets lead to higher selectivity errors. The database has to assume the data is uniformly distributed inside those large buckets, which usually isnt true and causes the estimates to lose resolution.  On the other hand using more buckets gives the optimizer a highdefinition picture of the actual data distribution, significantly dropping the max selectivity error. The catch is that computing these optimal partitions takes considerably more CPU time, uses more storage space, and adds overhead during the query planning phase before execution can begin.
 """
 
     report_file = 'reports/Assignment_Report.md'
