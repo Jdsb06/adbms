@@ -7,6 +7,11 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import nsdecls, qn
 
+def clean_xml_text(s):
+    if not isinstance(s, str):
+        s = str(s)
+    return re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', s)
+
 def set_cell_background(cell, fill_hex):
     tcPr = cell._tc.get_or_add_tcPr()
     shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
@@ -43,7 +48,7 @@ def md_to_docx(md_file_path, docx_file_path):
         # Handle Code blocks
         if stripped.startswith('```'):
             if in_code:
-                code_text = ''.join(code_lines)
+                code_text = clean_xml_text(''.join(code_lines))
                 p = doc.add_paragraph()
                 p.paragraph_format.left_indent = Inches(0.2)
                 p.paragraph_format.space_before = Pt(4)
@@ -92,7 +97,7 @@ def md_to_docx(md_file_path, docx_file_path):
                     # Format Header Row
                     hdr_cells = table.rows[0].cells
                     for i, h_text in enumerate(header):
-                        cell_text = re.sub(r'[*`\$\\]', '', h_text)
+                        cell_text = clean_xml_text(re.sub(r'[*`\$\\]', '', h_text))
                         hdr_cells[i].text = cell_text
                         set_cell_background(hdr_cells[i], "1F497D")
                         p = hdr_cells[i].paragraphs[0]
@@ -108,7 +113,7 @@ def md_to_docx(md_file_path, docx_file_path):
                         bg_color = "F2F2F2" if r_idx % 2 == 1 else "FFFFFF"
                         for c_idx in range(num_cols):
                             val = row_data[c_idx] if c_idx < len(row_data) else ""
-                            cell_text = re.sub(r'[*`\$\\]', '', val)
+                            cell_text = clean_xml_text(re.sub(r'[*`\$\\]', '', val))
                             row_cells[c_idx].text = cell_text
                             set_cell_background(row_cells[c_idx], bg_color)
                             p = row_cells[c_idx].paragraphs[0]
@@ -118,33 +123,28 @@ def md_to_docx(md_file_path, docx_file_path):
                                 run.font.name = 'Calibri'
 
                     doc.add_paragraph().paragraph_format.space_after = Pt(6)
-                    table_lines = []
-                    in_table = False
+                in_table = False
+                table_lines = []
 
         # Handle Images
-        img_match = re.match(r'^!\[(.*?)\]\((.*?)\)', stripped)
+        img_match = re.match(r'!\[.*?\]\((.*?)\)', stripped)
         if img_match:
-            alt_text = img_match.group(1)
-            img_rel_path = img_match.group(2)
-            img_path = os.path.normpath(os.path.join(os.path.dirname(md_file_path), img_rel_path))
-            if os.path.exists(img_path):
+            img_rel_path = img_match.group(1).lstrip('./')
+            img_full_path = os.path.join(os.path.dirname(md_file_path), img_rel_path)
+            if not os.path.exists(img_full_path):
+                img_full_path = img_rel_path
+            if os.path.exists(img_full_path):
                 p = doc.add_paragraph()
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                run = p.add_run()
-                run.add_picture(img_path, width=Inches(5.8))
-                
-                caption_p = doc.add_paragraph()
-                caption_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                c_run = caption_p.add_run(f"Figure: {alt_text}")
-                c_run.font.italic = True
-                c_run.font.size = Pt(9.5)
-                c_run.font.color.rgb = RGBColor(0x55, 0x55, 0x55)
+                p.paragraph_format.space_before = Pt(8)
+                p.paragraph_format.space_after = Pt(8)
+                p.add_run().add_picture(img_full_path, width=Inches(5.5))
             continue
 
         # Handle Headings
         if stripped.startswith('# '):
             h = doc.add_heading(level=1)
-            run = h.add_run(re.sub(r'[*`\$\\]', '', stripped[2:]))
+            run = h.add_run(clean_xml_text(re.sub(r'[*`\$\\]', '', stripped[2:])))
             run.font.name = 'Arial'
             run.font.size = Pt(18)
             run.font.bold = True
@@ -152,7 +152,7 @@ def md_to_docx(md_file_path, docx_file_path):
             continue
         elif stripped.startswith('## '):
             h = doc.add_heading(level=2)
-            run = h.add_run(re.sub(r'[*`\$\\]', '', stripped[3:]))
+            run = h.add_run(clean_xml_text(re.sub(r'[*`\$\\]', '', stripped[3:])))
             run.font.name = 'Arial'
             run.font.size = Pt(14)
             run.font.bold = True
@@ -160,7 +160,7 @@ def md_to_docx(md_file_path, docx_file_path):
             continue
         elif stripped.startswith('### '):
             h = doc.add_heading(level=3)
-            run = h.add_run(re.sub(r'[*`\$\\]', '', stripped[4:]))
+            run = h.add_run(clean_xml_text(re.sub(r'[*`\$\\]', '', stripped[4:])))
             run.font.name = 'Arial'
             run.font.size = Pt(12)
             run.font.bold = True
@@ -168,7 +168,7 @@ def md_to_docx(md_file_path, docx_file_path):
             continue
         elif stripped.startswith('#### '):
             h = doc.add_heading(level=4)
-            run = h.add_run(re.sub(r'[*`\$\\]', '', stripped[5:]))
+            run = h.add_run(clean_xml_text(re.sub(r'[*`\$\\]', '', stripped[5:])))
             run.font.name = 'Arial'
             run.font.size = Pt(11)
             run.font.bold = True
@@ -181,7 +181,7 @@ def md_to_docx(md_file_path, docx_file_path):
         p = doc.add_paragraph()
         p.paragraph_format.space_after = Pt(4)
         p.paragraph_format.line_spacing = 1.15
-        clean_text = re.sub(r'[*`\$\\]', '', stripped)
+        clean_text = clean_xml_text(re.sub(r'[*`\$\\]', '', stripped))
         run = p.add_run(clean_text)
         run.font.name = 'Calibri'
         run.font.size = Pt(11)

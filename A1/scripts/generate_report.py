@@ -214,10 +214,10 @@ EXPLAIN SELECT * FROM title WHERE title.id < '350000';
 
 ---
 
-## Q2. Optimal Serial Histogram Construction ($B=20$ Buckets)
+## Q2. Optimal Serial Histogram Construction ($B=10$ Buckets)
 
-### 1. Histogram Visualizations for Exact $N = 3000$ Samples (Slide-Faithful Horizontal Bar Plots)
-*As defined in lecture slides, a Serial Histogram sorts domain values by their ordered frequencies ($f(v_{{(1)}}) \le f(v_{{(2)}}) \le \dots \le f(v_{{(m)}})$) and partitions the frequency space to minimize frequency variance $\sum n_i V_i$. The horizontal bar charts below plot Frequencies on the X-axis and Value Set / Buckets on the Y-axis:*
+### 1. Histogram Visualizations for Exact $N = 3000$ Samples (Slide-9 Upright Vertical Block Plots)
+*As defined in lecture Slide 9, a Serial Histogram sorts domain values by their ordered frequencies ($f(v_{{(1)}}) \le f(v_{{(2)}}) \le \dots \le f(v_{{(m)}})$) and partitions the frequency space to minimize frequency variance $\sum n_i V_i$. The upright vertical block plots below feature Frequencies on the X-axis (ordered ascending) and Value Set / Stacked Domain Elements on the Y-axis:*
 
 ![Correct Conceptual Plot for Unique title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
@@ -226,12 +226,12 @@ EXPLAIN SELECT * FROM title WHERE title.id < '350000';
 ### 2. Execution Build Time (Average over 3 Runs)
 - **Average Build Time for $N=3000$**: **{t3000:.4f} seconds** (`id` column) / **{res_title_3000['avg_time']:.4f} seconds** (`title` column)
 
-### 3. Frequency Bucket Boundaries ($N=3000$, $B=20$)
+### 3. Frequency Bucket Boundaries ($N=3000$, $B=10$)
 
-The optimal serial histogram algorithm partitions the exact 3,000 samples into 20 dynamic frequency buckets. The exact bucket value ranges, distinct domain value counts ($n_i$), and frequency distributions for both columns are listed below:
+The optimal serial histogram algorithm partitions the exact 3,000 samples into dynamic frequency buckets ($B=10$). The exact bucket value ranges, distinct domain value counts ($n_i$), and frequency distributions for both columns are listed below:
 
-#### A. Column `id` Serial Frequency Bucket Boundaries ($N=3000$, $B=20$)
-| Bucket # | Value Range (`id`) | Distinct Values ($n_i$) | Frequency Range | Average Frequency ($\\bar{{f}}_i$) |
+#### A. Column `id` Serial Frequency Bucket Boundaries ($N=3000$, $B=10$)
+| Bucket # | Value Range (`id`) | Distinct Values ($n_i$) | Frequency Range | Average Frequency ($\bar{{f}}_i$) |
 | :---: | :---: | :---: | :---: | :---: |
 """
     for idx, b in enumerate(buckets_3000_id):
@@ -243,8 +243,8 @@ The optimal serial histogram algorithm partitions the exact 3,000 samples into 2
         report += f"| Bucket {idx+1:02d} | [`{v_low:,}` - `{v_high:,}`] | {b['distinct_count']} | {f_str} | {b['avg_freq']:.2f} |\n"
 
     report += f"""
-#### B. Column `title` Serial Frequency Bucket Boundaries ($N=3000$, $B=20$)
-| Bucket # | Value Range (`title`) | Distinct Values ($n_i$) | Frequency Range | Average Frequency ($\\bar{{f}}_i$) |
+#### B. Column `title` Serial Frequency Bucket Boundaries ($N=3000$, $B=10$)
+| Bucket # | Value Range (`title`) | Distinct Values ($n_i$) | Frequency Range | Average Frequency ($\bar{{f}}_i$) |
 | :---: | :--- | :---: | :---: | :---: |
 """
     for idx, b in enumerate(res_title_3000['buckets']):
@@ -266,7 +266,7 @@ As required to account for sample randomness, the selectivity error evaluation w
 | `id` | `{res_3000['run_errors'][0]:.6f}` | `{res_3000['run_errors'][1]:.6f}` | `{res_3000['run_errors'][2]:.6f}` | **`{e3000:.6f}`** ({e3000*100:.4f}%) |
 | `title` | `{res_title_3000['run_errors'][0]:.6f}` | `{res_title_3000['run_errors'][1]:.6f}` | `{res_title_3000['run_errors'][2]:.6f}` | **`{res_title_3000['avg_error']:.6f}`** ({res_title_3000['avg_error']*100:.4f}%) |
 
-#### B. Quantile-by-Quantile Error Evaluation Table for Run 1 ($N=3000, B=20$)
+#### B. Quantile-by-Quantile Error Evaluation Table for Run 1 ($N=3000, B=10$)
 | Index ($k$) | Query Threshold ($q_k$) | Actual Count ($A$) | Actual Selectivity ($S_{{\\text{{act}}}}$) | Estimated Count ($E$) | Estimated Selectivity ($S_{{\\text{{est}}}}$) | Absolute Error $\\vert S_{{\\text{{est}}}} - S_{{\\text{{act}}}} \\vert$ |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 """
@@ -278,7 +278,7 @@ As required to account for sample randomness, the selectivity error evaluation w
     report += f"""
 ### 5. Histograms Across Exact Sample Sizes ($N = 1000, 3000, 5000$)
 
-Below are the optimal serial histogram visualizations ($B=20$) for exact sample sizes $N=1000$, $N=3000$, and $N=5000$:
+Below are the optimal serial histogram visualizations ($B=10$) for exact sample sizes $N=1000$, $N=3000$, and $N=5000$:N=5000$:
 
 #### A. Sample Size $N = 1000$ Histograms
 ![Sample Size: N=1000, title.id Serial Hist.](../plots/q2_histogram_id_1000.png)
