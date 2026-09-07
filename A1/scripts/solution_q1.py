@@ -29,6 +29,16 @@ def run_q1():
     conn = psycopg2.connect(dbname='imdbload')
     cur = conn.cursor()
 
+    cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';")
+    tables = [r[0] for r in cur.fetchall()]
+    cardinalities = {}
+    total_db_rows = 0
+    for t in tables:
+        cur.execute(f'SELECT count(*) FROM "{t}";')
+        cnt = cur.fetchone()[0]
+        cardinalities[t] = cnt
+        total_db_rows += cnt
+
     cur.execute("SELECT count(*) FROM title;")
     total_rows = cur.fetchone()[0]
     print(f"Total rows in title table: {total_rows}")
@@ -94,6 +104,7 @@ def run_q1():
 
     err_race = abs(est_race_sel - actual_race_sel)
     err_id = abs(est_id_sel - actual_id_sel)
+    max_err = max(err_race, err_id)
     rel_err_race = (err_race / actual_race_sel) * 100 if actual_race_sel > 0 else 0
     rel_err_id = (err_id / actual_id_sel) * 100 if actual_id_sel > 0 else 0
 
@@ -139,6 +150,25 @@ def run_q1():
 
     conn.close()
     print("\nQ1 execution completed! Plots saved in plots/.")
+
+    return {
+        'tables': tables,
+        'cardinalities': cardinalities,
+        'total_db_rows': total_db_rows,
+        'id_bounds_list': id_bounds,
+        'title_bounds_list': title_bounds,
+        'max_err': max_err,
+        'act_race_cnt': actual_race_count,
+        'act_race_sel': actual_race_sel,
+        'est_race_cnt': est_race_count,
+        'est_race_sel': est_race_sel,
+        'err_race': err_race,
+        'act_id_cnt': actual_id_count,
+        'act_id_sel': actual_id_sel,
+        'est_id_cnt': est_id_count,
+        'est_id_sel': est_id_sel,
+        'err_id': err_id
+    }
 
 if __name__ == '__main__':
     run_q1()

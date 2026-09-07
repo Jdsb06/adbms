@@ -15,17 +15,18 @@ def process_inline(text, escape_all_backslash=False):
     if escape_all_backslash:
         s = text
         s = s.replace('\\', r'\textbackslash{}')
+        s = s.replace('$', r'\$')
         s = s.replace('&', r'\&')
         s = s.replace('%', r'\%')
         s = s.replace('#', r'\#')
         s = s.replace('_', r'\_')
         s = s.replace('~', r'\textasciitilde{}')
         s = s.replace('^', r'\textasciicircum{}')
-        s = re.sub(r'`(.*?)`', r'\\texttt{\1}', s)
-        s = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', s)
+        s = re.sub(r'`(.*?)`', lambda m: r'\texttt{' + m.group(1) + '}', s)
+        s = re.sub(r'\*\*(.*?)\*\*', lambda m: r'\textbf{' + m.group(1) + '}', s)
         return s
 
-    parts = re.split(r'(\$\$.*?\$\$|\$.*?\$)', text, flags=re.DOTALL)
+    parts = re.split(r'(\$\$.*?\$\$|(?<!\\)\$.*?(?<!\\)\$)', text, flags=re.DOTALL)
     res = []
     for p in parts:
         if p.startswith('$') and p.endswith('$'):
@@ -35,14 +36,15 @@ def process_inline(text, escape_all_backslash=False):
         else:
             s = p
             s = s.replace('\\', r'\textbackslash{}')
+            s = s.replace('$', r'\$')
             s = s.replace('&', r'\&')
             s = s.replace('%', r'\%')
             s = s.replace('#', r'\#')
             s = s.replace('_', r'\_')
             s = s.replace('~', r'\textasciitilde{}')
             s = s.replace('^', r'\textasciicircum{}')
-            s = re.sub(r'`(.*?)`', r'\\texttt{\1}', s)
-            s = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', s)
+            s = re.sub(r'`(.*?)`', lambda m: r'\texttt{' + m.group(1) + '}', s)
+            s = re.sub(r'\*\*(.*?)\*\*', lambda m: r'\textbf{' + m.group(1) + '}', s)
             res.append(s)
     return ''.join(res)
 
@@ -103,7 +105,7 @@ def md_to_tex(md_file, tex_file, is_log_file=False):
 }
 
 \title{\textbf{''' + doc_title + r'''}}
-\author{\textbf{IIIT Bangalore}}
+\author{\textbf{ADBMS Coursework Submission}}
 \date{\today}
 
 \begin{document}
@@ -112,91 +114,100 @@ def md_to_tex(md_file, tex_file, is_log_file=False):
 \newpage
 ''')
 
-    in_code = False
-    code_lines = []
     in_table = False
     table_lines = []
+    in_code = False
+    code_lines = []
+    code_lang = ''
     in_list = False
 
     for line in lines:
         stripped = line.strip()
 
-        # Code blocks
+        # Code block handling
         if stripped.startswith('```'):
             if in_code:
                 code_text = '\n'.join(code_lines)
-                tex_out.append(r'\begin{lstlisting}' + '\n' + code_text + '\n' + r'\end{lstlisting}' + '\n')
-                code_lines = []
+                tex_out.append(r'\begin{lstlisting}[language=' + (code_lang if code_lang else 'SQL') + ']\n' + code_text + '\n' + r'\end{lstlisting}' + '\n\n')
                 in_code = False
-            else:
-                in_code = True
                 code_lines = []
+                code_lang = ''
+            else:
+                if in_list:
+                    tex_out.append(r'\end{itemize}' + '\n')
+                    in_list = False
+                in_code = True
+                code_lang = stripped[3:].strip()
             continue
 
         if in_code:
             code_lines.append(line)
             continue
 
-        # HTML comments
-        if stripped.startswith('<!--') and stripped.endswith('-->'):
-            continue
-
-        # Markdown Tables
-        if stripped.startswith('|') and stripped.endswith('|'):
-            table_lines.append(stripped)
-            in_table = True
-            continue
-        elif in_table:
-            if table_lines:
-                rows = []
-                for tline in table_lines:
-                    tline_clean = clean_table_line(tline)
-                    cols = [c.strip() for c in tline_clean.split('|')[1:-1]]
-                    rows.append(cols)
-
-                if len(rows) > 1 and all(set(c) <= set(':- ') for c in rows[1]):
-                    header = rows[0]
-                    body = rows[2:]
-                else:
-                    header = rows[0]
-                    body = rows[1:]
-
-                num_cols = len(header)
-
-                # Format column specification dynamically based on table width
-                if num_cols >= 6:
-                    # Wide tables (e.g. 6 or 7 columns like Quantile Table)
-                    col_spec = ' | '.join(['C' for _ in range(num_cols)])
-                    font_cmd = r'\footnotesize' + '\n' + r'\setlength{\tabcolsep}{3.5pt}' + '\n'
-                elif num_cols == 3:
-                    # 3-column tables (e.g. Bucket Boundary tables)
-                    col_spec = 'l | C | C'
-                    font_cmd = r'\small' + '\n' + r'\setlength{\tabcolsep}{5pt}' + '\n'
-                else:
-                    # General 4 or 5 column tables
-                    col_spec = ' | '.join(['C' for _ in range(num_cols)])
-                    font_cmd = r'\small' + '\n' + r'\setlength{\tabcolsep}{4pt}' + '\n'
-                
-                tex_out.append(r'{\begingroup' + '\n' + font_cmd)
-                tex_out.append(r'\begin{xltabular}{\textwidth}{' + col_spec + r'}' + '\n')
-                tex_out.append(r'\toprule' + '\n')
-                
-                header_cells = [r'\textbf{' + process_inline(h, is_log_file) + '}' for h in header]
-                header_str = ' & '.join(header_cells) + r' \\' + '\n' + r'\midrule' + '\n' + r'\endfirsthead' + '\n'
-                tex_out.append(header_str)
-
-                tex_out.append(r'\toprule' + '\n' + header_str + r'\endhead' + '\n')
-                tex_out.append(r'\bottomrule' + '\n' + r'\endfoot' + '\n')
-                tex_out.append(r'\bottomrule' + '\n' + r'\endlastfoot' + '\n')
-
-                for row in body:
-                    row_cells = [process_inline(cell, is_log_file) for cell in row]
-                    row_str = ' & '.join(row_cells) + r' \\' + '\n'
-                    tex_out.append(row_str)
-
-                tex_out.append(r'\end{xltabular}' + '\n' + r'\endgroup}' + '\n\n')
+        # Table handling
+        if '|' in line and stripped.startswith('|'):
+            if not in_table:
+                if in_list:
+                    tex_out.append(r'\end{itemize}' + '\n')
+                    in_list = False
+                in_table = True
                 table_lines = []
-                in_table = False
+            table_lines.append(line)
+            continue
+        else:
+            if in_table:
+                if table_lines:
+                    rows = []
+                    for tline in table_lines:
+                        tline_clean = clean_table_line(tline)
+                        cols = [c.strip() for c in tline_clean.split('|')[1:-1]]
+                        rows.append(cols)
+
+                    if len(rows) > 1 and all(set(c) <= set(':- ') for c in rows[1]):
+                        header = rows[0]
+                        body = rows[2:]
+                    else:
+                        header = rows[0]
+                        body = rows[1:]
+
+                    num_cols = len(header)
+
+                    # Format column specification dynamically based on table width
+                    if num_cols >= 6:
+                        col_spec = ' | '.join(['C' for _ in range(num_cols)])
+                        font_cmd = r'\footnotesize' + '\n' + r'\setlength{\tabcolsep}{3.5pt}' + '\n'
+                    elif num_cols == 3:
+                        col_spec = 'l | C | C'
+                        font_cmd = r'\small' + '\n' + r'\setlength{\tabcolsep}{5pt}' + '\n'
+                    else:
+                        col_spec = ' | '.join(['C' for _ in range(num_cols)])
+                        font_cmd = r'\small' + '\n' + r'\setlength{\tabcolsep}{4pt}' + '\n'
+                    
+                    tex_out.append(r'{\begingroup' + '\n' + font_cmd)
+                    tex_out.append(r'\begin{xltabular}{\textwidth}{' + col_spec + r'}' + '\n')
+                    tex_out.append(r'\toprule' + '\n')
+                    
+                    header_cells = [r'\textbf{' + process_inline(h, is_log_file) + '}' for h in header]
+                    header_str = ' & '.join(header_cells) + r' \\' + '\n' + r'\midrule' + '\n' + r'\endfirsthead' + '\n'
+                    tex_out.append(header_str)
+
+                    tex_out.append(r'\toprule' + '\n' + header_str + r'\endhead' + '\n')
+                    tex_out.append(r'\bottomrule' + '\n' + r'\endfoot' + '\n')
+                    tex_out.append(r'\bottomrule' + '\n' + r'\endlastfoot' + '\n')
+
+                    for row in body:
+                        # Normalize row length to num_cols
+                        if len(row) < num_cols:
+                            row = row + [''] * (num_cols - len(row))
+                        elif len(row) > num_cols:
+                            row = row[:num_cols]
+                        row_cells = [process_inline(cell, is_log_file) for cell in row]
+                        row_str = ' & '.join(row_cells) + r' \\' + '\n'
+                        tex_out.append(row_str)
+
+                    tex_out.append(r'\end{xltabular}' + '\n' + r'\endgroup}' + '\n\n')
+                    table_lines = []
+                    in_table = False
 
         # Images
         img_match = re.match(r'^!\[(.*?)\]\((.*?)\)', stripped)

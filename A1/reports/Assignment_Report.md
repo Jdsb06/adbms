@@ -91,212 +91,212 @@ textual attribute “title” is put into histogram as:
 #### A. Column `id` Bucket Boundaries (101 values, 100 buckets)
 | Bucket Index | Boundary Value (`id`) | Bucket Interval |
 | :---: | :---: | :--- |
-| B000 (Start) | `41` | Start of table data |
-| B001 | `25598` | Bucket 1: [`41` - `25598`] |
-| B002 | `50067` | Bucket 2: [`25598` - `50067`] |
-| B003 | `75257` | Bucket 3: [`50067` - `75257`] |
-| B004 | `101946` | Bucket 4: [`75257` - `101946`] |
-| B005 | `129223` | Bucket 5: [`101946` - `129223`] |
-| B006 | `155973` | Bucket 6: [`129223` - `155973`] |
-| B007 | `181990` | Bucket 7: [`155973` - `181990`] |
-| B008 | `208153` | Bucket 8: [`181990` - `208153`] |
-| B009 | `234525` | Bucket 9: [`208153` - `234525`] |
-| B010 | `259507` | Bucket 10: [`234525` - `259507`] |
-| B011 | `287845` | Bucket 11: [`259507` - `287845`] |
-| B012 | `314618` | Bucket 12: [`287845` - `314618`] |
-| B013 | `340479` | Bucket 13: [`314618` - `340479`] |
-| B014 | `366364` | Bucket 14: [`340479` - `366364`] |
-| B015 | `393076` | Bucket 15: [`366364` - `393076`] |
-| B016 | `418929` | Bucket 16: [`393076` - `418929`] |
-| B017 | `443204` | Bucket 17: [`418929` - `443204`] |
-| B018 | `472539` | Bucket 18: [`443204` - `472539`] |
-| B019 | `497095` | Bucket 19: [`472539` - `497095`] |
-| B020 | `521015` | Bucket 20: [`497095` - `521015`] |
-| B021 | `547008` | Bucket 21: [`521015` - `547008`] |
-| B022 | `571914` | Bucket 22: [`547008` - `571914`] |
-| B023 | `600124` | Bucket 23: [`571914` - `600124`] |
-| B024 | `624290` | Bucket 24: [`600124` - `624290`] |
-| B025 | `648346` | Bucket 25: [`624290` - `648346`] |
-| B026 | `673077` | Bucket 26: [`648346` - `673077`] |
-| B027 | `698192` | Bucket 27: [`673077` - `698192`] |
-| B028 | `723945` | Bucket 28: [`698192` - `723945`] |
-| B029 | `747971` | Bucket 29: [`723945` - `747971`] |
-| B030 | `774715` | Bucket 30: [`747971` - `774715`] |
-| B031 | `801886` | Bucket 31: [`774715` - `801886`] |
-| B032 | `825206` | Bucket 32: [`801886` - `825206`] |
-| B033 | `852044` | Bucket 33: [`825206` - `852044`] |
-| B034 | `878630` | Bucket 34: [`852044` - `878630`] |
-| B035 | `903227` | Bucket 35: [`878630` - `903227`] |
-| B036 | `929542` | Bucket 36: [`903227` - `929542`] |
-| B037 | `951992` | Bucket 37: [`929542` - `951992`] |
-| B038 | `976177` | Bucket 38: [`951992` - `976177`] |
-| B039 | `1002223` | Bucket 39: [`976177` - `1002223`] |
-| B040 | `1027496` | Bucket 40: [`1002223` - `1027496`] |
-| B041 | `1053013` | Bucket 41: [`1027496` - `1053013`] |
-| B042 | `1076669` | Bucket 42: [`1053013` - `1076669`] |
-| B043 | `1101644` | Bucket 43: [`1076669` - `1101644`] |
-| B044 | `1127312` | Bucket 44: [`1101644` - `1127312`] |
-| B045 | `1153408` | Bucket 45: [`1127312` - `1153408`] |
-| B046 | `1177087` | Bucket 46: [`1153408` - `1177087`] |
-| B047 | `1200809` | Bucket 47: [`1177087` - `1200809`] |
-| B048 | `1228132` | Bucket 48: [`1200809` - `1228132`] |
-| B049 | `1251987` | Bucket 49: [`1228132` - `1251987`] |
-| B050 | `1276194` | Bucket 50: [`1251987` - `1276194`] |
-| B051 | `1300208` | Bucket 51: [`1276194` - `1300208`] |
-| B052 | `1325279` | Bucket 52: [`1300208` - `1325279`] |
-| B053 | `1350079` | Bucket 53: [`1325279` - `1350079`] |
-| B054 | `1375217` | Bucket 54: [`1350079` - `1375217`] |
-| B055 | `1399305` | Bucket 55: [`1375217` - `1399305`] |
-| B056 | `1424915` | Bucket 56: [`1399305` - `1424915`] |
-| B057 | `1447763` | Bucket 57: [`1424915` - `1447763`] |
-| B058 | `1472187` | Bucket 58: [`1447763` - `1472187`] |
-| B059 | `1496066` | Bucket 59: [`1472187` - `1496066`] |
-| B060 | `1520933` | Bucket 60: [`1496066` - `1520933`] |
-| B061 | `1548374` | Bucket 61: [`1520933` - `1548374`] |
-| B062 | `1572984` | Bucket 62: [`1548374` - `1572984`] |
-| B063 | `1597331` | Bucket 63: [`1572984` - `1597331`] |
-| B064 | `1621524` | Bucket 64: [`1597331` - `1621524`] |
-| B065 | `1646529` | Bucket 65: [`1621524` - `1646529`] |
-| B066 | `1671841` | Bucket 66: [`1646529` - `1671841`] |
-| B067 | `1697305` | Bucket 67: [`1671841` - `1697305`] |
-| B068 | `1720750` | Bucket 68: [`1697305` - `1720750`] |
-| B069 | `1746578` | Bucket 69: [`1720750` - `1746578`] |
-| B070 | `1771397` | Bucket 70: [`1746578` - `1771397`] |
-| B071 | `1796312` | Bucket 71: [`1771397` - `1796312`] |
-| B072 | `1821069` | Bucket 72: [`1796312` - `1821069`] |
-| B073 | `1846620` | Bucket 73: [`1821069` - `1846620`] |
-| B074 | `1871455` | Bucket 74: [`1846620` - `1871455`] |
-| B075 | `1897069` | Bucket 75: [`1871455` - `1897069`] |
-| B076 | `1923039` | Bucket 76: [`1897069` - `1923039`] |
-| B077 | `1951619` | Bucket 77: [`1923039` - `1951619`] |
-| B078 | `1975550` | Bucket 78: [`1951619` - `1975550`] |
-| B079 | `2001398` | Bucket 79: [`1975550` - `2001398`] |
-| B080 | `2025488` | Bucket 80: [`2001398` - `2025488`] |
-| B081 | `2048645` | Bucket 81: [`2025488` - `2048645`] |
-| B082 | `2075506` | Bucket 82: [`2048645` - `2075506`] |
-| B083 | `2099704` | Bucket 83: [`2075506` - `2099704`] |
-| B084 | `2124027` | Bucket 84: [`2099704` - `2124027`] |
-| B085 | `2146547` | Bucket 85: [`2124027` - `2146547`] |
-| B086 | `2170970` | Bucket 86: [`2146547` - `2170970`] |
-| B087 | `2195637` | Bucket 87: [`2170970` - `2195637`] |
-| B088 | `2221366` | Bucket 88: [`2195637` - `2221366`] |
-| B089 | `2249864` | Bucket 89: [`2221366` - `2249864`] |
-| B090 | `2274023` | Bucket 90: [`2249864` - `2274023`] |
-| B091 | `2299152` | Bucket 91: [`2274023` - `2299152`] |
-| B092 | `2325178` | Bucket 92: [`2299152` - `2325178`] |
-| B093 | `2352562` | Bucket 93: [`2325178` - `2352562`] |
-| B094 | `2378000` | Bucket 94: [`2352562` - `2378000`] |
-| B095 | `2403761` | Bucket 95: [`2378000` - `2403761`] |
-| B096 | `2428038` | Bucket 96: [`2403761` - `2428038`] |
-| B097 | `2452338` | Bucket 97: [`2428038` - `2452338`] |
-| B098 | `2479928` | Bucket 98: [`2452338` - `2479928`] |
-| B099 | `2505988` | Bucket 99: [`2479928` - `2505988`] |
-| B100 | `2528305` | Bucket 100: [`2505988` - `2528305`] |
+| B000 (Start) | `85` | Start of table data |
+| B001 | `23414` | Bucket 1: [`85` - `23414`] |
+| B002 | `50842` | Bucket 2: [`23414` - `50842`] |
+| B003 | `72092` | Bucket 3: [`50842` - `72092`] |
+| B004 | `95754` | Bucket 4: [`72092` - `95754`] |
+| B005 | `120981` | Bucket 5: [`95754` - `120981`] |
+| B006 | `146382` | Bucket 6: [`120981` - `146382`] |
+| B007 | `169338` | Bucket 7: [`146382` - `169338`] |
+| B008 | `193625` | Bucket 8: [`169338` - `193625`] |
+| B009 | `222737` | Bucket 9: [`193625` - `222737`] |
+| B010 | `248023` | Bucket 10: [`222737` - `248023`] |
+| B011 | `273293` | Bucket 11: [`248023` - `273293`] |
+| B012 | `297400` | Bucket 12: [`273293` - `297400`] |
+| B013 | `321995` | Bucket 13: [`297400` - `321995`] |
+| B014 | `348628` | Bucket 14: [`321995` - `348628`] |
+| B015 | `372223` | Bucket 15: [`348628` - `372223`] |
+| B016 | `399997` | Bucket 16: [`372223` - `399997`] |
+| B017 | `425563` | Bucket 17: [`399997` - `425563`] |
+| B018 | `452049` | Bucket 18: [`425563` - `452049`] |
+| B019 | `477594` | Bucket 19: [`452049` - `477594`] |
+| B020 | `503120` | Bucket 20: [`477594` - `503120`] |
+| B021 | `527541` | Bucket 21: [`503120` - `527541`] |
+| B022 | `550901` | Bucket 22: [`527541` - `550901`] |
+| B023 | `578985` | Bucket 23: [`550901` - `578985`] |
+| B024 | `602917` | Bucket 24: [`578985` - `602917`] |
+| B025 | `629391` | Bucket 25: [`602917` - `629391`] |
+| B026 | `655601` | Bucket 26: [`629391` - `655601`] |
+| B027 | `681541` | Bucket 27: [`655601` - `681541`] |
+| B028 | `705430` | Bucket 28: [`681541` - `705430`] |
+| B029 | `729765` | Bucket 29: [`705430` - `729765`] |
+| B030 | `756585` | Bucket 30: [`729765` - `756585`] |
+| B031 | `784558` | Bucket 31: [`756585` - `784558`] |
+| B032 | `810790` | Bucket 32: [`784558` - `810790`] |
+| B033 | `836757` | Bucket 33: [`810790` - `836757`] |
+| B034 | `861299` | Bucket 34: [`836757` - `861299`] |
+| B035 | `887193` | Bucket 35: [`861299` - `887193`] |
+| B036 | `911713` | Bucket 36: [`887193` - `911713`] |
+| B037 | `936140` | Bucket 37: [`911713` - `936140`] |
+| B038 | `964425` | Bucket 38: [`936140` - `964425`] |
+| B039 | `990604` | Bucket 39: [`964425` - `990604`] |
+| B040 | `1017549` | Bucket 40: [`990604` - `1017549`] |
+| B041 | `1042518` | Bucket 41: [`1017549` - `1042518`] |
+| B042 | `1068162` | Bucket 42: [`1042518` - `1068162`] |
+| B043 | `1092644` | Bucket 43: [`1068162` - `1092644`] |
+| B044 | `1119041` | Bucket 44: [`1092644` - `1119041`] |
+| B045 | `1143249` | Bucket 45: [`1119041` - `1143249`] |
+| B046 | `1167293` | Bucket 46: [`1143249` - `1167293`] |
+| B047 | `1190899` | Bucket 47: [`1167293` - `1190899`] |
+| B048 | `1214192` | Bucket 48: [`1190899` - `1214192`] |
+| B049 | `1237126` | Bucket 49: [`1214192` - `1237126`] |
+| B050 | `1259630` | Bucket 50: [`1237126` - `1259630`] |
+| B051 | `1282683` | Bucket 51: [`1259630` - `1282683`] |
+| B052 | `1307704` | Bucket 52: [`1282683` - `1307704`] |
+| B053 | `1331946` | Bucket 53: [`1307704` - `1331946`] |
+| B054 | `1354962` | Bucket 54: [`1331946` - `1354962`] |
+| B055 | `1381303` | Bucket 55: [`1354962` - `1381303`] |
+| B056 | `1406118` | Bucket 56: [`1381303` - `1406118`] |
+| B057 | `1432716` | Bucket 57: [`1406118` - `1432716`] |
+| B058 | `1460142` | Bucket 58: [`1432716` - `1460142`] |
+| B059 | `1484816` | Bucket 59: [`1460142` - `1484816`] |
+| B060 | `1512661` | Bucket 60: [`1484816` - `1512661`] |
+| B061 | `1538548` | Bucket 61: [`1512661` - `1538548`] |
+| B062 | `1562535` | Bucket 62: [`1538548` - `1562535`] |
+| B063 | `1585840` | Bucket 63: [`1562535` - `1585840`] |
+| B064 | `1611166` | Bucket 64: [`1585840` - `1611166`] |
+| B065 | `1635920` | Bucket 65: [`1611166` - `1635920`] |
+| B066 | `1662169` | Bucket 66: [`1635920` - `1662169`] |
+| B067 | `1688003` | Bucket 67: [`1662169` - `1688003`] |
+| B068 | `1714390` | Bucket 68: [`1688003` - `1714390`] |
+| B069 | `1737794` | Bucket 69: [`1714390` - `1737794`] |
+| B070 | `1762970` | Bucket 70: [`1737794` - `1762970`] |
+| B071 | `1786873` | Bucket 71: [`1762970` - `1786873`] |
+| B072 | `1813638` | Bucket 72: [`1786873` - `1813638`] |
+| B073 | `1840890` | Bucket 73: [`1813638` - `1840890`] |
+| B074 | `1867370` | Bucket 74: [`1840890` - `1867370`] |
+| B075 | `1895175` | Bucket 75: [`1867370` - `1895175`] |
+| B076 | `1919111` | Bucket 76: [`1895175` - `1919111`] |
+| B077 | `1941477` | Bucket 77: [`1919111` - `1941477`] |
+| B078 | `1966111` | Bucket 78: [`1941477` - `1966111`] |
+| B079 | `1992282` | Bucket 79: [`1966111` - `1992282`] |
+| B080 | `2016500` | Bucket 80: [`1992282` - `2016500`] |
+| B081 | `2040965` | Bucket 81: [`2016500` - `2040965`] |
+| B082 | `2067381` | Bucket 82: [`2040965` - `2067381`] |
+| B083 | `2090687` | Bucket 83: [`2067381` - `2090687`] |
+| B084 | `2116111` | Bucket 84: [`2090687` - `2116111`] |
+| B085 | `2142228` | Bucket 85: [`2116111` - `2142228`] |
+| B086 | `2167352` | Bucket 86: [`2142228` - `2167352`] |
+| B087 | `2192781` | Bucket 87: [`2167352` - `2192781`] |
+| B088 | `2217642` | Bucket 88: [`2192781` - `2217642`] |
+| B089 | `2245252` | Bucket 89: [`2217642` - `2245252`] |
+| B090 | `2268088` | Bucket 90: [`2245252` - `2268088`] |
+| B091 | `2292543` | Bucket 91: [`2268088` - `2292543`] |
+| B092 | `2318646` | Bucket 92: [`2292543` - `2318646`] |
+| B093 | `2343571` | Bucket 93: [`2318646` - `2343571`] |
+| B094 | `2369432` | Bucket 94: [`2343571` - `2369432`] |
+| B095 | `2395899` | Bucket 95: [`2369432` - `2395899`] |
+| B096 | `2422979` | Bucket 96: [`2395899` - `2422979`] |
+| B097 | `2448577` | Bucket 97: [`2422979` - `2448577`] |
+| B098 | `2475828` | Bucket 98: [`2448577` - `2475828`] |
+| B099 | `2502132` | Bucket 99: [`2475828` - `2502132`] |
+| B100 | `2528188` | Bucket 100: [`2502132` - `2528188`] |
 
 #### B. Column `title` Bucket Boundaries (101 values, 100 buckets)
 | Bucket Index | Boundary Value (`title`) | Lexicographical Interval |
 | :---: | :--- | :--- |
-| B000 (Start) | `...` | Start of text data |
-| B001 | `(#1.1302)` | Bucket 1: [`...` - `(#1.1302)`] |
-| B002 | `(#1.219)` | Bucket 2: [`(#1.1302)` - `(#1.219)`] |
-| B003 | `(#1.3662)` | Bucket 3: [`(#1.219)` - `(#1.3662)`] |
-| B004 | `(#1.59)` | Bucket 4: [`(#1.3662)` - `(#1.59)`] |
-| B005 | `(#1.846)` | Bucket 5: [`(#1.59)` - `(#1.846)`] |
-| B006 | `(1968-02-14)` | Bucket 6: [`(#1.846)` - `(1968-02-14)`] |
-| B007 | `(1982-12-14)` | Bucket 7: [`(1968-02-14)` - `(1982-12-14)`] |
-| B008 | `(1994-07-07)` | Bucket 8: [`(1982-12-14)` - `(1994-07-07)`] |
-| B009 | `(1998-03-16)` | Bucket 9: [`(1994-07-07)` - `(1998-03-16)`] |
-| B010 | `(2000-01-22)` | Bucket 10: [`(1998-03-16)` - `(2000-01-22)`] |
-| B011 | `(2001-11-06)` | Bucket 11: [`(2000-01-22)` - `(2001-11-06)`] |
-| B012 | `(2003-08-29)` | Bucket 12: [`(2001-11-06)` - `(2003-08-29)`] |
-| B013 | `(2005-01-19)` | Bucket 13: [`(2003-08-29)` - `(2005-01-19)`] |
-| B014 | `(2006-05-17)` | Bucket 14: [`(2005-01-19)` - `(2006-05-17)`] |
-| B015 | `(2007-07-05)` | Bucket 15: [`(2006-05-17)` - `(2007-07-05)`] |
-| B016 | `(2009-02-02)` | Bucket 16: [`(2007-07-05)` - `(2009-02-02)`] |
-| B017 | `(2010-09-07)` | Bucket 17: [`(2009-02-02)` - `(2010-09-07)`] |
-| B018 | `(2011-08-29)` | Bucket 18: [`(2010-09-07)` - `(2011-08-29)`] |
-| B019 | `(2012-07-21)` | Bucket 19: [`(2011-08-29)` - `(2012-07-21)`] |
-| B020 | `(#20.140)` | Bucket 20: [`(2012-07-21)` - `(#20.140)`] |
-| B021 | `(#2.92)` | Bucket 21: [`(#20.140)` - `(#2.92)`] |
-| B022 | `(#4.172)` | Bucket 22: [`(#2.92)` - `(#4.172)`] |
-| B023 | `(#6.163)` | Bucket 23: [`(#4.172)` - `(#6.163)`] |
-| B024 | `Aamu joutuu pesemään tekojensa jälkipyykkiä` | Bucket 24: [`(#6.163)` - `Aamu joutuu pesemään tekojensa jälkipyykkiä`] |
-| B025 | `Aflevering 2559` | Bucket 25: [`Aamu joutuu pesemään tekojensa jälkipyykkiä` - `Aflevering 2559`] |
-| B026 | `A Little Trip` | Bucket 26: [`Aflevering 2559` - `A Little Trip`] |
-| B027 | `An Atheist Named Faith` | Bucket 27: [`A Little Trip` - `An Atheist Named Faith`] |
-| B028 | `Arabeskebi Pirosmanis temaze` | Bucket 28: [`An Atheist Named Faith` - `Arabeskebi Pirosmanis temaze`] |
-| B029 | `Attenborough's Ark: Natural World Special` | Bucket 29: [`Arabeskebi Pirosmanis temaze` - `Attenborough's Ark: Natural World Special`] |
-| B030 | `Baldur Blauzahn` | Bucket 30: [`Attenborough's Ark: Natural World Special` - `Baldur Blauzahn`] |
-| B031 | `Best in Show Cakes` | Bucket 31: [`Baldur Blauzahn` - `Best in Show Cakes`] |
-| B032 | `Blues` | Bucket 32: [`Best in Show Cakes` - `Blues`] |
-| B033 | `Brown Before Green` | Bucket 33: [`Blues` - `Brown Before Green`] |
-| B034 | `Captive Audience` | Bucket 34: [`Brown Before Green` - `Captive Audience`] |
-| B035 | `Cheryl Cole's Night In` | Bucket 35: [`Captive Audience` - `Cheryl Cole's Night In`] |
-| B036 | `Cobra Starship` | Bucket 36: [`Cheryl Cole's Night In` - `Cobra Starship`] |
-| B037 | `CPM 22 e Babado Novo` | Bucket 37: [`Cobra Starship` - `CPM 22 e Babado Novo`] |
-| B038 | `Dark Moon` | Bucket 38: [`CPM 22 e Babado Novo` - `Dark Moon`] |
-| B039 | `De intrede van de Sint - Antwerpen 2011` | Bucket 39: [`Dark Moon` - `De intrede van de Sint - Antwerpen 2011`] |
-| B040 | `Det' politiet: Part 2` | Bucket 40: [`De intrede van de Sint - Antwerpen 2011` - `Det' politiet: Part 2`] |
-| B041 | `DIY Network Holiday Celebration` | Bucket 41: [`Det' politiet: Part 2` - `DIY Network Holiday Celebration`] |
-| B042 | `Drugog puta nema!` | Bucket 42: [`DIY Network Holiday Celebration` - `Drugog puta nema!`] |
-| B043 | `Elements` | Bucket 43: [`Drugog puta nema!` - `Elements`] |
-| B044 | `Episode V - Tag der Abrechnung` | Bucket 44: [`Elements` - `Episode V - Tag der Abrechnung`] |
-| B045 | `Famiresu tenshi purin` | Bucket 45: [`Episode V - Tag der Abrechnung` - `Famiresu tenshi purin`] |
-| B046 | `Fleshdance` | Bucket 46: [`Famiresu tenshi purin` - `Fleshdance`] |
-| B047 | `Fuga y misterio` | Bucket 47: [`Fleshdance` - `Fuga y misterio`] |
-| B048 | `Girls' Generation and the Dangerous Boys` | Bucket 48: [`Fuga y misterio` - `Girls' Generation and the Dangerous Boys`] |
-| B049 | `Guadalcanal/Leckie` | Bucket 49: [`Girls' Generation and the Dangerous Boys` - `Guadalcanal/Leckie`] |
-| B050 | `Heaven on Earth` | Bucket 50: [`Guadalcanal/Leckie` - `Heaven on Earth`] |
-| B051 | `Holiday` | Bucket 51: [`Heaven on Earth` - `Holiday`] |
-| B052 | `Hurricane Katrina Aftermath` | Bucket 52: [`Holiday` - `Hurricane Katrina Aftermath`] |
-| B053 | `Inauguração na Estrela - Lisboa` | Bucket 53: [`Hurricane Katrina Aftermath` - `Inauguração na Estrela - Lisboa`] |
-| B054 | `Is There Still Hope for Gino and Mikay?` | Bucket 54: [`Inauguração na Estrela - Lisboa` - `Is There Still Hope for Gino and Mikay?`] |
-| B055 | `Jindalee Lady` | Bucket 55: [`Is There Still Hope for Gino and Mikay?` - `Jindalee Lady`] |
-| B056 | `Karina` | Bucket 56: [`Jindalee Lady` - `Karina`] |
-| B057 | `Know Thy Partner` | Bucket 57: [`Karina` - `Know Thy Partner`] |
-| B058 | `Ladrones de niños` | Bucket 58: [`Know Thy Partner` - `Ladrones de niños`] |
-| B059 | `Late as a Mother****er` | Bucket 59: [`Ladrones de niños` - `Late as a Mother****er`] |
-| B060 | `Les éperlans` | Bucket 60: [`Late as a Mother****er` - `Les éperlans`] |
-| B061 | `Living Room Upgrade` | Bucket 61: [`Les éperlans` - `Living Room Upgrade`] |
-| B062 | `Luha ng ina` | Bucket 62: [`Living Room Upgrade` - `Luha ng ina`] |
-| B063 | `Männer sind auch nur Menschen` | Bucket 63: [`Luha ng ina` - `Männer sind auch nur Menschen`] |
-| B064 | `Melissa` | Bucket 64: [`Männer sind auch nur Menschen` - `Melissa`] |
-| B065 | `Mission to Africa` | Bucket 65: [`Melissa` - `Mission to Africa`] |
-| B066 | `Mr. Deity and the Days` | Bucket 66: [`Mission to Africa` - `Mr. Deity and the Days`] |
-| B067 | `Nanna & Lil' Puss Puss in 'The Honeymoonies'` | Bucket 67: [`Mr. Deity and the Days` - `Nanna & Lil' Puss Puss in 'The Honeymoonies'`] |
-| B068 | `Ninna Hyttinen` | Bucket 68: [`Nanna & Lil' Puss Puss in 'The Honeymoonies'` - `Ninna Hyttinen`] |
-| B069 | `Odoriko no yubiwa` | Bucket 69: [`Ninna Hyttinen` - `Odoriko no yubiwa`] |
-| B070 | `Operation: Bank Job` | Bucket 70: [`Odoriko no yubiwa` - `Operation: Bank Job`] |
-| B071 | `Papa wo sagashite!` | Bucket 71: [`Operation: Bank Job` - `Papa wo sagashite!`] |
-| B072 | `Phantom Fever` | Bucket 72: [`Papa wo sagashite!` - `Phantom Fever`] |
-| B073 | `Power of the South` | Bucket 73: [`Phantom Fever` - `Power of the South`] |
-| B074 | `Quatre acteurs à bout de souffle` | Bucket 74: [`Power of the South` - `Quatre acteurs à bout de souffle`] |
-| B075 | `Relative Air Pollution` | Bucket 75: [`Quatre acteurs à bout de souffle` - `Relative Air Pollution`] |
-| B076 | `Rolling Stones` | Bucket 76: [`Relative Air Pollution` - `Rolling Stones`] |
-| B077 | `San Diego, Bukarest, Paris` | Bucket 77: [`Rolling Stones` - `San Diego, Bukarest, Paris`] |
-| B078 | `Seekers` | Bucket 78: [`San Diego, Bukarest, Paris` - `Seekers`] |
-| B079 | `Shônen Tantei to Supai` | Bucket 79: [`Seekers` - `Shônen Tantei to Supai`] |
-| B080 | `Smash Hit: She` | Bucket 80: [`Shônen Tantei to Supai` - `Smash Hit: She`] |
-| B081 | `Spilling the Beans` | Bucket 81: [`Smash Hit: She` - `Spilling the Beans`] |
-| B082 | `Strider 2` | Bucket 82: [`Spilling the Beans` - `Strider 2`] |
-| B083 | `Take This Job and Shove It` | Bucket 83: [`Strider 2` - `Take This Job and Shove It`] |
-| B084 | `The Accident` | Bucket 84: [`Take This Job and Shove It` - `The Accident`] |
-| B085 | `The Captain's Son: Untitled` | Bucket 85: [`The Accident` - `The Captain's Son: Untitled`] |
-| B086 | `The End of the World as We Know It` | Bucket 86: [`The Captain's Son: Untitled` - `The End of the World as We Know It`] |
-| B087 | `The Healers` | Bucket 87: [`The End of the World as We Know It` - `The Healers`] |
-| B088 | `The Lobsters Cook` | Bucket 88: [`The Healers` - `The Lobsters Cook`] |
-| B089 | `The Odyssey` | Bucket 89: [`The Lobsters Cook` - `The Odyssey`] |
-| B090 | `The Ring of Ultimate Power` | Bucket 90: [`The Odyssey` - `The Ring of Ultimate Power`] |
-| B091 | `The Thing in Mrs. Faversham's Attic` | Bucket 91: [`The Ring of Ultimate Power` - `The Thing in Mrs. Faversham's Attic`] |
-| B092 | `Thin Ice` | Bucket 92: [`The Thing in Mrs. Faversham's Attic` - `Thin Ice`] |
-| B093 | `Tontolini e Lea fra le nuvole` | Bucket 93: [`Thin Ice` - `Tontolini e Lea fra le nuvole`] |
-| B094 | `Trust Me, I'm a Doctor!` | Bucket 94: [`Tontolini e Lea fra le nuvole` - `Trust Me, I'm a Doctor!`] |
-| B095 | `Undertryk` | Bucket 95: [`Trust Me, I'm a Doctor!` - `Undertryk`] |
-| B096 | `Verzaubert` | Bucket 96: [`Undertryk` - `Verzaubert`] |
-| B097 | `Watashi no ibasho` | Bucket 97: [`Verzaubert` - `Watashi no ibasho`] |
-| B098 | `Who Needs Sex Therapy?` | Bucket 98: [`Watashi no ibasho` - `Who Needs Sex Therapy?`] |
-| B099 | `Yasmina` | Bucket 99: [`Who Needs Sex Therapy?` - `Yasmina`] |
-| B100 | `Zzzzzz` | Bucket 100: [`Yasmina` - `Zzzzzz`] |
+| B000 (Start) | `\$100,000 Name That Tune` | Start of text data |
+| B001 | `(#1.135)` | Bucket 1: [`\$100,000 Name That Tune` - `(#1.135)`] |
+| B002 | `(#1.220)` | Bucket 2: [`(#1.135)` - `(#1.220)`] |
+| B003 | `(#1.3630)` | Bucket 3: [`(#1.220)` - `(#1.3630)`] |
+| B004 | `(#1.5551)` | Bucket 4: [`(#1.3630)` - `(#1.5551)`] |
+| B005 | `(#1.7648)` | Bucket 5: [`(#1.5551)` - `(#1.7648)`] |
+| B006 | `(1964-03-09)` | Bucket 6: [`(#1.7648)` - `(1964-03-09)`] |
+| B007 | `(#1.981)` | Bucket 7: [`(1964-03-09)` - `(#1.981)`] |
+| B008 | `(1993-01-27)` | Bucket 8: [`(#1.981)` - `(1993-01-27)`] |
+| B009 | `(1997-10-20)` | Bucket 9: [`(1993-01-27)` - `(1997-10-20)`] |
+| B010 | `(2000-01-31)` | Bucket 10: [`(1997-10-20)` - `(2000-01-31)`] |
+| B011 | `(2001-10-04)` | Bucket 11: [`(2000-01-31)` - `(2001-10-04)`] |
+| B012 | `(2003-08-05)` | Bucket 12: [`(2001-10-04)` - `(2003-08-05)`] |
+| B013 | `(2004-11-24)` | Bucket 13: [`(2003-08-05)` - `(2004-11-24)`] |
+| B014 | `(2006-03-14)` | Bucket 14: [`(2004-11-24)` - `(2006-03-14)`] |
+| B015 | `(2007-06-22)` | Bucket 15: [`(2006-03-14)` - `(2007-06-22)`] |
+| B016 | `(2009-01-06)` | Bucket 16: [`(2007-06-22)` - `(2009-01-06)`] |
+| B017 | `(2010-10-09)` | Bucket 17: [`(2009-01-06)` - `(2010-10-09)`] |
+| B018 | `(2011-10-31)` | Bucket 18: [`(2010-10-09)` - `(2011-10-31)`] |
+| B019 | `(2012-11-08)` | Bucket 19: [`(2011-10-31)` - `(2012-11-08)`] |
+| B020 | `(#2.24)` | Bucket 20: [`(2012-11-08)` - `(#2.24)`] |
+| B021 | `(#3.252)` | Bucket 21: [`(#2.24)` - `(#3.252)`] |
+| B022 | `(#5.14)` | Bucket 22: [`(#3.252)` - `(#5.14)`] |
+| B023 | `(#7.48)` | Bucket 23: [`(#5.14)` - `(#7.48)`] |
+| B024 | `According to Jim` | Bucket 24: [`(#7.48)` - `According to Jim`] |
+| B025 | `A Girl's Affair 8` | Bucket 25: [`According to Jim` - `A Girl's Affair 8`] |
+| B026 | `Älska mej` | Bucket 26: [`A Girl's Affair 8` - `Älska mej`] |
+| B027 | `Animated Stories from the Bible: Music Video - Volume 1` | Bucket 27: [`Älska mej` - `Animated Stories from the Bible: Music Video - Volume 1`] |
+| B028 | `As Férias` | Bucket 28: [`Animated Stories from the Bible: Music Video - Volume 1` - `As Férias`] |
+| B029 | `A World Away: Stories from the Regina Five` | Bucket 29: [`As Férias` - `A World Away: Stories from the Regina Five`] |
+| B030 | `Beautiful Girls 2` | Bucket 30: [`A World Away: Stories from the Regina Five` - `Beautiful Girls 2`] |
+| B031 | `Bill of Mortality` | Bucket 31: [`Beautiful Girls 2` - `Bill of Mortality`] |
+| B032 | `Born for Sex` | Bucket 32: [`Bill of Mortality` - `Born for Sex`] |
+| B033 | `Busy Bodies` | Bucket 33: [`Born for Sex` - `Busy Bodies`] |
+| B034 | `Cattle Call` | Bucket 34: [`Busy Bodies` - `Cattle Call`] |
+| B035 | `Chô-jûryoku no wana` | Bucket 35: [`Cattle Call` - `Chô-jûryoku no wana`] |
+| B036 | `Commando Lovers` | Bucket 36: [`Chô-jûryoku no wana` - `Commando Lovers`] |
+| B037 | `Cultivating the Desert` | Bucket 37: [`Commando Lovers` - `Cultivating the Desert`] |
+| B038 | `Davy Crockett: Rainbow in the Thunder` | Bucket 38: [`Cultivating the Desert` - `Davy Crockett: Rainbow in the Thunder`] |
+| B039 | `Der Konzern` | Bucket 39: [`Davy Crockett: Rainbow in the Thunder` - `Der Konzern`] |
+| B040 | `Die Reise ins Glück` | Bucket 40: [`Der Konzern` - `Die Reise ins Glück`] |
+| B041 | `Dos amigos de cuidado` | Bucket 41: [`Die Reise ins Glück` - `Dos amigos de cuidado`] |
+| B042 | `EF` | Bucket 42: [`Dos amigos de cuidado` - `EF`] |
+| B043 | `Empire` | Bucket 43: [`EF` - `Empire`] |
+| B044 | `Expulsion: Pilot` | Bucket 44: [`Empire` - `Expulsion: Pilot`] |
+| B045 | `Finding Balance` | Bucket 45: [`Expulsion: Pilot` - `Finding Balance`] |
+| B046 | `Frances Ha` | Bucket 46: [`Finding Balance` - `Frances Ha`] |
+| B047 | `Gatten vs. Gatten` | Bucket 47: [`Frances Ha` - `Gatten vs. Gatten`] |
+| B048 | `Gone Fishin'` | Bucket 48: [`Gatten vs. Gatten` - `Gone Fishin'`] |
+| B049 | `Haha no mune ni yomigaeru shonen` | Bucket 49: [`Gone Fishin'` - `Haha no mune ni yomigaeru shonen`] |
+| B050 | `Hello Mary Lou: Prom Night II` | Bucket 50: [`Haha no mune ni yomigaeru shonen` - `Hello Mary Lou: Prom Night II`] |
+| B051 | `Hollywood on Parade No. B-13` | Bucket 51: [`Hello Mary Lou: Prom Night II` - `Hollywood on Parade No. B-13`] |
+| B052 | `Hyakka Ryoran: Samurai Bride` | Bucket 52: [`Hollywood on Parade No. B-13` - `Hyakka Ryoran: Samurai Bride`] |
+| B053 | `Incorrigible` | Bucket 53: [`Hyakka Ryoran: Samurai Bride` - `Incorrigible`] |
+| B054 | `Itinéraire de Jean Bricard` | Bucket 54: [`Incorrigible` - `Itinéraire de Jean Bricard`] |
+| B055 | `Jimmy Fallon/Kudo Tsunoda/Microsoft Kinect/iPhone 4/Samsung Captivate/Droid X` | Bucket 55: [`Itinéraire de Jean Bricard` - `Jimmy Fallon/Kudo Tsunoda/Microsoft Kinect/iPhone 4/Samsung Captivate/Droid X`] |
+| B056 | `Kamoning` | Bucket 56: [`Jimmy Fallon/Kudo Tsunoda/Microsoft Kinect/iPhone 4/Samsung Captivate/Droid X` - `Kamoning`] |
+| B057 | `Kishi tachi no hatsujin` | Bucket 57: [`Kamoning` - `Kishi tachi no hatsujin`] |
+| B058 | `La duquesa del Tepetate` | Bucket 58: [`Kishi tachi no hatsujin` - `La duquesa del Tepetate`] |
+| B059 | `Las sensuales fotos de Sole` | Bucket 59: [`La duquesa del Tepetate` - `Las sensuales fotos de Sole`] |
+| B060 | `Le retour des Goraks` | Bucket 60: [`Las sensuales fotos de Sole` - `Le retour des Goraks`] |
+| B061 | `Little Buddies` | Bucket 61: [`Le retour des Goraks` - `Little Buddies`] |
+| B062 | `Love Hangover` | Bucket 62: [`Little Buddies` - `Love Hangover`] |
+| B063 | `Makyo no himitsu` | Bucket 63: [`Love Hangover` - `Makyo no himitsu`] |
+| B064 | `Meditations: Supper` | Bucket 64: [`Makyo no himitsu` - `Meditations: Supper`] |
+| B065 | `Miss America: Behind the Curtain` | Bucket 65: [`Meditations: Supper` - `Miss America: Behind the Curtain`] |
+| B066 | `Mrs. Brickles` | Bucket 66: [`Miss America: Behind the Curtain` - `Mrs. Brickles`] |
+| B067 | `Na odmoru` | Bucket 67: [`Mrs. Brickles` - `Na odmoru`] |
+| B068 | `Njihova poslednja smjena` | Bucket 68: [`Na odmoru` - `Njihova poslednja smjena`] |
+| B069 | `O Dilema` | Bucket 69: [`Njihova poslednja smjena` - `O Dilema`] |
+| B070 | `Oppa soll ins Heim` | Bucket 70: [`O Dilema` - `Oppa soll ins Heim`] |
+| B071 | `pareidolia` | Bucket 71: [`Oppa soll ins Heim` - `pareidolia`] |
+| B072 | `Pick-up` | Bucket 72: [`pareidolia` - `Pick-up`] |
+| B073 | `Pozo ciego` | Bucket 73: [`Pick-up` - `Pozo ciego`] |
+| B074 | `Querelle enfantine` | Bucket 74: [`Pozo ciego` - `Querelle enfantine`] |
+| B075 | `Remember When?` | Bucket 75: [`Querelle enfantine` - `Remember When?`] |
+| B076 | `Roger Varley the Sweep` | Bucket 76: [`Remember When?` - `Roger Varley the Sweep`] |
+| B077 | `Sanam Aap Ki Khatir` | Bucket 77: [`Roger Varley the Sweep` - `Sanam Aap Ki Khatir`] |
+| B078 | `Seemabaddha` | Bucket 78: [`Sanam Aap Ki Khatir` - `Seemabaddha`] |
+| B079 | `Shirobara wa sakedo` | Bucket 79: [`Seemabaddha` - `Shirobara wa sakedo`] |
+| B080 | `Small Gods` | Bucket 80: [`Shirobara wa sakedo` - `Small Gods`] |
+| B081 | `Spank Bank` | Bucket 81: [`Small Gods` - `Spank Bank`] |
+| B082 | `Streli nad vodata` | Bucket 82: [`Spank Bank` - `Streli nad vodata`] |
+| B083 | `Taiketsu! Test de go!!` | Bucket 83: [`Streli nad vodata` - `Taiketsu! Test de go!!`] |
+| B084 | `The 38th Annual Grammy Awards` | Bucket 84: [`Taiketsu! Test de go!!` - `The 38th Annual Grammy Awards`] |
+| B085 | `The Bravery: Live from La Zona Rosa` | Bucket 85: [`The 38th Annual Grammy Awards` - `The Bravery: Live from La Zona Rosa`] |
+| B086 | `The Death of Tempo` | Bucket 86: [`The Bravery: Live from La Zona Rosa` - `The Death of Tempo`] |
+| B087 | `The God in the Garden` | Bucket 87: [`The Death of Tempo` - `The God in the Garden`] |
+| B088 | `The Land of Adventure` | Bucket 88: [`The God in the Garden` - `The Land of Adventure`] |
+| B089 | `The Myth of Color` | Bucket 89: [`The Land of Adventure` - `The Myth of Color`] |
+| B090 | `The Red Eyed Creature` | Bucket 90: [`The Myth of Color` - `The Red Eyed Creature`] |
+| B091 | `The Substitute Teacher` | Bucket 91: [`The Red Eyed Creature` - `The Substitute Teacher`] |
+| B092 | `The Wordsmith` | Bucket 92: [`The Substitute Teacher` - `The Wordsmith`] |
+| B093 | `Tom` | Bucket 93: [`The Wordsmith` - `Tom`] |
+| B094 | `Trouble` | Bucket 94: [`Tom` - `Trouble`] |
+| B095 | `Underwater Station` | Bucket 95: [`Trouble` - `Underwater Station`] |
+| B096 | `Veninder på trods` | Bucket 96: [`Underwater Station` - `Veninder på trods`] |
+| B097 | `Warm Steel Loft` | Bucket 97: [`Veninder på trods` - `Warm Steel Loft`] |
+| B098 | `Who, Me?` | Bucket 98: [`Warm Steel Loft` - `Who, Me?`] |
+| B099 | `Yalanci` | Bucket 99: [`Who, Me?` - `Yalanci`] |
+| B100 | `Þegar Kanínur Fljúga` | Bucket 100: [`Yalanci` - `Þegar Kanínur Fljúga`] |
 
 ### 6. Histogram Visualization
 ![Histogram for title.id](../plots/q1_histogram_id.png)
@@ -306,7 +306,7 @@ textual attribute “title” is put into histogram as:
 ### 7. Max Selectivity Error
 - **Max Selectivity Error**: Since `default_statistics_target` is 100, there are 100 buckets. Therefore, the maximum selectivity error for a range query is bounded by:
 $$\text{Max Error} \le \frac{1}{B} = \frac{1}{100} = 0.01 \quad (1.0\%)$$
-For evaluated queries(q9), the observed maximum selectivity error is **0.8364%** (0.008364), which strictly satisfies $\text{Max Error} \le 1.0\%$.
+For evaluated queries(q9), the observed maximum selectivity error is **0.8147%** (0.008147), which strictly satisfies $\text{Max Error} \le 1.0\%$.
 
 ---
 ### 8: Selectivity Estimation for Text Columns
@@ -330,9 +330,9 @@ EXPLAIN ANALYZE SELECT * FROM title WHERE title.title < 'Race';
 ```sql
 EXPLAIN SELECT * FROM title WHERE title.title < 'Race';
 ```
-- **Estimated Selectivity:** The planner estimated 1,939,288 rows: $S_{est} = \frac{1939288}{2528312} \approx 0.7670$ (76.70%).
+- **Estimated Selectivity:** The planner estimated 1,938,739 rows: $S_{est} = \frac{1938739}{2528312} \approx 0.7668$ (76.68%).
 
-- **Observation:** The absolute error is roughly 0.83%.
+- **Observation:** The absolute error is roughly 0.81%.
 
 **Query 2: `id < 350000`**
 ```sql
@@ -343,117 +343,103 @@ EXPLAIN ANALYZE SELECT * FROM title WHERE title.id < '350000';
 ```sql
 EXPLAIN SELECT * FROM title WHERE title.id < '350000';
 ```
-- **Estimated Selectivity:** The planner estimated 337,982 rows: $S_{est} = \frac{337982}{2528312} \approx 0.1337$ (13.37%).
+- **Estimated Selectivity:** The planner estimated 355,451 rows: $S_{est} = \frac{355451}{2528312} \approx 0.1406$ (14.06%).
 
-- **Observation:** The absolute error here is about 0.47%.
+- **Observation:** The absolute error here is about 0.22%.
 
 ---
 
 ## Q2. Optimal Serial Histogram Construction ($B=20$ Buckets)
 
-### 1. Histogram Visualizations for $N = 3000$ Samples (Horizontal Bar Plots)
-*As specified in ques the histograms as a bar-plot with value boundaries in the Y-axis and
-frequency in the X-axis*
+### 1. Histogram Visualizations for Exact $N = 3000$ Samples (Slide-Faithful Horizontal Bar Plots)
+*As defined in lecture slides, a Serial Histogram sorts domain values by their ordered frequencies ($f(v_{(1)}) \le f(v_{(2)}) \le \dots \le f(v_{(m)})$) and partitions the frequency space to minimize frequency variance $\sum n_i V_i$. The horizontal bar charts below plot Frequencies on the X-axis and Value Set / Buckets on the Y-axis:*
 
 ![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
 ![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
 
-### 2. Execution Build Time
-- **Execution Build Time for $N=3000$**: **0.8290 seconds** (`id` column) / **0.8240 seconds** (`title` column)
+### 2. Execution Build Time (Average over 3 Runs)
+- **Average Build Time for $N=3000$**: **0.8416 seconds** (`id` column) / **0.7912 seconds** (`title` column)
 
 ### 3. Frequency Bucket Boundaries ($N=3000$, $B=20$)
 
-The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors . The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
+The optimal serial histogram algorithm partitions the exact 3,000 samples into 20 dynamic frequency buckets. The exact bucket value ranges, distinct domain value counts ($n_i$), and frequency distributions for both columns are listed below:
 
-#### A. Column `id` Frequency Bucket Boundaries ($N=3000$, $B=20$)
-| Bucket # | Value Interval (`id`) | Frequency Count ($n_i$) |
-| :---: | :---: | :---: |
-| Bucket 01 | [`257` - `118,070`] | 150 |
-| Bucket 02 | [`118,980` - `242,849`] | 145 |
-| Bucket 03 | [`245,511` - `372,280`] | 151 |
-| Bucket 04 | [`374,055` - `502,053`] | 158 |
-| Bucket 05 | [`507,011` - `631,993`] | 161 |
-| Bucket 06 | [`634,943` - `752,523`] | 138 |
-| Bucket 07 | [`755,964` - `874,274`] | 155 |
-| Bucket 08 | [`875,179` - `1,009,160`] | 164 |
-| Bucket 09 | [`1,011,071` - `1,146,469`] | 166 |
-| Bucket 10 | [`1,148,257` - `1,270,590`] | 145 |
-| Bucket 11 | [`1,272,220` - `1,395,313`] | 132 |
-| Bucket 12 | [`1,396,612` - `1,519,389`] | 155 |
-| Bucket 13 | [`1,521,543` - `1,633,984`] | 152 |
-| Bucket 14 | [`1,638,075` - `1,748,729`] | 120 |
-| Bucket 15 | [`1,750,231` - `1,870,608`] | 139 |
-| Bucket 16 | [`1,874,253` - `2,004,075`] | 147 |
-| Bucket 17 | [`2,007,741` - `2,133,708`] | 156 |
-| Bucket 18 | [`2,137,263` - `2,272,201`] | 160 |
-| Bucket 19 | [`2,273,708` - `2,407,008`] | 153 |
-| Bucket 20 | [`2,407,834` - `2,528,054`] | 153 |
+#### A. Column `id` Serial Frequency Bucket Boundaries ($N=3000$, $B=20$)
+| Bucket # | Value Range (`id`) | Distinct Values ($n_i$) | Frequency Range | Average Frequency ($\bar{f}_i$) |
+| :---: | :---: | :---: | :---: | :---: |
+| Bucket 01 | [`1,234` - `1,234`] | 1 | 1 | 1.00 |
+| Bucket 02 | [`1,377` - `1,377`] | 1 | 1 | 1.00 |
+| Bucket 03 | [`1,848` - `1,848`] | 1 | 1 | 1.00 |
+| Bucket 04 | [`4,038` - `4,038`] | 1 | 1 | 1.00 |
+| Bucket 05 | [`4,148` - `4,148`] | 1 | 1 | 1.00 |
+| Bucket 06 | [`4,770` - `4,770`] | 1 | 1 | 1.00 |
+| Bucket 07 | [`5,046` - `5,046`] | 1 | 1 | 1.00 |
+| Bucket 08 | [`5,703` - `5,703`] | 1 | 1 | 1.00 |
+| Bucket 09 | [`7,122` - `7,122`] | 1 | 1 | 1.00 |
+| Bucket 10 | [`7,248` - `7,248`] | 1 | 1 | 1.00 |
+| Bucket 11 | [`7,425` - `7,425`] | 1 | 1 | 1.00 |
+| Bucket 12 | [`7,557` - `7,557`] | 1 | 1 | 1.00 |
+| Bucket 13 | [`7,662` - `7,662`] | 1 | 1 | 1.00 |
+| Bucket 14 | [`8,124` - `8,124`] | 1 | 1 | 1.00 |
+| Bucket 15 | [`8,547` - `8,547`] | 1 | 1 | 1.00 |
+| Bucket 16 | [`8,598` - `8,598`] | 1 | 1 | 1.00 |
+| Bucket 17 | [`9,616` - `9,616`] | 1 | 1 | 1.00 |
+| Bucket 18 | [`10,047` - `10,047`] | 1 | 1 | 1.00 |
+| Bucket 19 | [`10,771` - `10,771`] | 1 | 1 | 1.00 |
+| Bucket 20 | [`10,948` - `2,528,274`] | 2981 | 1 | 1.00 |
 
-#### B. Column `title` Frequency Bucket Boundaries ($N=3000$, $B=20$)
-| Bucket # | Value Interval (`title`) | Frequency Count ($n_i$) |
-| :---: | :--- | :---: |
-| Bucket 01 | [`"'57 Chevy Part 2"` - `"(2013-05-31)"`] | 843 |
-| Bucket 02 | [`"...And a School Bus"` - `"4000 en los Andes"`] | 23 |
-| Bucket 03 | [`"6 Chefs Compete"` - `"99: Why do you say that?"`] | 6 |
-| Bucket 04 | [`"A Bag of Evidence"` - `"Azul"`] | 179 |
-| Bucket 05 | [`"B-Grade Celebrity/Bucks P"` - `"Buzios"`] | 116 |
-| Bucket 06 | [`"Bîto Takeshi satsujin jik"` - `"Cynthia Rowley"`] | 100 |
-| Bucket 07 | [`"D'abord ménagères"` - `"Dílerka"`] | 122 |
-| Bucket 08 | [`"Easel Does It/Dinky at th"` - `"Futebol Entre Fluminense "`] | 146 |
-| Bucket 09 | [`"Gakuen sai de yui, hansei"` - `"Humongous Hooters"`] | 153 |
-| Bucket 10 | [`"Hämäläiset sukupidot Tamm"` - `"Jvartsmuli kundzuli"`] | 102 |
-| Bucket 11 | [`"Jû"` - `"Lähtölaukaus"`] | 174 |
-| Bucket 12 | [`"Lídin odjezd"` - `"Nyûsu môningu sateraito"`] | 170 |
-| Bucket 13 | [`"O Bairro Salazar"` - `"Pérdida millonaria"`] | 143 |
-| Bucket 14 | [`"Quando parliamo d'amore"` - `"Ryuu wo tsuru shounen"`] | 67 |
-| Bucket 15 | [`"Rånemax tv-show"` - `"Sådan udvikler du dit bar"`] | 183 |
-| Bucket 16 | [`"Súkromné jasle"` - `"Uyarukm Njan Nadaake"`] | 334 |
-| Bucket 17 | [`"Vabzdziu dresuotojas"` - `"XFC 11: The Next Generati"`] | 100 |
-| Bucket 18 | [`"Ya vozhatyy forposta"` - `"Zwischen uns beiden"`] | 34 |
-| Bucket 19 | [`"¿Diana en peligro?"` - `"Åsa-Nisse i kronans kläde"`] | 3 |
-| Bucket 20 | [`"Ôjo-sama to eiyû"` - `"Öbergs på Lillöga"`] | 2 |
+#### B. Column `title` Serial Frequency Bucket Boundaries ($N=3000$, $B=20$)
+| Bucket # | Value Range (`title`) | Distinct Values ($n_i$) | Frequency Range | Average Frequency ($\bar{f}_i$) |
+| :---: | :--- | :---: | :---: | :---: |
+| Bucket 01 | [`"\$#!+ Happens"` ... `"\$#!+ Happens"`] | 1 | 1 | 1.00 |
+| Bucket 02 | [`"'42 Woodie Part"` ... `"'42 Woodie Part"`] | 1 | 1 | 1.00 |
+| Bucket 03 | [`"(#1.100)"` ... `"(#1.100)"`] | 1 | 1 | 1.00 |
+| Bucket 04 | [`"(#1.10033)"` ... `"(#1.10033)"`] | 1 | 1 | 1.00 |
+| Bucket 05 | [`"(#1.10271)"` ... `"(#1.10271)"`] | 1 | 1 | 1.00 |
+| Bucket 06 | [`"(#1.1043)"` ... `"(#1.1043)"`] | 1 | 1 | 1.00 |
+| Bucket 07 | [`"(#1.104)"` ... `"(#1.104)"`] | 1 | 1 | 1.00 |
+| Bucket 08 | [`"(#1.10594)"` ... `"(#1.10594)"`] | 1 | 1 | 1.00 |
+| Bucket 09 | [`"(#1.10693)"` ... `"(#1.10693)"`] | 1 | 1 | 1.00 |
+| Bucket 10 | [`"(#1.106)"` ... `"(#1.106)"`] | 1 | 1 | 1.00 |
+| Bucket 11 | [`"(#1.10666)"` ... `"Ônna no kaôyaku"`] | 2763 | 1 | 1.00 |
+| Bucket 12 | [`"(#1.132)"` ... `"The Box"`] | 35 | 2 | 2.00 |
+| Bucket 13 | [`"(#1.118)"` ... `"(#4.1)"`] | 8 | 3 | 3.00 |
+| Bucket 14 | [`"(#1.11)"` ... `"(#3.1)"`] | 5 | 4 | 4.00 |
+| Bucket 15 | [`"(#1.10)"` ... `"Pilot"`] | 4 | 5 | 5.00 |
+| Bucket 16 | [`"(#1.7)"` ... `"(#1.9)"`] | 2 | 6 | 6.00 |
+| Bucket 17 | [`"(#1.6)"` ... `"(#1.8)"`] | 2 | 8 | 8.00 |
+| Bucket 18 | [`"(#1.5)"` ... `"(#1.5)"`] | 1 | 11 | 11.00 |
+| Bucket 19 | [`"(#1.1)"` ... `"(#1.2)"`] | 2 | 13 | 13.00 |
+| Bucket 20 | [`"(#1.3)"` ... `"(#1.4)"`] | 2 | 14 | 14.00 |
 
-### 4. Max Selectivity Error for Optimal Histogram ($N=3000$)
+### 4. 3-Run Selectivity Error Calculation & Average ($N=3000$)
 
-- **Max Selectivity Error**: **0.003720** (or **0.3720%**)
+As required to account for sample randomness, the selectivity error evaluation was executed across **3 independent runs** (with exact sample size $N=3000$). All three run errors are listed below along with their computed average:
 
-#### Theoretical error , when worst case senario occurs ie it is skewed heavily
-$$\text{Max Error (Theoretical)} = \frac{\max(C_i)}{N}$$
+#### A. 3-Run Max Selectivity Error Summary ($N=3000$)
+| Column | Run 1 Max Error | Run 2 Max Error | Run 3 Max Error | **Average Max Selectivity Error** |
+| :---: | :---: | :---: | :---: | :---: |
+| `id` | `0.023000` | `0.007895` | `0.010420` | **`0.013772`** (1.3772%) |
+| `title` | `0.624589` | `0.609475` | `0.617858` | **`0.617307`** (61.7307%) |
 
-#### A. Step-by-Step Calculation Methodology
-1. **Evaluation Quantiles ($q_0 \dots q_9$)**: To systematically evaluate estimation error across the data range $[x_{\min}, x_{\max}]$, 10 linearly-spaced query thresholds $q_k$ are evaluated:
-   $$q_k = x_{\min} + k \times \frac{x_{\max} - x_{\min}}{9}, \quad k \in \{0, 1, \dots, 9\}$$
-
-2. **Actual Selectivity ($S_{\text{act}}(q_k)$)**: Computed directly from the empirical sample of $N = 3,000$ points:
-   $$S_{\text{act}}(q_k) = \frac{\text{Count}(x \le q_k)}{N}$$
-
-3. **Optimal Histogram Estimated Selectivity ($S_{\text{est}}(q_k)$)**:
-   - For all buckets $[L_i, H_i]$ lying fully below $q_k$ ($H_i \le q_k$), add full bucket count $n_i$.
-   - For the enclosing bucket ($L_i \le q_k < H_i$), perform linear interpolation:
-     $$\text{Estimated Count } E(q_k) = \sum_{H_i \le q_k} n_i + \left( n_i \times \frac{q_k - L_i}{H_i - L_i} \right)$$
-   - Estimated Selectivity: $S_{\text{est}}(q_k) = \frac{E(q_k)}{N}$
-
-4. **Maximum Selectivity Error**:
-   $$\text{Max Selectivity Error} = \max_{k \in \{0..9\}} |S_{\text{est}}(q_k) - S_{\text{act}}(q_k)| = \mathbf{0.003720}$$
-
-#### B. Quantile-by-Quantile Error Evaluation Table ($N=3000, B=20$)
+#### B. Quantile-by-Quantile Error Evaluation Table for Run 1 ($N=3000, B=20$)
 | Index ($k$) | Query Threshold ($q_k$) | Actual Count ($A$) | Actual Selectivity ($S_{\text{act}}$) | Estimated Count ($E$) | Estimated Selectivity ($S_{\text{est}}$) | Absolute Error $\vert S_{\text{est}} - S_{\text{act}} \vert$ |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| $q_0$ | `257.0` | 1 | 0.000333 | 0.00 | 0.000000 | 0.000333 |
-| $q_1$ | `281,123.3` | 342 | 0.114000 | 337.42 | 0.112473 | 0.001527 |
-| $q_2$ | `561,989.7` | 668 | 0.222667 | 674.82 | 0.224941 | 0.002274 |
-| $q_3$ | `842,856.0` | 1028 | 0.342667 | 1016.84 | 0.338946 | **0.003720** |
-| $q_4$ | `1,123,722.3` | 1353 | 0.451000 | 1360.11 | 0.453371 | 0.002371 |
-| $q_5$ | `1,404,588.7` | 1673 | 0.557667 | 1675.07 | 0.558357 | 0.000690 |
-| $q_6$ | `1,685,455.0` | 2026 | 0.675333 | 2023.38 | 0.674461 | 0.000873 |
-| $q_7$ | `1,966,321.3` | 2345 | 0.781667 | 2335.25 | 0.778417 | 0.003250 |
-| $q_8$ | `2,247,187.7` | 2669 | 0.889667 | 2664.34 | 0.888114 | 0.001553 |
-| $q_9$ | `2,528,054.0` | 3000 | 1.000000 | 3000.00 | 1.000000 | 0.000000 |
+| $q_{0}$ | `1,234.0` | 1 | 0.000333 | 1.00 | 0.000333 | 0.000000 |
+| $q_{1}$ | `282,016.2` | 352 | 0.117333 | 340.00 | 0.113332 | 0.004001 |
+| $q_{2}$ | `562,798.4` | 673 | 0.224333 | 672.50 | 0.224166 | 0.000168 |
+| $q_{3}$ | `843,580.7` | 966 | 0.322000 | 1005.00 | 0.334999 | 0.012999 |
+| $q_{4}$ | `1,124,362.9` | 1307 | 0.435667 | 1337.50 | 0.445833 | 0.010166 |
+| $q_{5}$ | `1,405,145.1` | 1613 | 0.537667 | 1670.00 | 0.556666 | 0.019000 |
+| $q_{6}$ | `1,685,927.3` | 1946 | 0.648667 | 2002.50 | 0.667500 | 0.018833 |
+| $q_{7}$ | `1,966,709.6` | 2266 | 0.755333 | 2335.00 | 0.778333 | **0.023000** |
+| $q_{8}$ | `2,247,491.8` | 2623 | 0.874333 | 2667.50 | 0.889167 | 0.014833 |
+| $q_{9}$ | `2,528,274.0` | 3000 | 1.000000 | 3000.00 | 1.000000 | 0.000000 |
 
-### 5. Histograms Across Sample Sizes ($N = 1000$ and $N = 3000$)
+### 5. Histograms Across Exact Sample Sizes ($N = 1000, 3000, 5000$)
 
-Below are the optimal serial histogram visualizations ($B=20$) for both sample sizes $N=1000$ and $N=3000$:
+Below are the optimal serial histogram visualizations ($B=20$) for exact sample sizes $N=1000$ and $N=3000$:
 
 #### A. Sample Size $N = 1000$ Histograms
 ![Optimal Serial Histogram for title.id (N=1000)](../plots/q2_histogram_id_1000.png)
@@ -465,46 +451,49 @@ Below are the optimal serial histogram visualizations ($B=20$) for both sample s
 
 ![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
 
-#### C. Summary Table Across Sample Sizes
-| Sample Size ($N$) | Build Time (`id`) | Build Time (`title`) | Max Selectivity Error |
-| :---: | :---: | :---: | :---: |
-| **1000** | 0.1994s | 0.1719s | 0.004699 |
-| **3000** | 0.8290s | 0.8240s | 0.003720 |
-| **5000** | 2.1767s | 2.0974s | 0.002471 |
+#### C. Comprehensive 3-Run Summary Table Across Exact Sample Sizes
+| Exact Sample Size ($N$) | Column | Run 1 Error | Run 2 Error | Run 3 Error | **Average Max Error** | Average Build Time |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **1000** | `id` | `0.021797` | `0.013345` | `0.012868` | **`0.016003`** | `0.1782s` |
+| **1000** | `title` | `0.630636` | `0.618118` | `0.167797` | **`0.472183`** | `0.1770s` |
+| **3000** | `id` | `0.023000` | `0.007895` | `0.010420` | **`0.013772`** | `0.8416s` |
+| **3000** | `title` | `0.624589` | `0.609475` | `0.617858` | **`0.617307`** | `0.7912s` |
+| **5000** | `id` | `0.013780` | `0.005044` | `0.007486` | **`0.008770`** | `1.9209s` |
+| **5000** | `title` | `0.616176` | `0.613055` | `0.608567` | **`0.612600`** | `1.7404s` |
 
 ---
 
 ### 6. Full Step-by-Step Linear Regression Extrapolation ($N = 2,528,312$)
 
-To extrapolate the construction build time for the entire `title` table ($N = 2,528,312$), we fit a linear regression model:
+To extrapolate the construction build time for the entire `title` table ($N = 2,528,312$), we fit a linear regression model on the 3-run average measured build times:
 $$T(N) = m \cdot N + c$$
 
 #### A. Sample Data Points $(N_i, T_i)$
-- Point 1: $(N_1, T_1) = (1000, 0.1994)$
-- Point 2: $(N_2, T_2) = (3000, 0.8290)$
-- Point 3: $(N_3, T_3) = (5000, 2.1767)$
+- Point 1: $(N_1, T_1) = (1000, 0.1782)$
+- Point 2: $(N_2, T_2) = (3000, 0.8416)$
+- Point 3: $(N_3, T_3) = (5000, 1.9209)$
 
 #### B. Mean Calculations
 - $\bar{N} = \frac{1000 + 3000 + 5000}{3} = \mathbf{3000}$
-- $\bar{T} = \frac{0.1994 + 0.8290 + 2.1767}{3} = \mathbf{1.0684\text{ seconds}}$
+- $\bar{T} = \frac{0.1782 + 0.8416 + 1.9209}{3} = \mathbf{0.9803\text{ seconds}}$
 
 #### C. Deviations & Sum of Products
 | $N_i$ | $T_i$ (s) | $(N_i - \bar{N})$ | $(T_i - \bar{T})$ | $(N_i - \bar{N})^2$ | $(N_i - \bar{N})(T_i - \bar{T})$ |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| 1000 | 0.1994 | -2000 | -0.8690 | 4,000,000 | 1738.0037 |
-| 3000 | 0.8290 | 0 | -0.2394 | 0 | -0.0000 |
-| 5000 | 2.1767 | +2000 | 1.1084 | 4,000,000 | 2216.7320 |
-| **Sum** | | | | **8,000,000** | **3954.7358** |
+| 1000 | 0.1782 | -2000 | -0.8021 | 4,000,000 | 1604.1161 |
+| 3000 | 0.8416 | 0 | -0.1386 | 0 | -0.0000 |
+| 5000 | 1.9209 | +2000 | 0.9407 | 4,000,000 | 1881.3660 |
+| **Sum** | | | | **8,000,000** | **3485.4821** |
 
 #### D. Slope ($m$) and Intercept ($c$) Formulas
 - **Slope ($m$)**:
-  $$m = \frac{\sum (N_i - \bar{N})(T_i - \bar{T})}{\sum (N_i - \bar{N})^2} = \frac{3954.7358}{8,000,000} = \mathbf{0.00049434\text{ seconds / sample}}$$
+  $$m = \frac{\sum (N_i - \bar{N})(T_i - \bar{T})}{\sum (N_i - \bar{N})^2} = \frac{3485.4821}{8,000,000} = \mathbf{0.00043569\text{ seconds / sample}}$$
 
 - **Intercept ($c$)**:
-  $$c = \bar{T} - m \cdot \bar{N} = 1.0684 - (0.00049434 \times 3000) = \mathbf{-0.414643\text{ seconds}}$$
+  $$c = \bar{T} - m \cdot \bar{N} = 0.9803 - (0.00043569 \times 3000) = \mathbf{-0.326793\text{ seconds}}$$
 
 #### E. Extrapolated Build Time for Full Table ($N = 2,528,312$)
-$$T(2,528,312) = (0.00049434 \times 2,528,312) + (-0.414643) = \mathbf{1249.44\text{ seconds}} \quad (\mathbf{20.82\text{ minutes}})$$
+$$T(2,528,312) = (0.00043569 \times 2,528,312) + (-0.326793) = \mathbf{1101.22\text{ seconds}} \quad (\mathbf{18.35\text{ minutes}})$$
 
 ---
 

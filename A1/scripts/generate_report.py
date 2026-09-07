@@ -10,126 +10,61 @@ from solution_q1 import run_q1
 from solution_q2 import run_q2
 
 def generate_assignment_report():
-    os.makedirs('reports', exist_ok=True)
-    conn = psycopg2.connect(dbname='imdbload')
-    cur = conn.cursor()
+    print("=== Generating Master Assignment Report ===")
+    
+    # Run Q1 & Q2
+    q1_data = run_q1()
+    q2_data = run_q2()
 
-    os_name = "Ubuntu 26.04 LTS"
-    cpu_model = "13th Gen Intel(R) Core(TM) i3-1315U (6 cores, 8 threads)"
-    ram_amount = "14 GiB"
-    hdd_amount = "456 GiB NVMe SSD"
+    tables = q1_data['tables']
+    cardinalities = q1_data['cardinalities']
+    total_db_rows = q1_data['total_db_rows']
+    id_bounds_list = q1_data['id_bounds_list']
+    title_bounds_list = q1_data['title_bounds_list']
+    max_err = q1_data['max_err']
 
-    cur.execute("SELECT version();")
-    pg_version = cur.fetchone()[0]
+    total_title = cardinalities.get('title', 2528312)
 
-    tables = [
-        'aka_name', 'aka_title', 'cast_info', 'char_name', 'comp_cast_type',
-        'company_name', 'company_type', 'complete_cast', 'info_type', 'keyword',
-        'kind_type', 'link_type', 'movie_companies', 'movie_info', 'movie_info_idx',
-        'movie_keyword', 'movie_link', 'name', 'person_info', 'role_type', 'title'
-    ]
+    act_race_cnt = q1_data['act_race_cnt']
+    act_race_sel = q1_data['act_race_sel']
+    est_race_cnt = q1_data['est_race_cnt']
+    est_race_sel = q1_data['est_race_sel']
+    err_race = q1_data['err_race']
 
-    cardinalities = {}
-    total_db_rows = 0
-    for t in sorted(tables):
-        cur.execute(f"SELECT count(*) FROM {t};")
-        cnt = cur.fetchone()[0]
-        cardinalities[t] = cnt
-        total_db_rows += cnt
+    act_id_cnt = q1_data['act_id_cnt']
+    act_id_sel = q1_data['act_id_sel']
+    est_id_cnt = q1_data['est_id_cnt']
+    est_id_sel = q1_data['est_id_sel']
+    err_id = q1_data['err_id']
 
-    cur.execute("SELECT count(*) FROM title;")
-    total_title = cur.fetchone()[0]
+    q2_results = q2_data['results']
+    slope = q2_data['slope']
+    intercept = q2_data['intercept']
+    extrapolated_time = q2_data['extrapolated_time']
 
-    db_bounds = {}
-    for col in ['id', 'title']:
-        cur.execute(f'''
-            SELECT array_to_json(histogram_bounds)
-            FROM pg_stats
-            WHERE tablename = 'title' AND attname = '{col}';
-        ''')
-        res = cur.fetchone()[0]
-        db_bounds[col] = res if res else []
+    res_1000 = q2_results['id'][1000]
+    res_3000 = q2_results['id'][3000]
+    res_5000 = q2_results['id'][5000]
 
-    id_bounds_list = db_bounds['id']
-    title_bounds_list = db_bounds['title']
+    res_title_1000 = q2_results['title'][1000]
+    res_title_3000 = q2_results['title'][3000]
+    res_title_5000 = q2_results['title'][5000]
 
-    cur.execute("SELECT count(*) FROM title WHERE title < 'Race';")
-    act_race_cnt = cur.fetchone()[0]
-    act_race_sel = act_race_cnt / total_title
+    t1000 = res_1000['avg_time']
+    t3000 = res_3000['avg_time']
+    t5000 = res_5000['avg_time']
 
-    cur.execute("EXPLAIN SELECT * FROM title WHERE title < 'Race';")
-    exp_race = cur.fetchall()
-    est_race_cnt = int(exp_race[0][0].split('rows=')[1].split()[0])
-    est_race_sel = est_race_cnt / total_title
-    err_race = abs(est_race_sel - act_race_sel)
+    e1000 = res_1000['avg_error']
+    e3000 = res_3000['avg_error']
+    e5000 = res_5000['avg_error']
 
-    cur.execute("SELECT count(*) FROM title WHERE id < 350000;")
-    act_id_cnt = cur.fetchone()[0]
-    act_id_sel = act_id_cnt / total_title
-
-    cur.execute("EXPLAIN SELECT * FROM title WHERE id < 350000;")
-    exp_id = cur.fetchall()
-    est_id_cnt = int(exp_id[0][0].split('rows=')[1].split()[0])
-    est_id_sel = est_id_cnt / total_title
-    err_id = abs(est_id_sel - act_id_sel)
-
-    max_err = max(err_race, err_id)
-
-    q2_res = run_q2()
-
-    # Extract Q2 details from fresh run
-    h_res = q2_res['hist_results']
-    res_3000 = h_res[3000]
-    res_1000 = h_res[1000]
-    res_5000 = h_res[5000]
-
-    t1000 = q2_res['timings_id'][1000]
-    t3000 = q2_res['timings_id'][3000]
-    t5000 = q2_res['timings_id'][5000]
-
-    e1000 = q2_res['errors_id'][1000]
-    e3000 = q2_res['errors_id'][3000]
-    e5000 = q2_res['errors_id'][5000]
-
-    slope = q2_res['slope']
-    intercept = q2_res['intercept']
-    extrapolated_time = q2_res['extrapolated_time']
-
-    # Compute step-by-step linear regression numbers
-    mean_N = 3000.0
     mean_T = (t1000 + t3000 + t5000) / 3.0
-
-    dev_N = [1000 - mean_N, 3000 - mean_N, 5000 - mean_N]
+    dev_N = [-2000, 0, 2000]
     dev_T = [t1000 - mean_T, t3000 - mean_T, t5000 - mean_T]
+    sum_cross = sum(dn * dt for dn, dt in zip(dev_N, dev_T))
 
-    sum_sq_N = sum(d**2 for d in dev_N)
-    sum_cross = sum(dN * dT for dN, dT in zip(dev_N, dev_T))
-
-    # Compute 10-quantile table for N=3000 id histogram
-    id_sample_3000 = res_3000['id_sample']
-    id_bounds_3000 = res_3000['id_bounds']
-    id_counts_3000 = res_3000['id_counts']
-    n_samp = len(id_sample_3000)
-
-    quantiles_3000 = np.linspace(min(id_sample_3000), max(id_sample_3000), 10)
-    q_table_rows = []
-    max_q_err = 0.0
-
-    for k, q in enumerate(quantiles_3000):
-        a_cnt = sum(1 for x in id_sample_3000 if x <= q)
-        a_sel = a_cnt / n_samp
-        e_cnt = 0.0
-        for (low, high), cnt in zip(id_bounds_3000, id_counts_3000):
-            if high <= q:
-                e_cnt += cnt
-            elif low <= q < high:
-                frac = (q - low) / max(1e-6, (high - low))
-                e_cnt += cnt * frac
-        e_sel = e_cnt / n_samp
-        q_err = abs(e_sel - a_sel)
-        if q_err > max_q_err:
-            max_q_err = q_err
-        q_table_rows.append((k, q, a_cnt, a_sel, e_cnt, e_sel, q_err))
+    buckets_3000_id = res_3000['buckets']
+    q_details_3000 = res_3000['q_details']
 
     report = f"""# Advanced Database Management Systems (ADBMS)
 ## Assignment 0 & Assignment 1: Histogram Analysis Report
@@ -139,11 +74,11 @@ def generate_assignment_report():
 # Assignment 0
 
 ## Setup
-- **CPU Model & Specification**: {cpu_model}
-- **RAM Capacity**: {ram_amount}
-- **HDD / Storage Capacity**: {hdd_amount}
-- **Operating System**: {os_name}
-- **PostgreSQL Engine Version**: `{pg_version}`
+- **CPU Model & Specification**: 13th Gen Intel(R) Core(TM) i3-1315U (6 cores, 8 threads)
+- **RAM Capacity**: 14 GiB
+- **HDD / Storage Capacity**: 456 GiB NVMe SSD
+- **Operating System**: Ubuntu 26.04 LTS
+- **PostgreSQL Engine Version**: `PostgreSQL 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0, 64-bit`
 
 ## Database
 - **Database Name**: Join Order Benchmark (2013 Snapshot)
@@ -220,11 +155,11 @@ textual attribute “title” is put into histogram as:
 | :---: | :--- | :--- |
 """
     for i in range(len(title_bounds_list)):
-        val_str = str(title_bounds_list[i]).replace('|', '\\|')
+        val_str = str(title_bounds_list[i]).replace('|', '\\|').replace('$', '\\$')
         if i == 0:
             report += f"| B{i:03d} (Start) | `{val_str}` | Start of text data |\n"
         else:
-            prev_str = str(title_bounds_list[i-1]).replace('|', '\\|')
+            prev_str = str(title_bounds_list[i-1]).replace('|', '\\|').replace('$', '\\$')
             report += f"| B{i:03d} | `{val_str}` | Bucket {i}: [`{prev_str}` - `{val_str}`] |\n"
 
     report += f"""
@@ -281,78 +216,69 @@ EXPLAIN SELECT * FROM title WHERE title.id < '350000';
 
 ## Q2. Optimal Serial Histogram Construction ($B=20$ Buckets)
 
-### 1. Histogram Visualizations for $N = 3000$ Samples (Horizontal Bar Plots)
-*As specified in ques the histograms as a bar-plot with value boundaries in the Y-axis and
-frequency in the X-axis*
+### 1. Histogram Visualizations for Exact $N = 3000$ Samples (Slide-Faithful Horizontal Bar Plots)
+*As defined in lecture slides, a Serial Histogram sorts domain values by their ordered frequencies ($f(v_{{(1)}}) \le f(v_{{(2)}}) \le \dots \le f(v_{{(m)}})$) and partitions the frequency space to minimize frequency variance $\sum n_i V_i$. The horizontal bar charts below plot Frequencies on the X-axis and Value Set / Buckets on the Y-axis:*
 
 ![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
 ![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
 
-### 2. Execution Build Time
-- **Execution Build Time for $N=3000$**: **{t3000:.4f} seconds** (`id` column) / **{res_3000['elapsed_title']:.4f} seconds** (`title` column)
+### 2. Execution Build Time (Average over 3 Runs)
+- **Average Build Time for $N=3000$**: **{t3000:.4f} seconds** (`id` column) / **{res_title_3000['avg_time']:.4f} seconds** (`title` column)
 
 ### 3. Frequency Bucket Boundaries ($N=3000$, $B=20$)
 
-The optimal serial histogram algorithm partitions the 3,000 samples into 20 dynamic buckets to minimize total Sum of Squared Errors . The exact bucket intervals and row frequency counts ($n_i$) for both columns are listed below:
+The optimal serial histogram algorithm partitions the exact 3,000 samples into 20 dynamic frequency buckets. The exact bucket value ranges, distinct domain value counts ($n_i$), and frequency distributions for both columns are listed below:
 
-#### A. Column `id` Frequency Bucket Boundaries ($N=3000$, $B=20$)
-| Bucket # | Value Interval (`id`) | Frequency Count ($n_i$) |
-| :---: | :---: | :---: |
+#### A. Column `id` Serial Frequency Bucket Boundaries ($N=3000$, $B=20$)
+| Bucket # | Value Range (`id`) | Distinct Values ($n_i$) | Frequency Range | Average Frequency ($\\bar{{f}}_i$) |
+| :---: | :---: | :---: | :---: | :---: |
 """
-    for idx, ((low, high), cnt) in enumerate(zip(id_bounds_3000, id_counts_3000)):
-        report += f"| Bucket {idx+1:02d} | [`{int(low):,}` - `{int(high):,}`] | {cnt} |\n"
+    for idx, b in enumerate(buckets_3000_id):
+        v_low = int(b['val_min'])
+        v_high = int(b['val_max'])
+        f_min = b['min_freq']
+        f_max = b['max_freq']
+        f_str = f"{f_min}" if f_min == f_max else f"{f_min}-{f_max}"
+        report += f"| Bucket {idx+1:02d} | [`{v_low:,}` - `{v_high:,}`] | {b['distinct_count']} | {f_str} | {b['avg_freq']:.2f} |\n"
 
     report += f"""
-#### B. Column `title` Frequency Bucket Boundaries ($N=3000$, $B=20$)
-| Bucket # | Value Interval (`title`) | Frequency Count ($n_i$) |
-| :---: | :--- | :---: |
+#### B. Column `title` Serial Frequency Bucket Boundaries ($N=3000$, $B=20$)
+| Bucket # | Value Range (`title`) | Distinct Values ($n_i$) | Frequency Range | Average Frequency ($\\bar{{f}}_i$) |
+| :---: | :--- | :---: | :---: | :---: |
 """
-    t_samp = res_3000['title_sample']
-    t_counts = res_3000['title_counts']
-    cum_cnt = 0
-    for idx, cnt in enumerate(t_counts):
-        start_str = t_samp[cum_cnt][:25].replace('|', '\\|')
-        cum_cnt += cnt
-        end_str = t_samp[cum_cnt - 1][:25].replace('|', '\\|')
-        report += f'| Bucket {idx+1:02d} | [`"{start_str}"` - `"{end_str}"`] | {cnt} |\n'
+    for idx, b in enumerate(res_title_3000['buckets']):
+        s_min = str(b['sample_min_str']).replace('|', '\\|').replace('$', '\\$')
+        s_max = str(b['sample_max_str']).replace('|', '\\|').replace('$', '\\$')
+        f_min = b['min_freq']
+        f_max = b['max_freq']
+        f_str = f"{f_min}" if f_min == f_max else f"{f_min}-{f_max}"
+        report += f'| Bucket {idx+1:02d} | [`"{s_min}"` ... `"{s_max}"`] | {b["distinct_count"]} | {f_str} | {b["avg_freq"]:.2f} |\n'
 
     report += f"""
-### 4. Max Selectivity Error for Optimal Histogram ($N=3000$)
+### 4. 3-Run Selectivity Error Calculation & Average ($N=3000$)
 
-- **Max Selectivity Error**: **{e3000:.6f}** (or **{e3000*100:.4f}%**)
+As required to account for sample randomness, the selectivity error evaluation was executed across **3 independent runs** (with exact sample size $N=3000$). All three run errors are listed below along with their computed average:
 
-#### Theoretical error , when worst case senario occurs ie it is skewed heavily
-$$\\text{{Max Error (Theoretical)}} = \\frac{{\\max(C_i)}}{{N}}$$
+#### A. 3-Run Max Selectivity Error Summary ($N=3000$)
+| Column | Run 1 Max Error | Run 2 Max Error | Run 3 Max Error | **Average Max Selectivity Error** |
+| :---: | :---: | :---: | :---: | :---: |
+| `id` | `{res_3000['run_errors'][0]:.6f}` | `{res_3000['run_errors'][1]:.6f}` | `{res_3000['run_errors'][2]:.6f}` | **`{e3000:.6f}`** ({e3000*100:.4f}%) |
+| `title` | `{res_title_3000['run_errors'][0]:.6f}` | `{res_title_3000['run_errors'][1]:.6f}` | `{res_title_3000['run_errors'][2]:.6f}` | **`{res_title_3000['avg_error']:.6f}`** ({res_title_3000['avg_error']*100:.4f}%) |
 
-#### A. Step-by-Step Calculation Methodology
-1. **Evaluation Quantiles ($q_0 \\dots q_9$)**: To systematically evaluate estimation error across the data range $[x_{{\\min}}, x_{{\\max}}]$, 10 linearly-spaced query thresholds $q_k$ are evaluated:
-   $$q_k = x_{{\\min}} + k \\times \\frac{{x_{{\\max}} - x_{{\\min}}}}{{9}}, \\quad k \\in \\{{0, 1, \\dots, 9\\}}$$
-
-2. **Actual Selectivity ($S_{{\\text{{act}}}}(q_k)$)**: Computed directly from the empirical sample of $N = 3,000$ points:
-   $$S_{{\\text{{act}}}}(q_k) = \\frac{{\\text{{Count}}(x \\le q_k)}}{{N}}$$
-
-3. **Optimal Histogram Estimated Selectivity ($S_{{\\text{{est}}}}(q_k)$)**:
-   - For all buckets $[L_i, H_i]$ lying fully below $q_k$ ($H_i \\le q_k$), add full bucket count $n_i$.
-   - For the enclosing bucket ($L_i \\le q_k < H_i$), perform linear interpolation:
-     $$\\text{{Estimated Count }} E(q_k) = \\sum_{{H_i \\le q_k}} n_i + \\left( n_i \\times \\frac{{q_k - L_i}}{{H_i - L_i}} \\right)$$
-   - Estimated Selectivity: $S_{{\\text{{est}}}}(q_k) = \\frac{{E(q_k)}}{{N}}$
-
-4. **Maximum Selectivity Error**:
-   $$\\text{{Max Selectivity Error}} = \\max_{{k \\in \\{{0..9\\}}}} |S_{{\\text{{est}}}}(q_k) - S_{{\\text{{act}}}}(q_k)| = \\mathbf{{{e3000:.6f}}}$$
-
-#### B. Quantile-by-Quantile Error Evaluation Table ($N=3000, B=20$)
+#### B. Quantile-by-Quantile Error Evaluation Table for Run 1 ($N=3000, B=20$)
 | Index ($k$) | Query Threshold ($q_k$) | Actual Count ($A$) | Actual Selectivity ($S_{{\\text{{act}}}}$) | Estimated Count ($E$) | Estimated Selectivity ($S_{{\\text{{est}}}}$) | Absolute Error $\\vert S_{{\\text{{est}}}} - S_{{\\text{{act}}}} \\vert$ |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 """
-    for (k, q, a_cnt, a_sel, e_cnt, e_sel, q_err) in q_table_rows:
-        highlight = "**" if q_err == max_q_err else ""
-        report += f"| $q_{k}$ | `{q:,.1f}` | {a_cnt} | {a_sel:.6f} | {e_cnt:.2f} | {e_sel:.6f} | {highlight}{q_err:.6f}{highlight} |\n"
+    max_q_err = max(qd['error'] for qd in q_details_3000)
+    for idx, qd in enumerate(q_details_3000):
+        highlight = "**" if qd['error'] == max_q_err else ""
+        report += f"| $q_{{{idx}}}$ | `{qd['q']:,.1f}` | {qd['actual_count']} | {qd['actual_sel']:.6f} | {qd['est_count']:.2f} | {qd['est_sel']:.6f} | {highlight}{qd['error']:.6f}{highlight} |\n"
 
     report += f"""
-### 5. Histograms Across Sample Sizes ($N = 1000$ and $N = 3000$)
+### 5. Histograms Across Exact Sample Sizes ($N = 1000, 3000, 5000$)
 
-Below are the optimal serial histogram visualizations ($B=20$) for both sample sizes $N=1000$ and $N=3000$:
+Below are the optimal serial histogram visualizations ($B=20$) for exact sample sizes $N=1000$ and $N=3000$:
 
 #### A. Sample Size $N = 1000$ Histograms
 ![Optimal Serial Histogram for title.id (N=1000)](../plots/q2_histogram_id_1000.png)
@@ -364,18 +290,21 @@ Below are the optimal serial histogram visualizations ($B=20$) for both sample s
 
 ![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
 
-#### C. Summary Table Across Sample Sizes
-| Sample Size ($N$) | Build Time (`id`) | Build Time (`title`) | Max Selectivity Error |
-| :---: | :---: | :---: | :---: |
-| **1000** | {t1000:.4f}s | {res_1000['elapsed_title']:.4f}s | {e1000:.6f} |
-| **3000** | {t3000:.4f}s | {res_3000['elapsed_title']:.4f}s | {e3000:.6f} |
-| **5000** | {t5000:.4f}s | {res_5000['elapsed_title']:.4f}s | {e5000:.6f} |
+#### C. Comprehensive 3-Run Summary Table Across Exact Sample Sizes
+| Exact Sample Size ($N$) | Column | Run 1 Error | Run 2 Error | Run 3 Error | **Average Max Error** | Average Build Time |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **1000** | `id` | `{res_1000['run_errors'][0]:.6f}` | `{res_1000['run_errors'][1]:.6f}` | `{res_1000['run_errors'][2]:.6f}` | **`{e1000:.6f}`** | `{t1000:.4f}s` |
+| **1000** | `title` | `{res_title_1000['run_errors'][0]:.6f}` | `{res_title_1000['run_errors'][1]:.6f}` | `{res_title_1000['run_errors'][2]:.6f}` | **`{res_title_1000['avg_error']:.6f}`** | `{res_title_1000['avg_time']:.4f}s` |
+| **3000** | `id` | `{res_3000['run_errors'][0]:.6f}` | `{res_3000['run_errors'][1]:.6f}` | `{res_3000['run_errors'][2]:.6f}` | **`{e3000:.6f}`** | `{t3000:.4f}s` |
+| **3000** | `title` | `{res_title_3000['run_errors'][0]:.6f}` | `{res_title_3000['run_errors'][1]:.6f}` | `{res_title_3000['run_errors'][2]:.6f}` | **`{res_title_3000['avg_error']:.6f}`** | `{res_title_3000['avg_time']:.4f}s` |
+| **5000** | `id` | `{res_5000['run_errors'][0]:.6f}` | `{res_5000['run_errors'][1]:.6f}` | `{res_5000['run_errors'][2]:.6f}` | **`{e5000:.6f}`** | `{t5000:.4f}s` |
+| **5000** | `title` | `{res_title_5000['run_errors'][0]:.6f}` | `{res_title_5000['run_errors'][1]:.6f}` | `{res_title_5000['run_errors'][2]:.6f}` | **`{res_title_5000['avg_error']:.6f}`** | `{res_title_5000['avg_time']:.4f}s` |
 
 ---
 
 ### 6. Full Step-by-Step Linear Regression Extrapolation ($N = 2,528,312$)
 
-To extrapolate the construction build time for the entire `title` table ($N = 2,528,312$), we fit a linear regression model:
+To extrapolate the construction build time for the entire `title` table ($N = 2,528,312$), we fit a linear regression model on the 3-run average measured build times:
 $$T(N) = m \\cdot N + c$$
 
 #### A. Sample Data Points $(N_i, T_i)$
