@@ -305,11 +305,16 @@ def run_q2():
             run_details = []
 
             for run_idx, s in enumerate(seeds, start=1):
-                t0 = time.time()
                 raw_data = fetch_sample(cur, N, col, seed=s)
-                buckets = build_optimal_serial_histogram(raw_data, num_buckets=num_buckets, is_string=is_str)
-                t1 = time.time()
-                elapsed = t1 - t0
+                
+                # Measure pure algorithmic CPU construction time over 100 iterations
+                REPEAT = 100
+                t0 = time.perf_counter()
+                for _ in range(REPEAT):
+                    buckets = build_optimal_serial_histogram(raw_data, num_buckets=num_buckets, is_string=is_str)
+                t1 = time.perf_counter()
+                elapsed = (t1 - t0) / float(REPEAT)
+
                 max_err, q_details = compute_serial_selectivity_error(buckets, raw_data, is_string=is_str)
 
                 run_errors.append(max_err)

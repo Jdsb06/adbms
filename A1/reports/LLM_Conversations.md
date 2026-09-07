@@ -19753,3 +19753,903 @@ The following changes were made by the replace_file_content tool to: /home/jdsb/
 Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.
 
 ---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:32:02Z
+Completed At: 2026-09-07T17:32:03Z
+File Path: `file:///home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/convert_md_to_docx.py`
+Total Lines: 200
+Total Bytes: 7933
+Showing lines 80 to 110
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+80: 
+81:                     if len(rows) > 1 and all(set(c) <= set(':- ') for c in rows[1]):
+82:                         header = rows[0]
+83:                         body = rows[2:]
+84:                     else:
+85:                         header = rows[0]
+86:                         body = rows[1:]
+87: 
+88:                     num_cols = len(header)
+89:                     table = doc.add_table(rows=len(body) + 1, cols=num_cols)
+90:                     table.alignment = WD_TABLE_ALIGNMENT.CENTER
+91: 
+92: def clean_xml_text(s):
+93:     if not isinstance(s, str):
+94:         s = str(s)
+95:     return re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', s)
+96: 
+97:                     # Format Header Row
+98:                     hdr_cells = table.rows[0].cells
+99:                     for i, h_text in enumerate(header):
+100:                         cell_text = clean_xml_text(re.sub(r'[*`\$\\]', '', h_text))
+101:                         hdr_cells[i].text = cell_text
+102:                         set_cell_background(hdr_cells[i], "1F497D")
+103:                         p = hdr_cells[i].paragraphs[0]
+104:                         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+105:                         for run in p.runs:
+106:                             run.font.bold = True
+107:                             run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+108:                             run.font.size = Pt(9.5)
+109: 
+110:                     # Format Body Rows
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:32:05Z
+Completed At: 2026-09-07T17:32:06Z
+The following changes were made by the replace_file_content tool to: /home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/convert_md_to_docx.py. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -7,6 +7,11 @@
+ from docx.oxml import OxmlElement, parse_xml
+ from docx.oxml.ns import nsdecls, qn
+ 
++def clean_xml_text(s):
++    if not isinstance(s, str):
++        s = str(s)
++    return re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', s)
++
+ def set_cell_background(cell, fill_hex):
+     tcPr = cell._tc.get_or_add_tcPr()
+     shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:32:08Z
+Completed At: 2026-09-07T17:32:08Z
+File Path: `file:///home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/convert_md_to_docx.py`
+Total Lines: 205
+Total Bytes: 8074
+Showing lines 90 to 110
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+90:                         header = rows[0]
+91:                         body = rows[1:]
+92: 
+93:                     num_cols = len(header)
+94:                     table = doc.add_table(rows=len(body) + 1, cols=num_cols)
+95:                     table.alignment = WD_TABLE_ALIGNMENT.CENTER
+96: 
+97: def clean_xml_text(s):
+98:     if not isinstance(s, str):
+99:         s = str(s)
+100:     return re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', s)
+101: 
+102:                     # Format Header Row
+103:                     hdr_cells = table.rows[0].cells
+104:                     for i, h_text in enumerate(header):
+105:                         cell_text = clean_xml_text(re.sub(r'[*`\$\\]', '', h_text))
+106:                         hdr_cells[i].text = cell_text
+107:                         set_cell_background(hdr_cells[i], "1F497D")
+108:                         p = hdr_cells[i].paragraphs[0]
+109:                         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+110:                         for run in p.runs:
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:32:11Z
+Completed At: 2026-09-07T17:32:12Z
+The following changes were made by the replace_file_content tool to: /home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/convert_md_to_docx.py. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -94,11 +94,6 @@
+                     table = doc.add_table(rows=len(body) + 1, cols=num_cols)
+                     table.alignment = WD_TABLE_ALIGNMENT.CENTER
+ 
+-def clean_xml_text(s):
+-    if not isinstance(s, str):
+-        s = str(s)
+-    return re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', s)
+-
+                     # Format Header Row
+                     hdr_cells = table.rows[0].cells
+                     for i, h_text in enumerate(header):
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:32:14Z
+Completed At: 2026-09-07T17:32:14Z
+File Path: `file:///home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/convert_md_to_docx.py`
+Total Lines: 200
+Total Bytes: 7933
+Showing lines 150 to 190
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+150:         if stripped.startswith('# '):
+151:             h = doc.add_heading(level=1)
+152:             run = h.add_run(re.sub(r'[*`\$\\]', '', stripped[2:]))
+153:             run.font.name = 'Arial'
+154:             run.font.size = Pt(18)
+155:             run.font.bold = True
+156:             run.font.color.rgb = RGBColor(0x1F, 0x49, 0x7D)
+157:             continue
+158:         elif stripped.startswith('## '):
+159:             h = doc.add_heading(level=2)
+160:             run = h.add_run(re.sub(r'[*`\$\\]', '', stripped[3:]))
+161:             run.font.name = 'Arial'
+162:             run.font.size = Pt(14)
+163:             run.font.bold = True
+164:             run.font.color.rgb = RGBColor(0x2E, 0x75, 0xB6)
+165:             continue
+166:         elif stripped.startswith('### '):
+167:             h = doc.add_heading(level=3)
+168:             run = h.add_run(re.sub(r'[*`\$\\]', '', stripped[4:]))
+169:             run.font.name = 'Arial'
+170:             run.font.size = Pt(12)
+171:             run.font.bold = True
+172:             run.font.color.rgb = RGBColor(0x33, 0x33, 0x33)
+173:             continue
+174:         elif stripped.startswith('#### '):
+175:             h = doc.add_heading(level=4)
+176:             run = h.add_run(re.sub(r'[*`\$\\]', '', stripped[5:]))
+177:             run.font.name = 'Arial'
+178:             run.font.size = Pt(11)
+179:             run.font.bold = True
+180:             continue
+181: 
+182:         if not stripped:
+183:             continue
+184: 
+185:         # Regular Paragraph
+186:         p = doc.add_paragraph()
+187:         p.paragraph_format.space_after = Pt(4)
+188:         p.paragraph_format.line_spacing = 1.15
+189:         clean_text = re.sub(r'[*`\$\\]', '', stripped)
+190:         run = p.add_run(clean_text)
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:32:16Z
+Completed At: 2026-09-07T17:32:17Z
+File Path: `file:///home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/convert_md_to_docx.py`
+Total Lines: 200
+Total Bytes: 7933
+Showing lines 45 to 60
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+45:     for line in lines:
+46:         stripped = line.strip()
+47: 
+48:         # Handle Code blocks
+49:         if stripped.startswith('```'):
+50:             if in_code:
+51:                 code_text = ''.join(code_lines)
+52:                 p = doc.add_paragraph()
+53:                 p.paragraph_format.left_indent = Inches(0.2)
+54:                 p.paragraph_format.space_before = Pt(4)
+55:                 p.paragraph_format.space_after = Pt(4)
+56:                 run = p.add_run(code_text)
+57:                 run.font.name = 'Courier New'
+58:                 run.font.size = Pt(9)
+59:                 run.font.color.rgb = RGBColor(0x33, 0x33, 0x33)
+60:                 in_code = False
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:32:22Z
+Completed At: 2026-09-07T17:32:29Z
+The following changes were made by the replace_file_content tool to: /home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/convert_md_to_docx.py. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -48,7 +48,7 @@
+         # Handle Code blocks
+         if stripped.startswith('```'):
+             if in_code:
+-                code_text = ''.join(code_lines)
++                code_text = clean_xml_text(''.join(code_lines))
+                 p = doc.add_paragraph()
+                 p.paragraph_format.left_indent = Inches(0.2)
+                 p.paragraph_format.space_before = Pt(4)
+@@ -122,27 +122,22 @@
+                                 run.font.name = 'Calibri'
+ 
+                     doc.add_paragraph().paragraph_format.space_after = Pt(6)
+-                    table_lines = []
+-                    in_table = False
++                in_table = False
++                table_lines = []
+ 
+         # Handle Images
+-        img_match = re.match(r'^!\[(.*?)\]\((.*?)\)', stripped)
++        img_match = re.match(r'!\[.*?\]\((.*?)\)', stripped)
+         if img_match:
+-            alt_text = img_match.group(1)
+-            img_rel_path = img_match.group(2)
+-            img_path = os.path.normpath(os.path.join(os.path.dirname(md_file_path), img_rel_path))
+-            if os.path.exists(img_path):
++            img_rel_path = img_match.group(1).lstrip('./')
++            img_full_path = os.path.join(os.path.dirname(md_file_path), img_rel_path)
++            if not os.path.exists(img_full_path):
++                img_full_path = img_rel_path
++            if os.path.exists(img_full_path):
+                 p = doc.add_paragraph()
+                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+-                run = p.add_run()
+-                run.add_picture(img_path, width=Inches(5.8))
+-                
+-                caption_p = doc.add_paragraph()
+-                caption_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+-                c_run = caption_p.add_run(f"Figure: {alt_text}")
+-                c_run.font.italic = True
+-                c_run.font.size = Pt(9.5)
+-                c_run.font.color.rgb = RGBColor(0x55, 0x55, 0x55)
++                p.paragraph_format.space_before = Pt(8)
++                p.paragraph_format.space_after = Pt(8)
++                p.add_run().add_picture(img_full_path, width=Inches(5.5))
+             continue
+ 
+         # Handle Headings
+@@ -149,5 +149,5 @@
+             h = doc.add_heading(level=1)
+-            run = h.add_run(re.sub(r'[*`\$\\]', '', stripped[2:]))
++            run = h.add_run(clean_xml_text(re.sub(r'[*`\$\\]', '', stripped[2:])))
+             run.font.name = 'Arial'
+             run.font.size = Pt(18)
+             run.font.bold = True
+@@ -154,7 +154,7 @@
+             continue
+         elif stripped.startswith('## '):
+             h = doc.add_heading(level=2)
+-            run = h.add_run(re.sub(r'[*`\$\\]', '', stripped[3:]))
++            run = h.add_run(clean_xml_text(re.sub(r'[*`\$\\]', '', stripped[3:])))
+             run.font.name = 'Arial'
+             run.font.size = Pt(14)
+             run.font.bold = True
+@@ -161,7 +161,7 @@
+             continue
+         elif stripped.startswith('### '):
+             h = doc.add_heading(level=3)
+-            run = h.add_run(re.sub(r'[*`\$\\]', '', stripped[4:]))
++            run = h.add_run(clean_xml_text(re.sub(r'[*`\$\\]', '', stripped[4:])))
+             run.font.name = 'Arial'
+             run.font.size = Pt(12)
+             run.font.bold = True
+@@ -168,7 +168,7 @@
+             continue
+         elif stripped.startswith('#### '):
+             h = doc.add_heading(level=4)
+-            run = h.add_run(re.sub(r'[*`\$\\]', '', stripped[5:]))
++            run = h.add_run(clean_xml_text(re.sub(r'[*`\$\\]', '', stripped[5:])))
+             run.font.name = 'Arial'
+             run.font.size = Pt(11)
+             run.font.bold = True
+@@ -180,7 +180,7 @@
+         p = doc.add_paragraph()
+         p.paragraph_format.space_after = Pt(4)
+         p.paragraph_format.line_spacing = 1.15
+-        clean_text = re.sub(r'[*`\$\\]', '', stripped)
++        clean_text = clean_xml_text(re.sub(r'[*`\$\\]', '', stripped))
+         run = p.add_run(clean_text)
+         run.font.name = 'Calibri'
+         run.font.size = Pt(11)
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.
+
+We did our best to apply changes despite some inaccuracies. Double check if the edit applied is what you intended.
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:32:32Z
+Completed At: 2026-09-07T17:32:47Z
+
+				The command completed successfully.
+				Output:
+				[main baf65c8] Render Slide 9 upright vertical block plots, enforce B=10 buckets
+, synchronize report calculations, recompile PDF/DOCX artifacts
+ 21 files changed, 6407 insertions(+), 690 deletions(-)
+Enumerating objects: 53, done.
+Counting objects:  56% (30/53)
+Counting objects:  86% (46/53)
+Counting objects: 100% (53/53), done.
+Delta compression using up to 8 threads
+Compressing objects:   7% (2/27)
+Compressing objects:  14% (4/27)
+Compressing objects:  18% (5/27)
+Compressing objects:  22% (6/27)
+Compressing objects:  25% (7/27)
+Compressing objects:  29% (8/27)
+Compressing objects:  33% (9/27)
+Compressing objects:  37% (10/27)
+Compressing objects:  40% (11/27)
+Compressing objects:  44% (12/27)
+Compressing objects:  48% (13/27)
+Compressing objects:  51% (14/27)
+Compressing objects:  55% (15/27)
+Compressing objects:  59% (16/27)
+Compressing objects:  62% (17/27)
+Compressing objects:  66% (18/27)
+Compressing objects:  70% (19/27)
+Compressing objects:  74% (20/27)
+Compressing objects:  77% (21/27)
+Compressing objects:  96% (26/27)
+Compressing objects: 100% (27/27)
+Compressing objects: 100% (27/27), done.
+Writing objects:  14% (4/27)
+Writing objects:  18% (5/27)
+Writing objects:  22% (6/27)
+Writing objects:  25% (7/27)
+Writing objects:  29% (8/27)
+Writing objects:  33% (9/27)
+Writing objects:  37% (10/27)
+Writing objects:  40% (11/27)
+Writing objects:  44% (12/27)
+Writing objects:  48% (13/27)
+Writing objects:  51% (14/27)
+Writing objects:  55% (15/27)
+Writing objects:  55% (15/27), 2.07 MiB | 1.45 MiB/s
+Writing objects:  62% (17/27), 2.07 MiB | 1.45 MiB/s
+Writing objects:  66% (18/27), 2.07 MiB | 1.45 MiB/s
+Writing objects:  70% (19/27), 2.07 MiB | 1.45 MiB/s
+Writing objects:  74% (20/27), 2.07 MiB | 1.45 MiB/s
+Writing objects:  77% (21/27), 2.07 MiB | 1.45 MiB/s
+Writing objects:  81% (22/27), 4.18 MiB | 2.14 MiB/s
+Writing objects:  85% (23/27), 4.18 MiB | 2.14 MiB/s
+Writing objects: 100% (27/27), 5.80 MiB | 2.69 MiB/s, done.
+Total 27 (delta 9), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas:  44% (4/9)
+remote: Resolving deltas:  88% (8/9)
+remote: Resolving deltas: 100% (9/9), completed with 8 local objects.
+To github.com:Jdsb06/adbms.git
+   5eb58fa..baf65c8  main -> main
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:32:51Z
+Completed At: 2026-09-07T17:32:52Z
+Created file file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/walkthrough.md with requested content.
+If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+
+---
+### AI ASSISTANT RESPONSE
+
+All requested updates have been implemented, verified, compiled, exported, and pushed to the Git repository ([commit `baf65c8`](https://github.com/Jdsb06/adbms.git)).
+
+### Summary of Completed Work
+
+1. **Slide-9 Upright Vertical Block Plots**:
+   - Updated plotting code in [solution_q2.py](file:///home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/solution_q2.py#L148-L283) to plot upright vertical rectangular blocks matching lecture Slide 9.
+   - **X-axis**: `Frequencies` (ordered ascending).
+   - **Y-axis**: `Value Set` (Number of distinct attribute values $n_i$).
+   - **`title.id`**: Upright vertical bar centered at Frequency = 1 of height $N$ (height = 3000, zero variance).
+   - **`title.title`**: Upright vertical bars spanning frequency intervals horizontally, with height corresponding to stacked domain items ($n_i$).
+
+2. **Standardized on $B = 10$ Buckets**:
+   - Updated `build_optimal_serial_histogram()` to target $B = 10$ buckets.
+   - Domain items are grouped by unique frequency values first. All $F=1$ items (2,773 titles out of $N=3000$) form Bucket 1 together with zero variance ($V_1 = 0$), eliminating flat-line 1-item bucket splitting.
+
+3. **Synchronized Report Tables & Calculations**:
+   - Updated Table 3.2.3.A (`id` bucket bounds) and Table 3.2.3.B (`title` bucket bounds) in [Assignment_Report.md](file:///home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/reports/Assignment_Report.md).
+   - Recalculated 3-run max selectivity errors and quantile evaluation tables ($q_0 \dots q_9$).
+   - Re-fitted linear regression extrapolation $T(N) = m \cdot N + c$ using end-to-end execution timings and updated Figure 11 (`q2_sample_size_vs_time.png`) and Figure 12 (`q2_sample_size_vs_error.png`).
+
+4. **Recompiled PDF & DOCX Submission Artifacts**:
+   - **PDF Reports**: [Assignment_Report.pdf](file:///home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/reports/Assignment_Report.pdf) and [LLM_Conversations.pdf](file:///home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/reports/LLM_Conversations.pdf).
+   - **Native Word Documents (.docx)**: [Assignment_Report.docx](file:///home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/reports/Assignment_Report.docx) and [LLM_Conversations.docx](file:///home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/reports/LLM_Conversations.docx).
+   - Verified single-command runner [run_all.sh](file:///home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/run_all.sh) executes cleanly end-to-end.
+
+---
+## Step 28: USER PROMPT
+
+```text
+<USER_REQUEST>
+The histogram plots and B=10 partitioning are now perfectly correct. However, we have a critical anomaly in the timing measurements and linear regression.
+
+THE ISSUE: 
+Currently, the measured times are T(1000)=0.2370s, T(3000)=0.2118s, and T(5000)=0.2394s. Because N=3000 is randomly faster than N=1000, Figure 11 shows a "V" shape. This happens because the timer is capturing random database/network latency rather than the algorithmic scaling. 
+
+ACTION REQUIRED:
+1. ISOLATE ALGORITHMIC TIMING:
+   - In solution_q2.py, modify the timing logic to strictly measure ONLY the CPU time of the histogram construction (e.g., using `time.perf_counter()`).
+   - Start the timer strictly AFTER the PostgreSQL data has been fetched and loaded into memory.
+   - Stop the timer immediately after the DP partitioning and boundary array generation is complete.
+   - If the algorithmic time is too fast to show monotonic growth (because D is small), wrap the DP algorithm in a loop (e.g., run it 100 times, then divide the total time by 100) to get a highly precise, stable average that properly demonstrates N=1000 < N=3000 < N=5000.
+
+2. RECALCULATE AND REGENERATE:
+   - Recompute the linear regression (slope m, intercept c) using these stable, monotonically increasing algorithmic times.
+   - Update the full table extrapolation (N = 2,528,312).
+   - Regenerate Figure 11 (Sample Size vs. Time) so it shows a clear, straight positive trend line, NOT a V-shape.
+   - Recompile the markdown, LaTeX, PDF, and .docx artifacts.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-09-07T23:05:40+05:30.
+</ADDITIONAL_METADATA>
+```
+
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:35:54Z
+Completed At: 2026-09-07T17:35:54Z
+File Path: `file:///home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/solution_q2.py`
+Total Lines: 412
+Total Bytes: 16362
+Showing lines 300 to 340
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+300:         for N in sample_sizes:
+301:             print(f"\n--- Processing {col} with Exact Sample Size N = {N} ---")
+302:             run_errors = []
+303:             run_times = []
+304:             run_buckets = []
+305:             run_details = []
+306: 
+307:             for run_idx, s in enumerate(seeds, start=1):
+308:                 t0 = time.time()
+309:                 raw_data = fetch_sample(cur, N, col, seed=s)
+310:                 buckets = build_optimal_serial_histogram(raw_data, num_buckets=num_buckets, is_string=is_str)
+311:                 t1 = time.time()
+312:                 elapsed = t1 - t0
+313:                 max_err, q_details = compute_serial_selectivity_error(buckets, raw_data, is_string=is_str)
+314: 
+315:                 run_errors.append(max_err)
+316:                 run_times.append(elapsed)
+317:                 run_buckets.append(buckets)
+318:                 run_details.append(q_details)
+319:                 print(f"[{col}] N={N} (Run {run_idx}, seed={s}): Build Time = {elapsed:.4f}s, Max Error = {max_err:.6f}")
+320: 
+321:             avg_error = float(np.mean(run_errors))
+322:             avg_time = float(np.mean(run_times))
+323: 
+324:             results[col][N] = {
+325:                 'run_errors': run_errors,
+326:                 'avg_error': avg_error,
+327:                 'run_times': run_times,
+328:                 'avg_time': avg_time,
+329:                 'buckets': run_buckets[0],
+330:                 'q_details': run_details[0]
+331:             }
+332:             print(f"[{col}] N={N} SUMMARY: 3 Runs Errors = {[round(e, 6) for e in run_errors]} => AVG ERROR = {avg_error:.6f}, AVG TIME = {avg_time:.4f}s")
+333: 
+334:             # Generate all 6 graphs matching exact user prompts & schema title.title
+335:             if col == 'id':
+336:                 if N == 3000:
+337:                     t_str = 'Correct Conceptual Plot for Unique title.id (N=3000)'
+338:                     note = 'All title.id frequencies are 1 (Variance = 0).\nThe most optimal serial partition places all IDs\ninto bucket(s) at frequency = 1.'
+339:                 elif N == 1000:
+340:                     t_str = 'Sample Size: N=1000, title.id Serial Hist.'
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:36:04Z
+Completed At: 2026-09-07T17:36:04Z
+Created file file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/implementation_plan.md with requested content.
+If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+Note: You have just created an artifact and requested user feedback. Stop calling tools to end your turn, and allow the user to review the artifact, approve it, or provide feedback
+
+---
+### AI ASSISTANT RESPONSE
+
+I have prepared the implementation plan to isolate pure algorithmic CPU timing and eliminate database latency noise:
+
+1. **Pure Algorithmic CPU Benchmarking**:
+   - `fetch_sample` will be executed **outside** the timer.
+   - Using `time.perf_counter()` with a 100-iteration benchmark loop (`REPEAT = 100`) for `build_optimal_serial_histogram(raw_data, ...)` to measure microsecond-accurate CPU execution time.
+2. **Monotonic Linear Regression**:
+   - Guarantees $T(1000) < T(3000) < T(5000)$ with a strictly positive slope ($m > 0$), eliminating the "V" shape artifact in Figure 11.
+3. **Artifact Recompilation & Export**:
+   - Update full table extrapolation ($N = 2,528,312$).
+   - Recompile `Assignment_Report.pdf`, `LLM_Conversations.pdf`, `Assignment_Report.docx`, and `LLM_Conversations.docx`.
+   - Verify `./run_all.sh` and push updates to Git.
+
+Please review the [implementation_plan.md](file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/implementation_plan.md) and click **Proceed** (or provide feedback) so I can begin execution.
+
+---
+## Step 29: USER PROMPT
+
+```text
+Comments on artifact URI: file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/implementation_plan.md
+
+The user has approved this document.
+
+
+<USER_REQUEST>
+
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-09-07T23:06:20+05:30.
+</ADDITIONAL_METADATA>
+```
+
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:36:31Z
+Completed At: 2026-09-07T17:36:31Z
+File Path: `file:///home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/solution_q2.py`
+Total Lines: 412
+Total Bytes: 16362
+Showing lines 305 to 325
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+305:             run_details = []
+306: 
+307:             for run_idx, s in enumerate(seeds, start=1):
+308:                 t0 = time.time()
+309:                 raw_data = fetch_sample(cur, N, col, seed=s)
+310:                 buckets = build_optimal_serial_histogram(raw_data, num_buckets=num_buckets, is_string=is_str)
+311:                 t1 = time.time()
+312:                 elapsed = t1 - t0
+313:                 max_err, q_details = compute_serial_selectivity_error(buckets, raw_data, is_string=is_str)
+314: 
+315:                 run_errors.append(max_err)
+316:                 run_times.append(elapsed)
+317:                 run_buckets.append(buckets)
+318:                 run_details.append(q_details)
+319:                 print(f"[{col}] N={N} (Run {run_idx}, seed={s}): Build Time = {elapsed:.4f}s, Max Error = {max_err:.6f}")
+320: 
+321:             avg_error = float(np.mean(run_errors))
+322:             avg_time = float(np.mean(run_times))
+323: 
+324:             results[col][N] = {
+325:                 'run_errors': run_errors,
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:36:36Z
+Completed At: 2026-09-07T17:36:36Z
+The following changes were made by the replace_file_content tool to: /home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/solution_q2.py. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -305,11 +305,16 @@
+             run_details = []
+ 
+             for run_idx, s in enumerate(seeds, start=1):
+-                t0 = time.time()
+                 raw_data = fetch_sample(cur, N, col, seed=s)
+-                buckets = build_optimal_serial_histogram(raw_data, num_buckets=num_buckets, is_string=is_str)
+-                t1 = time.time()
+-                elapsed = t1 - t0
++                
++                # Measure pure algorithmic CPU construction time over 100 iterations
++                REPEAT = 100
++                t0 = time.perf_counter()
++                for _ in range(REPEAT):
++                    buckets = build_optimal_serial_histogram(raw_data, num_buckets=num_buckets, is_string=is_str)
++                t1 = time.perf_counter()
++                elapsed = (t1 - t0) / float(REPEAT)
++
+                 max_err, q_details = compute_serial_selectivity_error(buckets, raw_data, is_string=is_str)
+ 
+                 run_errors.append(max_err)
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:36:41Z
+Tool is running as a background task with task id: e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-993
+Task Description: python3 scripts/solution_q2.py
+Task logs are available at: file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/.system_generated/tasks/task-993.log
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:36:57Z
+Tool is running as a background task with task id: e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-995
+Task Description: Timer: 10s, Prompt: Check solution_q2 task completion
+Task logs are available at: file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/.system_generated/tasks/task-995.log
+
+---
+### AI ASSISTANT RESPONSE
+
+<SYSTEM_MESSAGE>
+[Message] timestamp=2026-09-07T17:37:07Z sender=e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-995 priority=MESSAGE_PRIORITY_HIGH content=Check solution_q2 task completion
+</SYSTEM_MESSAGE>
+[Message] timestamp=2026-09-07T17:37:07Z sender=e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-993 priority=MESSAGE_PRIORITY_HIGH content=Task id "e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-993" finished with result:
+
+				The command completed successfully.
+				Output:
+				=== Running Q2 Optimal Serial Histogram Experiments (3 Runs per N) ===
+
+--- Processing id with Exact Sample Size N = 1000 ---
+[id] N=1000 (Run 1, seed=0.1): Build Time = 0.0006s, Max Error = 0.020667
+[id] N=1000 (Run 2, seed=0.2): Build Time = 0.0005s, Max Error = 0.013333
+[id] N=1000 (Run 3, seed=0.3): Build Time = 0.0005s, Max Error = 0.016556
+[id] N=1000 SUMMARY: 3 Runs Errors = [np.float64(0.020667), np.float64(0.013333), np.float64(0.016556)] => AVG ERROR = 0.016852, AVG TIME = 0.0005s
+
+--- Processing id with Exact Sample Size N = 3000 ---
+[id] N=3000 (Run 1, seed=0.1): Build Time = 0.0016s, Max Error = 0.022444
+[id] N=3000 (Run 2, seed=0.2): Build Time = 0.0015s, Max Error = 0.009556
+[id] N=3000 (Run 3, seed=0.3): Build Time = 0.0016s, Max Error = 0.009889
+[id] N=3000 SUMMARY: 3 Runs Errors = [np.float64(0.022444), np.float64(0.009556), np.float64(0.009889)] => AVG ERROR = 0.013963, AVG TIME = 0.0016s
+
+--- Processing id with Exact Sample Size N = 5000 ---
+[id] N=5000 (Run 1, seed=0.1): Build Time = 0.0028s, Max Error = 0.013578
+[id] N=5000 (Run 2, seed=0.2): Build Time = 0.0027s, Max Error = 0.005778
+[id] N=5000 (Run 3, seed=0.3): Build Time = 0.0027s, Max Error = 0.007556
+[id] N=5000 SUMMARY: 3 Runs Errors = [np.float64(0.013578), np.float64(0.005778), np.float64(0.007556)] => AVG ERROR = 0.008970, AVG TIME = 0.0027s
+
+--- Processing title with Exact Sample Size N = 1000 ---
+[title] N=1000 (Run 1, seed=0.1): Build Time = 0.0012s, Max Error = 0.637000
+[title] N=1000 (Run 2, seed=0.2): Build Time = 0.0012s, Max Error = 0.625000
+[title] N=1000 (Run 3, seed=0.3): Build Time = 0.0012s, Max Error = 0.169333
+[title] N=1000 SUMMARY: 3 Runs Errors = [np.float64(0.637), np.float64(0.625), np.float64(0.169333)] => AVG ERROR = 0.477111, AVG TIME = 0.0012s
+
+--- Processing title with Exact Sample Size N = 3000 ---
+[title] N=3000 (Run 1, seed=0.1): Build Time = 0.0039s, Max Error = 0.612556
+[title] N=3000 (Run 2, seed=0.2): Build Time = 0.0039s, Max Error = 0.609000
+[title] N=3000 (Run 3, seed=0.3): Build Time = 0.0039s, Max Error = 0.616667
+[title] N=3000 SUMMARY: 3 Runs Errors = [np.float64(0.612556), np.float64(0.609), np.float64(0.616667)] => AVG ERROR = 0.612741, AVG TIME = 0.0039s
+
+--- Processing title with Exact Sample Size N = 5000 ---
+[title] N=5000 (Run 1, seed=0.1): Build Time = 0.0070s, Max Error = 0.603667
+[title] N=5000 (Run 2, seed=0.2): Build Time = 0.0073s, Max Error = 0.600667
+[title] N=5000 (Run 3, seed=0.3): Build Time = 0.0069s, Max Error = 0.606400
+[title] N=5000 SUMMARY: 3 Runs Errors = [np.float64(0.603667), np.float64(0.600667), np.float64(0.6064)] => AVG ERROR = 0.603578, AVG TIME = 0.0071s
+
+=== Linear Regression Extrapolation (id column) ===
+Slope m = 0.00000055 s/sample, Intercept c = -0.000030 s
+Extrapolated Build Time for Full Table (N=2,528,312): 1.36 seconds (0.02 minutes)
+
+Q2 execution completed! All 6 plots saved in plots/.
+
+
+Log: file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/.system_generated/tasks/task-993.log
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:37:02Z
+Tool is running as a background task with task id: e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-997
+Task Description: python3 scripts/generate_report.py
+Task logs are available at: file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/.system_generated/tasks/task-997.log
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:37:17Z
+Tool is running as a background task with task id: e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-1001
+Task Description: python3 scripts/export_llm_chat.py && python3 scripts/build_pdf_from_tex.py && python3 scripts/convert_md_to_docx.py
+Task logs are available at: file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/.system_generated/tasks/task-1001.log
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:37:34Z
+Tool is running as a background task with task id: e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-1004
+Task Description: Timer: 10s, Prompt: Check submission artifact compilation task
+Task logs are available at: file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/.system_generated/tasks/task-1004.log
+
+---
+### AI ASSISTANT RESPONSE
+
+<SYSTEM_MESSAGE>
+[Message] timestamp=2026-09-07T17:37:44Z sender=e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-1004 priority=MESSAGE_PRIORITY_HIGH content=Check submission artifact compilation task
+</SYSTEM_MESSAGE>
+[Message] timestamp=2026-09-07T17:37:44Z sender=e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-1001 priority=MESSAGE_PRIORITY_HIGH content=Task id "e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-1001" finished with result:
+
+				The command completed successfully.
+				Output:
+				LLM Conversation Log successfully saved to reports/LLM_Conversations.md (989 log lines processed).
+Generated reports/Assignment_Report.tex from reports/Assignment_Report.md
+Compiling Assignment_Report.tex with pdflatex in /home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/reports...
+Successfully compiled PDF: reports/Assignment_Report.pdf
+Generated reports/LLM_Conversations.tex from reports/LLM_Conversations.md
+Compiling LLM_Conversations.tex with pdflatex in /home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/reports...
+Successfully compiled PDF: reports/LLM_Conversations.pdf
+Converting reports/Assignment_Report.md to reports/Assignment_Report.docx...
+Document saved successfully as reports/Assignment_Report.docx!
+Converting reports/LLM_Conversations.md to reports/LLM_Conversations.docx...
+Document saved successfully as reports/LLM_Conversations.docx!
+
+
+Log: file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/.system_generated/tasks/task-1001.log
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:37:40Z
+Tool is running as a background task with task id: e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-1006
+Task Description: ./run_all.sh
+Task logs are available at: file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/.system_generated/tasks/task-1006.log
+
+---
+### AI ASSISTANT RESPONSE
+
+Created At: 2026-09-07T17:37:55Z
+Tool is running as a background task with task id: e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-1010
+Task Description: Timer: 10s, Prompt: Check run_all.sh task completion
+Task logs are available at: file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/.system_generated/tasks/task-1010.log
+
+---
+### AI ASSISTANT RESPONSE
+
+<SYSTEM_MESSAGE>
+[Message] timestamp=2026-09-07T17:38:05Z sender=e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-1010 priority=MESSAGE_PRIORITY_HIGH content=Check run_all.sh task completion
+</SYSTEM_MESSAGE>
+[Message] timestamp=2026-09-07T17:38:05Z sender=e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-1006 priority=MESSAGE_PRIORITY_HIGH content=Task id "e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/task-1006" finished with result:
+
+				The command completed successfully.
+				Output:
+				<truncated 1 lines>
+psql:scripts/import_job.sql:26: ERROR:  duplicate key value violates unique cons
+traint "role_type_pkey"
+DETAIL:  Key (id)=(1) already exists.
+CONTEXT:  COPY role_type, line 1
+psql:scripts/import_job.sql:27: ERROR:  duplicate key value violates unique cons
+traint "title_pkey"
+DETAIL:  Key (id)=(80889) already exists.
+CONTEXT:  COPY title, line 1
+psql:job/job/fkindexes.sql:1:
+psql:job/job/fkindexes.sql:1: ERROR:  relation "company_id_movie_companies" alre
+ady exists
+psql:job/job/fkindexes.sql:2: ERROR:  relation "company_type_id_movie_companies"
+ already exists
+psql:job/job/fkindexes.sql:3: ERROR:  relation "info_type_id_movie_info_idx" alr
+eady exists
+psql:job/job/fkindexes.sql:4: ERROR:  relation "info_type_id_movie_info" already
+ exists
+psql:job/job/fkindexes.sql:5: ERROR:  relation "info_type_id_person_info" alread
+y exists
+psql:job/job/fkindexes.sql:6: ERROR:  relation "keyword_id_movie_keyword" alread
+y exists
+psql:job/job/fkindexes.sql:7: ERROR:  relation "kind_id_aka_title" already exist
+s
+psql:job/job/fkindexes.sql:8: ERROR:  relation "kind_id_title" already exists
+psql:job/job/fkindexes.sql:9: ERROR:  relation "linked_movie_id_movie_link" alre
+ady exists
+psql:job/job/fkindexes.sql:10: ERROR:  relation "link_type_id_movie_link" alread
+y exists
+psql:job/job/fkindexes.sql:11: ERROR:  relation "movie_id_aka_title" already exi
+sts
+psql:job/job/fkindexes.sql:12: ERROR:  relation "movie_id_cast_info" already exi
+sts
+psql:job/job/fkindexes.sql:13: ERROR:  relation "movie_id_complete_cast" already
+ exists
+psql:job/job/fkindexes.sql:14: ERROR:  relation "movie_id_movie_companies" alrea
+dy exists
+psql:job/job/fkindexes.sql:15: ERROR:  relation "movie_id_movie_info_idx" alread
+y exists
+psql:job/job/fkindexes.sql:16: ERROR:  relation "movie_id_movie_keyword" already
+ exists
+psql:job/job/fkindexes.sql:17: ERROR:  relation "movie_id_movie_link" already ex
+ists
+psql:job/job/fkindexes.sql:18: ERROR:  relation "movie_id_movie_info" already ex
+ists
+psql:job/job/fkindexes.sql:19: ERROR:  relation "person_id_aka_name" already exi
+sts
+psql:job/job/fkindexes.sql:20: ERROR:  relation "person_id_cast_info" already ex
+ists
+psql:job/job/fkindexes.sql:21: ERROR:  relation "person_id_person_info" already
+exists
+psql:job/job/fkindexes.sql:22: ERROR:  relation "person_role_id_cast_info" alrea
+dy exists
+psql:job/job/fkindexes.sql:23: ERROR:  relation "role_id_cast_info" already exis
+ts
+ANALYZE
+=== JOB Database Loaded Successfully! ===
+[Step 2/5] Verifying Python Environment & Dependencies...
+
+[Step 3/5] Running Master Benchmark, Generating Plots & Markdown Report...
+/home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/generate_report.py:23
+6: SyntaxWarning: "\l" is an invalid escape sequence. Such sequences will not wo
+rk in the future. Did you mean "\\l"? A raw string is also an option.
+  """
+/home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/generate_report.py:23
+6: SyntaxWarning: "\l" is an invalid escape sequence. Such sequences will not wo
+rk in the future. Did you mean "\\l"? A raw string is also an option.
+  """
+/home/jdsb/Desktop/IIITB/SEM5_IIITB/ADBMS/adbms/A1/scripts/generate_report.py:23
+6: SyntaxWarning: "\s" is an invalid escape sequence. Such sequences will not wo
+rk in the future. Did you mean "\\s"? A raw string is also an option.
+  """
+=== Generating Master Assignment Report ===
+Total rows in title table: 2528312
+=== Stats fetched from pg_stats ===
+Column 'id': 101 boundary values (100 buckets)
+Column 'title': 101 boundary values (100 buckets)
+=== Query Selectivities & Errors ===
+Query 1 (title < 'Race'): Actual=1918141 (0.758665), Est=1939313 (0.767039), Abs
+olute Error=0.008374, Rel Error=1.10%
+Query 2 (id < 350000): Actual=349999 (0.138432), Est=352255 (0.139324), Absolute
+ Error=0.000892, Rel Error=0.64%
+Q1 execution completed! Plots saved in plots/.
+=== Running Q2 Optimal Serial Histogram Experiments (3 Runs per N) ===
+
+--- Processing id with Exact Sample Size N = 1000 ---
+[id] N=1000 (Run 1, seed=0.1): Build Time = 0.0005s, Max Error = 0.020667
+[id] N=1000 (Run 2, seed=0.2): Build Time = 0.0004s, Max Error = 0.013333
+[id] N=1000 (Run 3, seed=0.3): Build Time = 0.0004s, Max Error = 0.016556
+[id] N=1000 SUMMARY: 3 Runs Errors = [np.float64(0.020667), np.float64(0.013333)
+, np.float64(0.016556)] => AVG ERROR = 0.016852, AVG TIME = 0.0004s
+--- Processing id with Exact Sample Size N = 3000 ---
+[id] N=3000 (Run 1, seed=0.1): Build Time = 0.0014s, Max Error = 0.022444
+[id] N=3000 (Run 2, seed=0.2): Build Time = 0.0014s, Max Error = 0.009556
+[id] N=3000 (Run 3, seed=0.3): Build Time = 0.0014s, Max Error = 0.009889
+[id] N=3000 SUMMARY: 3 Runs Errors = [np.float64(0.022444), np.float64(0.009556)
+, np.float64(0.009889)] => AVG ERROR = 0.013963, AVG TIME = 0.0014s
+--- Processing id with Exact Sample Size N = 5000 ---
+[id] N=5000 (Run 1, seed=0.1): Build Time = 0.0028s, Max Error = 0.013578
+[id] N=5000 (Run 2, seed=0.2): Build Time = 0.0028s, Max Error = 0.005778
+[id] N=5000 (Run 3, seed=0.3): Build Time = 0.0027s, Max Error = 0.007556
+[id] N=5000 SUMMARY: 3 Runs Errors = [np.float64(0.013578), np.float64(0.005778)
+, np.float64(0.007556)] => AVG ERROR = 0.008970, AVG TIME = 0.0028s
+--- Processing title with Exact Sample Size N = 1000 ---
+[title] N=1000 (Run 1, seed=0.1): Build Time = 0.0012s, Max Error = 0.637000
+[title] N=1000 (Run 2, seed=0.2): Build Time = 0.0012s, Max Error = 0.625000
+[title] N=1000 (Run 3, seed=0.3): Build Time = 0.0012s, Max Error = 0.169333
+[title] N=1000 SUMMARY: 3 Runs Errors = [np.float64(0.637), np.float64(0.625), n
+p.float64(0.169333)] => AVG ERROR = 0.477111, AVG TIME = 0.0012s
+--- Processing title with Exact Sample Size N = 3000 ---
+[title] N=3000 (Run 1, seed=0.1): Build Time = 0.0041s, Max Error = 0.612556
+[title] N=3000 (Run 2, seed=0.2): Build Time = 0.0040s, Max Error = 0.609000
+[title] N=3000 (Run 3, seed=0.3): Build Time = 0.0039s, Max Error = 0.616667
+[title] N=3000 SUMMARY: 3 Runs Errors = [np.float64(0.612556), np.float64(0.609)
+, np.float64(0.616667)] => AVG ERROR = 0.612741, AVG TIME = 0.0040s
+--- Processing title with Exact Sample Size N = 5000 ---
+[title] N=5000 (Run 1, seed=0.1): Build Time = 0.0071s, Max Error = 0.603667
+[title] N=5000 (Run 2, seed=0.2): Build Time = 0.0070s, Max Error = 0.600667
+[title] N=5000 (Run 3, seed=0.3): Build Time = 0.0071s, Max Error = 0.606400
+[title] N=5000 SUMMARY: 3 Runs Errors = [np.float64(0.603667), np.float64(0.6006
+67), np.float64(0.6064)] => AVG ERROR = 0.603578, AVG TIME = 0.0071s
+=== Linear Regression Extrapolation (id column) ===
+Slope m = 0.00000059 s/sample, Intercept c = -0.000257 s
+Extrapolated Build Time for Full Table (N=2,528,312): 1.24 seconds (0.02 minutes
+)
+Q2 execution completed! All 6 plots saved in plots/.
+Master Report generated successfully as reports/Assignment_Report.md!
+LLM Conversation Log successfully saved to reports/LLM_Conversations.md (1014 l
+og lines processed).
+[Step 4/5] Converting Markdown to LaTeX and Compiling PDFs...
+Generated reports/Assignment_Report.tex from reports/Assignment_Report.md
+Compiling Assignment_Report.tex with pdflatex in /home/jdsb/Desktop/IIITB/SEM5_I
+IITB/ADBMS/adbms/A1/reports...
+Successfully compiled PDF: reports/Assignment_Report.pdf
+Generated reports/LLM_Conversations.tex from reports/LLM_Conversations.md
+Compiling LLM_Conversations.tex with pdflatex in /home/jdsb/Desktop/IIITB/SEM5_I
+IITB/ADBMS/adbms/A1/reports...
+Successfully compiled PDF: reports/LLM_Conversations.pdf
+[Step 5/5] Converting Markdown to Word Documents (.docx)...
+Converting reports/Assignment_Report.md to reports/Assignment_Report.docx...
+Document saved successfully as reports/Assignment_Report.docx!
+Converting reports/LLM_Conversations.md to reports/LLM_Conversations.docx...
+Document saved successfully as reports/LLM_Conversations.docx!
+=======================================================
+ SUCCESS! All benchmarks, plots, TeX, PDFs & DOCX generated.
+ Output PDF:  reports/Assignment_Report.pdf
+ Output DOCX: reports/Assignment_Report.docx
+ Output TeX:  reports/Assignment_Report.tex
+ LLM Log PDF:  reports/LLM_Conversations.pdf
+ LLM Log DOCX: reports/LLM_Conversations.docx
+=======================================================
+
+
+Log: file:///home/jdsb/.gemini/antigravity/brain/e4f20c24-9886-4d61-9b7c-8ff33e56ef4c/.system_generated/tasks/task-1006.log
+</SYSTEM_MESSAGE>}
+
+---
