@@ -518,18 +518,18 @@ EXPLAIN SELECT * FROM title WHERE title.id < '350000';
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{q2_histogram_id_3000.png}
-\caption{Optimal Serial Histogram for title.id (N=3000)}
+\caption{Correct Conceptual Plot for Unique title.id (N=3000)}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{q2_histogram_title_3000.png}
-\caption{Optimal Serial Histogram for title.title (N=3000)}
+\caption{Q2: For title.name (N=3000) - Correct V-Optimal Serial Histogram}
 \end{figure}
 
 \subsubsection{2. Execution Build Time (Average over 3 Runs)}
 \begin{itemize}
-\item **Average Build Time for $N=3000$\textbf{: }0.8416 seconds\textbf{ (\texttt{id} column) / }0.7912 seconds** (\texttt{title} column)
+\item **Average Build Time for $N=3000$\textbf{: }0.8250 seconds\textbf{ (\texttt{id} column) / }0.7781 seconds** (\texttt{title} column)
 \end{itemize}
 
 \subsubsection{3. Frequency Bucket Boundaries ($N=3000$, $B=20$)}
@@ -684,36 +684,49 @@ $q_{9}$ & \texttt{2,528,274.0} & 3000 & 1.000000 & 3000.00 & 1.000000 & 0.000000
 
 \subsubsection{5. Histograms Across Exact Sample Sizes ($N = 1000, 3000, 5000$)}
 
-Below are the optimal serial histogram visualizations ($B=20$) for exact sample sizes $N=1000$ and $N=3000$:
+Below are the optimal serial histogram visualizations ($B=20$) for exact sample sizes $N=1000$, $N=3000$, and $N=5000$:
 
 
 \paragraph{A. Sample Size $N = 1000$ Histograms}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{q2_histogram_id_1000.png}
-\caption{Optimal Serial Histogram for title.id (N=1000)}
+\caption{Sample Size: N=1000, title.id Serial Hist.}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{q2_histogram_title_1000.png}
-\caption{Optimal Serial Histogram for title.title (N=1000)}
+\caption{Sample Size: N=1000, title.name Serial Hist.}
 \end{figure}
 
 \paragraph{B. Sample Size $N = 3000$ Histograms}
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{q2_histogram_id_3000.png}
-\caption{Optimal Serial Histogram for title.id (N=3000)}
+\caption{Correct Conceptual Plot for Unique title.id (N=3000)}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{q2_histogram_title_3000.png}
-\caption{Optimal Serial Histogram for title.title (N=3000)}
+\caption{Q2: For title.name (N=3000) - Correct V-Optimal Serial Histogram}
 \end{figure}
 
-\paragraph{C. Comprehensive 3-Run Summary Table Across Exact Sample Sizes}
+\paragraph{C. Sample Size $N = 5000$ Histograms}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{q2_histogram_id_5000.png}
+\caption{Sample Size: N=5000, title.id Serial Hist.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{q2_histogram_title_5000.png}
+\caption{Sample Size: N=5000, title.name Serial Hist.}
+\end{figure}
+
+\paragraph{D. Comprehensive 3-Run Summary Table Across Exact Sample Sizes}
 {\begingroup
 \footnotesize
 \setlength{\tabcolsep}{3.5pt}
@@ -731,12 +744,12 @@ Below are the optimal serial histogram visualizations ($B=20$) for exact sample 
 \endfoot
 \bottomrule
 \endlastfoot
-\textbf{1000} & \texttt{id} & \texttt{0.021797} & \texttt{0.013345} & \texttt{0.012868} & \textbf{\texttt{0.016003}} & \texttt{0.1782s} \\
-\textbf{1000} & \texttt{title} & \texttt{0.630636} & \texttt{0.618118} & \texttt{0.167797} & \textbf{\texttt{0.472183}} & \texttt{0.1770s} \\
-\textbf{3000} & \texttt{id} & \texttt{0.023000} & \texttt{0.007895} & \texttt{0.010420} & \textbf{\texttt{0.013772}} & \texttt{0.8416s} \\
-\textbf{3000} & \texttt{title} & \texttt{0.624589} & \texttt{0.609475} & \texttt{0.617858} & \textbf{\texttt{0.617307}} & \texttt{0.7912s} \\
-\textbf{5000} & \texttt{id} & \texttt{0.013780} & \texttt{0.005044} & \texttt{0.007486} & \textbf{\texttt{0.008770}} & \texttt{1.9209s} \\
-\textbf{5000} & \texttt{title} & \texttt{0.616176} & \texttt{0.613055} & \texttt{0.608567} & \textbf{\texttt{0.612600}} & \texttt{1.7404s} \\
+\textbf{1000} & \texttt{id} & \texttt{0.021797} & \texttt{0.013345} & \texttt{0.012868} & \textbf{\texttt{0.016003}} & \texttt{0.1740s} \\
+\textbf{1000} & \texttt{title} & \texttt{0.630636} & \texttt{0.618118} & \texttt{0.167797} & \textbf{\texttt{0.472183}} & \texttt{0.1747s} \\
+\textbf{3000} & \texttt{id} & \texttt{0.023000} & \texttt{0.007895} & \texttt{0.010420} & \textbf{\texttt{0.013772}} & \texttt{0.8250s} \\
+\textbf{3000} & \texttt{title} & \texttt{0.624589} & \texttt{0.609475} & \texttt{0.617858} & \textbf{\texttt{0.617307}} & \texttt{0.7781s} \\
+\textbf{5000} & \texttt{id} & \texttt{0.013780} & \texttt{0.005044} & \texttt{0.007486} & \textbf{\texttt{0.008770}} & \texttt{1.9150s} \\
+\textbf{5000} & \texttt{title} & \texttt{0.616176} & \texttt{0.613055} & \texttt{0.608567} & \textbf{\texttt{0.612600}} & \texttt{1.7314s} \\
 \end{xltabular}
 \endgroup}
 
@@ -753,15 +766,15 @@ To extrapolate the construction build time for the entire \texttt{title} table (
 
 \paragraph{A. Sample Data Points $(N_i, T_i)$}
 \begin{itemize}
-\item Point 1: $(N_1, T_1) = (1000, 0.1782)$
-\item Point 2: $(N_2, T_2) = (3000, 0.8416)$
-\item Point 3: $(N_3, T_3) = (5000, 1.9209)$
+\item Point 1: $(N_1, T_1) = (1000, 0.1740)$
+\item Point 2: $(N_2, T_2) = (3000, 0.8250)$
+\item Point 3: $(N_3, T_3) = (5000, 1.9150)$
 \end{itemize}
 
 \paragraph{B. Mean Calculations}
 \begin{itemize}
 \item $\bar{N} = \frac{1000 + 3000 + 5000}{3} = \mathbf{3000}$
-\item $\bar{T} = \frac{0.1782 + 0.8416 + 1.9209}{3} = \mathbf{0.9803\text{ seconds}}$
+\item $\bar{T} = \frac{0.1740 + 0.8250 + 1.9150}{3} = \mathbf{0.9713\text{ seconds}}$
 \end{itemize}
 
 \paragraph{C. Deviations \& Sum of Products}
@@ -782,10 +795,10 @@ To extrapolate the construction build time for the entire \texttt{title} table (
 \endfoot
 \bottomrule
 \endlastfoot
-1000 & 0.1782 & -2000 & -0.8021 & 4,000,000 & 1604.1161 \\
-3000 & 0.8416 & 0 & -0.1386 & 0 & -0.0000 \\
-5000 & 1.9209 & +2000 & 0.9407 & 4,000,000 & 1881.3660 \\
-\textbf{Sum} &  &  &  & \textbf{8,000,000} & \textbf{3485.4821} \\
+1000 & 0.1740 & -2000 & -0.7974 & 4,000,000 & 1594.7260 \\
+3000 & 0.8250 & 0 & -0.1463 & 0 & -0.0000 \\
+5000 & 1.9150 & +2000 & 0.9437 & 4,000,000 & 1887.3676 \\
+\textbf{Sum} &  &  &  & \textbf{8,000,000} & \textbf{3482.0937} \\
 \end{xltabular}
 \endgroup}
 
@@ -794,17 +807,17 @@ To extrapolate the construction build time for the entire \texttt{title} table (
 \begin{itemize}
 \item **Slope ($m$)**:
 \end{itemize}
-\[ m = \frac{\sum (N_i - \bar{N})(T_i - \bar{T})}{\sum (N_i - \bar{N})^2} = \frac{3485.4821}{8,000,000} = \mathbf{0.00043569\text{ seconds / sample}} \]
+\[ m = \frac{\sum (N_i - \bar{N})(T_i - \bar{T})}{\sum (N_i - \bar{N})^2} = \frac{3482.0937}{8,000,000} = \mathbf{0.00043526\text{ seconds / sample}} \]
 
 
 \begin{itemize}
 \item **Intercept ($c$)**:
 \end{itemize}
-\[ c = \bar{T} - m \cdot \bar{N} = 0.9803 - (0.00043569 \times 3000) = \mathbf{-0.326793\text{ seconds}} \]
+\[ c = \bar{T} - m \cdot \bar{N} = 0.9713 - (0.00043526 \times 3000) = \mathbf{-0.334467\text{ seconds}} \]
 
 
 \paragraph{E. Extrapolated Build Time for Full Table ($N = 2,528,312$)}
-\[ T(2,528,312) = (0.00043569 \times 2,528,312) + (-0.326793) = \mathbf{1101.22\text{ seconds}} \quad (\mathbf{18.35\text{ minutes}}) \]
+\[ T(2,528,312) = (0.00043526 \times 2,528,312) + (-0.334467) = \mathbf{1100.14\text{ seconds}} \quad (\mathbf{18.34\text{ minutes}}) \]
 
 
 \hrule

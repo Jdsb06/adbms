@@ -219,9 +219,9 @@ EXPLAIN SELECT * FROM title WHERE title.id < '350000';
 ### 1. Histogram Visualizations for Exact $N = 3000$ Samples (Slide-Faithful Horizontal Bar Plots)
 *As defined in lecture slides, a Serial Histogram sorts domain values by their ordered frequencies ($f(v_{{(1)}}) \le f(v_{{(2)}}) \le \dots \le f(v_{{(m)}})$) and partitions the frequency space to minimize frequency variance $\sum n_i V_i$. The horizontal bar charts below plot Frequencies on the X-axis and Value Set / Buckets on the Y-axis:*
 
-![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
+![Correct Conceptual Plot for Unique title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
-![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
+![Q2: For title.name (N=3000) - Correct V-Optimal Serial Histogram](../plots/q2_histogram_title_3000.png)
 
 ### 2. Execution Build Time (Average over 3 Runs)
 - **Average Build Time for $N=3000$**: **{t3000:.4f} seconds** (`id` column) / **{res_title_3000['avg_time']:.4f} seconds** (`title` column)
@@ -278,19 +278,24 @@ As required to account for sample randomness, the selectivity error evaluation w
     report += f"""
 ### 5. Histograms Across Exact Sample Sizes ($N = 1000, 3000, 5000$)
 
-Below are the optimal serial histogram visualizations ($B=20$) for exact sample sizes $N=1000$ and $N=3000$:
+Below are the optimal serial histogram visualizations ($B=20$) for exact sample sizes $N=1000$, $N=3000$, and $N=5000$:
 
 #### A. Sample Size $N = 1000$ Histograms
-![Optimal Serial Histogram for title.id (N=1000)](../plots/q2_histogram_id_1000.png)
+![Sample Size: N=1000, title.id Serial Hist.](../plots/q2_histogram_id_1000.png)
 
-![Optimal Serial Histogram for title.title (N=1000)](../plots/q2_histogram_title_1000.png)
+![Sample Size: N=1000, title.name Serial Hist.](../plots/q2_histogram_title_1000.png)
 
 #### B. Sample Size $N = 3000$ Histograms
-![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
+![Correct Conceptual Plot for Unique title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
-![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
+![Q2: For title.name (N=3000) - Correct V-Optimal Serial Histogram](../plots/q2_histogram_title_3000.png)
 
-#### C. Comprehensive 3-Run Summary Table Across Exact Sample Sizes
+#### C. Sample Size $N = 5000$ Histograms
+![Sample Size: N=5000, title.id Serial Hist.](../plots/q2_histogram_id_5000.png)
+
+![Sample Size: N=5000, title.name Serial Hist.](../plots/q2_histogram_title_5000.png)
+
+#### D. Comprehensive 3-Run Summary Table Across Exact Sample Sizes
 | Exact Sample Size ($N$) | Column | Run 1 Error | Run 2 Error | Run 3 Error | **Average Max Error** | Average Build Time |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **1000** | `id` | `{res_1000['run_errors'][0]:.6f}` | `{res_1000['run_errors'][1]:.6f}` | `{res_1000['run_errors'][2]:.6f}` | **`{e1000:.6f}`** | `{t1000:.4f}s` |

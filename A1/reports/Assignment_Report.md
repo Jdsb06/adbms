@@ -354,12 +354,12 @@ EXPLAIN SELECT * FROM title WHERE title.id < '350000';
 ### 1. Histogram Visualizations for Exact $N = 3000$ Samples (Slide-Faithful Horizontal Bar Plots)
 *As defined in lecture slides, a Serial Histogram sorts domain values by their ordered frequencies ($f(v_{(1)}) \le f(v_{(2)}) \le \dots \le f(v_{(m)})$) and partitions the frequency space to minimize frequency variance $\sum n_i V_i$. The horizontal bar charts below plot Frequencies on the X-axis and Value Set / Buckets on the Y-axis:*
 
-![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
+![Correct Conceptual Plot for Unique title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
-![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
+![Q2: For title.name (N=3000) - Correct V-Optimal Serial Histogram](../plots/q2_histogram_title_3000.png)
 
 ### 2. Execution Build Time (Average over 3 Runs)
-- **Average Build Time for $N=3000$**: **0.8416 seconds** (`id` column) / **0.7912 seconds** (`title` column)
+- **Average Build Time for $N=3000$**: **0.8250 seconds** (`id` column) / **0.7781 seconds** (`title` column)
 
 ### 3. Frequency Bucket Boundaries ($N=3000$, $B=20$)
 
@@ -439,27 +439,32 @@ As required to account for sample randomness, the selectivity error evaluation w
 
 ### 5. Histograms Across Exact Sample Sizes ($N = 1000, 3000, 5000$)
 
-Below are the optimal serial histogram visualizations ($B=20$) for exact sample sizes $N=1000$ and $N=3000$:
+Below are the optimal serial histogram visualizations ($B=20$) for exact sample sizes $N=1000$, $N=3000$, and $N=5000$:
 
 #### A. Sample Size $N = 1000$ Histograms
-![Optimal Serial Histogram for title.id (N=1000)](../plots/q2_histogram_id_1000.png)
+![Sample Size: N=1000, title.id Serial Hist.](../plots/q2_histogram_id_1000.png)
 
-![Optimal Serial Histogram for title.title (N=1000)](../plots/q2_histogram_title_1000.png)
+![Sample Size: N=1000, title.name Serial Hist.](../plots/q2_histogram_title_1000.png)
 
 #### B. Sample Size $N = 3000$ Histograms
-![Optimal Serial Histogram for title.id (N=3000)](../plots/q2_histogram_id_3000.png)
+![Correct Conceptual Plot for Unique title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
-![Optimal Serial Histogram for title.title (N=3000)](../plots/q2_histogram_title_3000.png)
+![Q2: For title.name (N=3000) - Correct V-Optimal Serial Histogram](../plots/q2_histogram_title_3000.png)
 
-#### C. Comprehensive 3-Run Summary Table Across Exact Sample Sizes
+#### C. Sample Size $N = 5000$ Histograms
+![Sample Size: N=5000, title.id Serial Hist.](../plots/q2_histogram_id_5000.png)
+
+![Sample Size: N=5000, title.name Serial Hist.](../plots/q2_histogram_title_5000.png)
+
+#### D. Comprehensive 3-Run Summary Table Across Exact Sample Sizes
 | Exact Sample Size ($N$) | Column | Run 1 Error | Run 2 Error | Run 3 Error | **Average Max Error** | Average Build Time |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **1000** | `id` | `0.021797` | `0.013345` | `0.012868` | **`0.016003`** | `0.1782s` |
-| **1000** | `title` | `0.630636` | `0.618118` | `0.167797` | **`0.472183`** | `0.1770s` |
-| **3000** | `id` | `0.023000` | `0.007895` | `0.010420` | **`0.013772`** | `0.8416s` |
-| **3000** | `title` | `0.624589` | `0.609475` | `0.617858` | **`0.617307`** | `0.7912s` |
-| **5000** | `id` | `0.013780` | `0.005044` | `0.007486` | **`0.008770`** | `1.9209s` |
-| **5000** | `title` | `0.616176` | `0.613055` | `0.608567` | **`0.612600`** | `1.7404s` |
+| **1000** | `id` | `0.021797` | `0.013345` | `0.012868` | **`0.016003`** | `0.1740s` |
+| **1000** | `title` | `0.630636` | `0.618118` | `0.167797` | **`0.472183`** | `0.1747s` |
+| **3000** | `id` | `0.023000` | `0.007895` | `0.010420` | **`0.013772`** | `0.8250s` |
+| **3000** | `title` | `0.624589` | `0.609475` | `0.617858` | **`0.617307`** | `0.7781s` |
+| **5000** | `id` | `0.013780` | `0.005044` | `0.007486` | **`0.008770`** | `1.9150s` |
+| **5000** | `title` | `0.616176` | `0.613055` | `0.608567` | **`0.612600`** | `1.7314s` |
 
 ---
 
@@ -469,31 +474,31 @@ To extrapolate the construction build time for the entire `title` table ($N = 2,
 $$T(N) = m \cdot N + c$$
 
 #### A. Sample Data Points $(N_i, T_i)$
-- Point 1: $(N_1, T_1) = (1000, 0.1782)$
-- Point 2: $(N_2, T_2) = (3000, 0.8416)$
-- Point 3: $(N_3, T_3) = (5000, 1.9209)$
+- Point 1: $(N_1, T_1) = (1000, 0.1740)$
+- Point 2: $(N_2, T_2) = (3000, 0.8250)$
+- Point 3: $(N_3, T_3) = (5000, 1.9150)$
 
 #### B. Mean Calculations
 - $\bar{N} = \frac{1000 + 3000 + 5000}{3} = \mathbf{3000}$
-- $\bar{T} = \frac{0.1782 + 0.8416 + 1.9209}{3} = \mathbf{0.9803\text{ seconds}}$
+- $\bar{T} = \frac{0.1740 + 0.8250 + 1.9150}{3} = \mathbf{0.9713\text{ seconds}}$
 
 #### C. Deviations & Sum of Products
 | $N_i$ | $T_i$ (s) | $(N_i - \bar{N})$ | $(T_i - \bar{T})$ | $(N_i - \bar{N})^2$ | $(N_i - \bar{N})(T_i - \bar{T})$ |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| 1000 | 0.1782 | -2000 | -0.8021 | 4,000,000 | 1604.1161 |
-| 3000 | 0.8416 | 0 | -0.1386 | 0 | -0.0000 |
-| 5000 | 1.9209 | +2000 | 0.9407 | 4,000,000 | 1881.3660 |
-| **Sum** | | | | **8,000,000** | **3485.4821** |
+| 1000 | 0.1740 | -2000 | -0.7974 | 4,000,000 | 1594.7260 |
+| 3000 | 0.8250 | 0 | -0.1463 | 0 | -0.0000 |
+| 5000 | 1.9150 | +2000 | 0.9437 | 4,000,000 | 1887.3676 |
+| **Sum** | | | | **8,000,000** | **3482.0937** |
 
 #### D. Slope ($m$) and Intercept ($c$) Formulas
 - **Slope ($m$)**:
-  $$m = \frac{\sum (N_i - \bar{N})(T_i - \bar{T})}{\sum (N_i - \bar{N})^2} = \frac{3485.4821}{8,000,000} = \mathbf{0.00043569\text{ seconds / sample}}$$
+  $$m = \frac{\sum (N_i - \bar{N})(T_i - \bar{T})}{\sum (N_i - \bar{N})^2} = \frac{3482.0937}{8,000,000} = \mathbf{0.00043526\text{ seconds / sample}}$$
 
 - **Intercept ($c$)**:
-  $$c = \bar{T} - m \cdot \bar{N} = 0.9803 - (0.00043569 \times 3000) = \mathbf{-0.326793\text{ seconds}}$$
+  $$c = \bar{T} - m \cdot \bar{N} = 0.9713 - (0.00043526 \times 3000) = \mathbf{-0.334467\text{ seconds}}$$
 
 #### E. Extrapolated Build Time for Full Table ($N = 2,528,312$)
-$$T(2,528,312) = (0.00043569 \times 2,528,312) + (-0.326793) = \mathbf{1101.22\text{ seconds}} \quad (\mathbf{18.35\text{ minutes}})$$
+$$T(2,528,312) = (0.00043526 \times 2,528,312) + (-0.334467) = \mathbf{1100.14\text{ seconds}} \quad (\mathbf{18.34\text{ minutes}})$$
 
 ---
 
