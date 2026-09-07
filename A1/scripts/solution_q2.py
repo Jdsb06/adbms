@@ -47,28 +47,7 @@ def build_optimal_serial_histogram(raw_data, num_buckets=20, is_string=False):
     unique_freqs = sorted(freq_groups.keys())
     m_freqs = len(unique_freqs)
 
-    if m_freqs <= num_buckets:
-        buckets = []
-        for f in unique_freqs:
-            b_items = freq_groups[f]
-            cnt = len(b_items)
-            tot_tuples = cnt * f
-            b_num_vals = [val_map[v] for v in b_items]
-            buckets.append({
-                'distinct_count': cnt,
-                'min_freq': f,
-                'max_freq': f,
-                'avg_freq': float(f),
-                'total_tuples': tot_tuples,
-                'val_min': min(b_num_vals),
-                'val_max': max(b_num_vals),
-                'sample_min_str': str(b_items[0])[:15],
-                'sample_max_str': str(b_items[-1])[:15],
-                'values': b_items
-            })
-        return buckets
-
-    # If m_freqs > num_buckets, run DP on the distinct items array
+    # Run DP on distinct_items array to partition into exactly num_buckets
     m = len(distinct_items)
     freqs = np.array([counts[v] for v in distinct_items], dtype=np.float64)
 
@@ -275,8 +254,8 @@ def run_q2():
             run_details = []
 
             for run_idx, s in enumerate(seeds, start=1):
-                raw_data = fetch_sample(cur, N, col, seed=s)
                 t0 = time.time()
+                raw_data = fetch_sample(cur, N, col, seed=s)
                 buckets = build_optimal_serial_histogram(raw_data, num_buckets=num_buckets, is_string=is_str)
                 t1 = time.time()
                 elapsed = t1 - t0
