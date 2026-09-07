@@ -356,10 +356,10 @@ EXPLAIN SELECT * FROM title WHERE title.id < '350000';
 
 ![Correct Conceptual Plot for Unique title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
-![Q2: For title.name (N=3000) - Correct V-Optimal Serial Histogram](../plots/q2_histogram_title_3000.png)
+![Q2: For title.title (N=3000) - Correct V-Optimal Serial Histogram](../plots/q2_histogram_title_3000.png)
 
 ### 2. Execution Build Time (Average over 3 Runs)
-- **Average Build Time for $N=3000$**: **0.8250 seconds** (`id` column) / **0.7781 seconds** (`title` column)
+- **Average Build Time for $N=3000$**: **0.0015 seconds** (`id` column) / **0.0038 seconds** (`title` column)
 
 ### 3. Frequency Bucket Boundaries ($N=3000$, $B=20$)
 
@@ -368,50 +368,21 @@ The optimal serial histogram algorithm partitions the exact 3,000 samples into 2
 #### A. Column `id` Serial Frequency Bucket Boundaries ($N=3000$, $B=20$)
 | Bucket # | Value Range (`id`) | Distinct Values ($n_i$) | Frequency Range | Average Frequency ($\bar{f}_i$) |
 | :---: | :---: | :---: | :---: | :---: |
-| Bucket 01 | [`1,234` - `1,234`] | 1 | 1 | 1.00 |
-| Bucket 02 | [`1,377` - `1,377`] | 1 | 1 | 1.00 |
-| Bucket 03 | [`1,848` - `1,848`] | 1 | 1 | 1.00 |
-| Bucket 04 | [`4,038` - `4,038`] | 1 | 1 | 1.00 |
-| Bucket 05 | [`4,148` - `4,148`] | 1 | 1 | 1.00 |
-| Bucket 06 | [`4,770` - `4,770`] | 1 | 1 | 1.00 |
-| Bucket 07 | [`5,046` - `5,046`] | 1 | 1 | 1.00 |
-| Bucket 08 | [`5,703` - `5,703`] | 1 | 1 | 1.00 |
-| Bucket 09 | [`7,122` - `7,122`] | 1 | 1 | 1.00 |
-| Bucket 10 | [`7,248` - `7,248`] | 1 | 1 | 1.00 |
-| Bucket 11 | [`7,425` - `7,425`] | 1 | 1 | 1.00 |
-| Bucket 12 | [`7,557` - `7,557`] | 1 | 1 | 1.00 |
-| Bucket 13 | [`7,662` - `7,662`] | 1 | 1 | 1.00 |
-| Bucket 14 | [`8,124` - `8,124`] | 1 | 1 | 1.00 |
-| Bucket 15 | [`8,547` - `8,547`] | 1 | 1 | 1.00 |
-| Bucket 16 | [`8,598` - `8,598`] | 1 | 1 | 1.00 |
-| Bucket 17 | [`9,616` - `9,616`] | 1 | 1 | 1.00 |
-| Bucket 18 | [`10,047` - `10,047`] | 1 | 1 | 1.00 |
-| Bucket 19 | [`10,771` - `10,771`] | 1 | 1 | 1.00 |
-| Bucket 20 | [`10,948` - `2,528,274`] | 2981 | 1 | 1.00 |
+| Bucket 01 | [`1,234` - `2,528,274`] | 3000 | 1 | 1.00 |
 
 #### B. Column `title` Serial Frequency Bucket Boundaries ($N=3000$, $B=20$)
 | Bucket # | Value Range (`title`) | Distinct Values ($n_i$) | Frequency Range | Average Frequency ($\bar{f}_i$) |
 | :---: | :--- | :---: | :---: | :---: |
-| Bucket 01 | [`"\$#!+ Happens"` ... `"\$#!+ Happens"`] | 1 | 1 | 1.00 |
-| Bucket 02 | [`"'42 Woodie Part"` ... `"'42 Woodie Part"`] | 1 | 1 | 1.00 |
-| Bucket 03 | [`"(#1.100)"` ... `"(#1.100)"`] | 1 | 1 | 1.00 |
-| Bucket 04 | [`"(#1.10033)"` ... `"(#1.10033)"`] | 1 | 1 | 1.00 |
-| Bucket 05 | [`"(#1.10271)"` ... `"(#1.10271)"`] | 1 | 1 | 1.00 |
-| Bucket 06 | [`"(#1.1043)"` ... `"(#1.1043)"`] | 1 | 1 | 1.00 |
-| Bucket 07 | [`"(#1.104)"` ... `"(#1.104)"`] | 1 | 1 | 1.00 |
-| Bucket 08 | [`"(#1.10594)"` ... `"(#1.10594)"`] | 1 | 1 | 1.00 |
-| Bucket 09 | [`"(#1.10693)"` ... `"(#1.10693)"`] | 1 | 1 | 1.00 |
-| Bucket 10 | [`"(#1.106)"` ... `"(#1.106)"`] | 1 | 1 | 1.00 |
-| Bucket 11 | [`"(#1.10666)"` ... `"Ônna no kaôyaku"`] | 2763 | 1 | 1.00 |
-| Bucket 12 | [`"(#1.132)"` ... `"The Box"`] | 35 | 2 | 2.00 |
-| Bucket 13 | [`"(#1.118)"` ... `"(#4.1)"`] | 8 | 3 | 3.00 |
-| Bucket 14 | [`"(#1.11)"` ... `"(#3.1)"`] | 5 | 4 | 4.00 |
-| Bucket 15 | [`"(#1.10)"` ... `"Pilot"`] | 4 | 5 | 5.00 |
-| Bucket 16 | [`"(#1.7)"` ... `"(#1.9)"`] | 2 | 6 | 6.00 |
-| Bucket 17 | [`"(#1.6)"` ... `"(#1.8)"`] | 2 | 8 | 8.00 |
-| Bucket 18 | [`"(#1.5)"` ... `"(#1.5)"`] | 1 | 11 | 11.00 |
-| Bucket 19 | [`"(#1.1)"` ... `"(#1.2)"`] | 2 | 13 | 13.00 |
-| Bucket 20 | [`"(#1.3)"` ... `"(#1.4)"`] | 2 | 14 | 14.00 |
+| Bucket 01 | [`"\$#!+ Happens"` ... `"Ônna no kaôyaku"`] | 2773 | 1 | 1.00 |
+| Bucket 02 | [`"(#1.132)"` ... `"The Box"`] | 35 | 2 | 2.00 |
+| Bucket 03 | [`"(#1.118)"` ... `"(#4.1)"`] | 8 | 3 | 3.00 |
+| Bucket 04 | [`"(#1.11)"` ... `"(#3.1)"`] | 5 | 4 | 4.00 |
+| Bucket 05 | [`"(#1.10)"` ... `"Pilot"`] | 4 | 5 | 5.00 |
+| Bucket 06 | [`"(#1.7)"` ... `"(#1.9)"`] | 2 | 6 | 6.00 |
+| Bucket 07 | [`"(#1.6)"` ... `"(#1.8)"`] | 2 | 8 | 8.00 |
+| Bucket 08 | [`"(#1.5)"` ... `"(#1.5)"`] | 1 | 11 | 11.00 |
+| Bucket 09 | [`"(#1.1)"` ... `"(#1.2)"`] | 2 | 13 | 13.00 |
+| Bucket 10 | [`"(#1.3)"` ... `"(#1.4)"`] | 2 | 14 | 14.00 |
 
 ### 4. 3-Run Selectivity Error Calculation & Average ($N=3000$)
 
@@ -420,21 +391,21 @@ As required to account for sample randomness, the selectivity error evaluation w
 #### A. 3-Run Max Selectivity Error Summary ($N=3000$)
 | Column | Run 1 Max Error | Run 2 Max Error | Run 3 Max Error | **Average Max Selectivity Error** |
 | :---: | :---: | :---: | :---: | :---: |
-| `id` | `0.023000` | `0.007895` | `0.010420` | **`0.013772`** (1.3772%) |
-| `title` | `0.624589` | `0.609475` | `0.617858` | **`0.617307`** (61.7307%) |
+| `id` | `0.022444` | `0.009556` | `0.009889` | **`0.013963`** (1.3963%) |
+| `title` | `0.612556` | `0.609000` | `0.616667` | **`0.612741`** (61.2741%) |
 
 #### B. Quantile-by-Quantile Error Evaluation Table for Run 1 ($N=3000, B=20$)
 | Index ($k$) | Query Threshold ($q_k$) | Actual Count ($A$) | Actual Selectivity ($S_{\text{act}}$) | Estimated Count ($E$) | Estimated Selectivity ($S_{\text{est}}$) | Absolute Error $\vert S_{\text{est}} - S_{\text{act}} \vert$ |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| $q_{0}$ | `1,234.0` | 1 | 0.000333 | 1.00 | 0.000333 | 0.000000 |
-| $q_{1}$ | `282,016.2` | 352 | 0.117333 | 340.00 | 0.113332 | 0.004001 |
-| $q_{2}$ | `562,798.4` | 673 | 0.224333 | 672.50 | 0.224166 | 0.000168 |
-| $q_{3}$ | `843,580.7` | 966 | 0.322000 | 1005.00 | 0.334999 | 0.012999 |
-| $q_{4}$ | `1,124,362.9` | 1307 | 0.435667 | 1337.50 | 0.445833 | 0.010166 |
-| $q_{5}$ | `1,405,145.1` | 1613 | 0.537667 | 1670.00 | 0.556666 | 0.019000 |
-| $q_{6}$ | `1,685,927.3` | 1946 | 0.648667 | 2002.50 | 0.667500 | 0.018833 |
-| $q_{7}$ | `1,966,709.6` | 2266 | 0.755333 | 2335.00 | 0.778333 | **0.023000** |
-| $q_{8}$ | `2,247,491.8` | 2623 | 0.874333 | 2667.50 | 0.889167 | 0.014833 |
+| $q_{0}$ | `1,234.0` | 1 | 0.000333 | 0.00 | 0.000000 | 0.000333 |
+| $q_{1}$ | `282,016.2` | 352 | 0.117333 | 333.33 | 0.111111 | 0.006222 |
+| $q_{2}$ | `562,798.4` | 673 | 0.224333 | 666.67 | 0.222222 | 0.002111 |
+| $q_{3}$ | `843,580.7` | 966 | 0.322000 | 1000.00 | 0.333333 | 0.011333 |
+| $q_{4}$ | `1,124,362.9` | 1307 | 0.435667 | 1333.33 | 0.444444 | 0.008778 |
+| $q_{5}$ | `1,405,145.1` | 1613 | 0.537667 | 1666.67 | 0.555556 | 0.017889 |
+| $q_{6}$ | `1,685,927.3` | 1946 | 0.648667 | 2000.00 | 0.666667 | 0.018000 |
+| $q_{7}$ | `1,966,709.6` | 2266 | 0.755333 | 2333.33 | 0.777778 | **0.022444** |
+| $q_{8}$ | `2,247,491.8` | 2623 | 0.874333 | 2666.67 | 0.888889 | 0.014556 |
 | $q_{9}$ | `2,528,274.0` | 3000 | 1.000000 | 3000.00 | 1.000000 | 0.000000 |
 
 ### 5. Histograms Across Exact Sample Sizes ($N = 1000, 3000, 5000$)
@@ -444,27 +415,27 @@ Below are the optimal serial histogram visualizations ($B=20$) for exact sample 
 #### A. Sample Size $N = 1000$ Histograms
 ![Sample Size: N=1000, title.id Serial Hist.](../plots/q2_histogram_id_1000.png)
 
-![Sample Size: N=1000, title.name Serial Hist.](../plots/q2_histogram_title_1000.png)
+![Sample Size: N=1000, title.title Serial Hist.](../plots/q2_histogram_title_1000.png)
 
 #### B. Sample Size $N = 3000$ Histograms
 ![Correct Conceptual Plot for Unique title.id (N=3000)](../plots/q2_histogram_id_3000.png)
 
-![Q2: For title.name (N=3000) - Correct V-Optimal Serial Histogram](../plots/q2_histogram_title_3000.png)
+![Q2: For title.title (N=3000) - Correct V-Optimal Serial Histogram](../plots/q2_histogram_title_3000.png)
 
 #### C. Sample Size $N = 5000$ Histograms
 ![Sample Size: N=5000, title.id Serial Hist.](../plots/q2_histogram_id_5000.png)
 
-![Sample Size: N=5000, title.name Serial Hist.](../plots/q2_histogram_title_5000.png)
+![Sample Size: N=5000, title.title Serial Hist.](../plots/q2_histogram_title_5000.png)
 
 #### D. Comprehensive 3-Run Summary Table Across Exact Sample Sizes
 | Exact Sample Size ($N$) | Column | Run 1 Error | Run 2 Error | Run 3 Error | **Average Max Error** | Average Build Time |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **1000** | `id` | `0.021797` | `0.013345` | `0.012868` | **`0.016003`** | `0.1740s` |
-| **1000** | `title` | `0.630636` | `0.618118` | `0.167797` | **`0.472183`** | `0.1747s` |
-| **3000** | `id` | `0.023000` | `0.007895` | `0.010420` | **`0.013772`** | `0.8250s` |
-| **3000** | `title` | `0.624589` | `0.609475` | `0.617858` | **`0.617307`** | `0.7781s` |
-| **5000** | `id` | `0.013780` | `0.005044` | `0.007486` | **`0.008770`** | `1.9150s` |
-| **5000** | `title` | `0.616176` | `0.613055` | `0.608567` | **`0.612600`** | `1.7314s` |
+| **1000** | `id` | `0.020667` | `0.013333` | `0.016556` | **`0.016852`** | `0.0005s` |
+| **1000** | `title` | `0.637000` | `0.625000` | `0.169333` | **`0.477111`** | `0.0017s` |
+| **3000** | `id` | `0.022444` | `0.009556` | `0.009889` | **`0.013963`** | `0.0015s` |
+| **3000** | `title` | `0.612556` | `0.609000` | `0.616667` | **`0.612741`** | `0.0038s` |
+| **5000** | `id` | `0.013578` | `0.005778` | `0.007556` | **`0.008970`** | `0.0032s` |
+| **5000** | `title` | `0.603667` | `0.600667` | `0.606400` | **`0.603578`** | `0.0069s` |
 
 ---
 
@@ -474,31 +445,31 @@ To extrapolate the construction build time for the entire `title` table ($N = 2,
 $$T(N) = m \cdot N + c$$
 
 #### A. Sample Data Points $(N_i, T_i)$
-- Point 1: $(N_1, T_1) = (1000, 0.1740)$
-- Point 2: $(N_2, T_2) = (3000, 0.8250)$
-- Point 3: $(N_3, T_3) = (5000, 1.9150)$
+- Point 1: $(N_1, T_1) = (1000, 0.0005)$
+- Point 2: $(N_2, T_2) = (3000, 0.0015)$
+- Point 3: $(N_3, T_3) = (5000, 0.0032)$
 
 #### B. Mean Calculations
 - $\bar{N} = \frac{1000 + 3000 + 5000}{3} = \mathbf{3000}$
-- $\bar{T} = \frac{0.1740 + 0.8250 + 1.9150}{3} = \mathbf{0.9713\text{ seconds}}$
+- $\bar{T} = \frac{0.0005 + 0.0015 + 0.0032}{3} = \mathbf{0.0017\text{ seconds}}$
 
 #### C. Deviations & Sum of Products
 | $N_i$ | $T_i$ (s) | $(N_i - \bar{N})$ | $(T_i - \bar{T})$ | $(N_i - \bar{N})^2$ | $(N_i - \bar{N})(T_i - \bar{T})$ |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| 1000 | 0.1740 | -2000 | -0.7974 | 4,000,000 | 1594.7260 |
-| 3000 | 0.8250 | 0 | -0.1463 | 0 | -0.0000 |
-| 5000 | 1.9150 | +2000 | 0.9437 | 4,000,000 | 1887.3676 |
-| **Sum** | | | | **8,000,000** | **3482.0937** |
+| 1000 | 0.0005 | -2000 | -0.0012 | 4,000,000 | 2.3509 |
+| 3000 | 0.0015 | 0 | -0.0003 | 0 | -0.0000 |
+| 5000 | 0.0032 | +2000 | 0.0014 | 4,000,000 | 2.8622 |
+| **Sum** | | | | **8,000,000** | **5.2131** |
 
 #### D. Slope ($m$) and Intercept ($c$) Formulas
 - **Slope ($m$)**:
-  $$m = \frac{\sum (N_i - \bar{N})(T_i - \bar{T})}{\sum (N_i - \bar{N})^2} = \frac{3482.0937}{8,000,000} = \mathbf{0.00043526\text{ seconds / sample}}$$
+  $$m = \frac{\sum (N_i - \bar{N})(T_i - \bar{T})}{\sum (N_i - \bar{N})^2} = \frac{5.2131}{8,000,000} = \mathbf{0.00000065\text{ seconds / sample}}$$
 
 - **Intercept ($c$)**:
-  $$c = \bar{T} - m \cdot \bar{N} = 0.9713 - (0.00043526 \times 3000) = \mathbf{-0.334467\text{ seconds}}$$
+  $$c = \bar{T} - m \cdot \bar{N} = 0.0017 - (0.00000065 \times 3000) = \mathbf{-0.000230\text{ seconds}}$$
 
 #### E. Extrapolated Build Time for Full Table ($N = 2,528,312$)
-$$T(2,528,312) = (0.00043526 \times 2,528,312) + (-0.334467) = \mathbf{1100.14\text{ seconds}} \quad (\mathbf{18.34\text{ minutes}})$$
+$$T(2,528,312) = (0.00000065 \times 2,528,312) + (-0.000230) = \mathbf{1.65\text{ seconds}} \quad (\mathbf{0.03\text{ minutes}})$$
 
 ---
 

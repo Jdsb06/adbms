@@ -25,6 +25,7 @@ def build_optimal_serial_histogram(raw_data, num_buckets=20, is_string=False):
     Constructs an optimal Serial Histogram (B buckets) by sorting distinct domain values
     according to their frequencies (ordered frequencies) and using Dynamic Programming
     to minimize sum of squared frequency errors (variance).
+    Groups by unique frequency values first to avoid degenerate 1-item bucket splitting.
     """
     if is_string:
         val_map = {v: string_to_float(v) for v in set(raw_data)}
@@ -35,27 +36,41 @@ def build_optimal_serial_histogram(raw_data, num_buckets=20, is_string=False):
         counts = Counter(raw_data)
         distinct_items = sorted(counts.keys(), key=lambda v: (counts[v], float(v)))
 
-    m = len(distinct_items)
-    freqs = np.array([counts[v] for v in distinct_items], dtype=np.float64)
+    # Group by unique frequency values
+    freq_groups = {}
+    for v in distinct_items:
+        f = counts[v]
+        if f not in freq_groups:
+            freq_groups[f] = []
+        freq_groups[f].append(v)
 
-    if m <= num_buckets:
+    unique_freqs = sorted(freq_groups.keys())
+    m_freqs = len(unique_freqs)
+
+    if m_freqs <= num_buckets:
         buckets = []
-        for i in range(m):
-            v = distinct_items[i]
-            v_num = val_map[v]
+        for f in unique_freqs:
+            b_items = freq_groups[f]
+            cnt = len(b_items)
+            tot_tuples = cnt * f
+            b_num_vals = [val_map[v] for v in b_items]
             buckets.append({
-                'distinct_count': 1,
-                'min_freq': counts[v],
-                'max_freq': counts[v],
-                'avg_freq': float(counts[v]),
-                'total_tuples': counts[v],
-                'val_min': v_num,
-                'val_max': v_num,
-                'sample_min_str': str(v)[:15],
-                'sample_max_str': str(v)[:15],
-                'values': [v]
+                'distinct_count': cnt,
+                'min_freq': f,
+                'max_freq': f,
+                'avg_freq': float(f),
+                'total_tuples': tot_tuples,
+                'val_min': min(b_num_vals),
+                'val_max': max(b_num_vals),
+                'sample_min_str': str(b_items[0])[:15],
+                'sample_max_str': str(b_items[-1])[:15],
+                'values': b_items
             })
         return buckets
+
+    # If m_freqs > num_buckets, run DP on the distinct items array
+    m = len(distinct_items)
+    freqs = np.array([counts[v] for v in distinct_items], dtype=np.float64)
 
     n = m
     pref = np.zeros(n + 1, dtype=np.float64)
@@ -161,18 +176,15 @@ def compute_serial_selectivity_error(buckets, raw_data, is_string=False):
 def generate_id_histogram_plot(sample_size, title_str, save_path, note_str):
     """
     Plots conceptual serial histogram for unique title.id column where all frequencies = 1.
-    X-axis: Frequency / Frequencies continuous line with cluster at X = 1.
+    X-axis: Frequency / Frequencies (horizontal width = 1).
     Y-axis: Value Set (showing 0 to sample_size).
     """
     plt.figure(figsize=(10, 6))
     ax = plt.gca()
 
-    x_vals = np.ones(sample_size)
-    y_vals = np.linspace(1, sample_size, sample_size)
-
-    ax.scatter(x_vals, y_vals, c='#2b5c8f', alpha=0.6, s=15, label=f'Sample IDs (N={sample_size:,})')
-    ax.plot([1], [sample_size/2], 'ro', markersize=10, label='Frequency = 1 (Zero Variance)')
-    ax.axvline(x=1, color='#d9534f', linestyle='--', linewidth=2, alpha=0.8)
+    ax.barh(sample_size / 2, 1.0, height=sample_size * 0.95, color='#2b5c8f', edgecolor='black', linewidth=1.5, alpha=0.75, label=f'Sample IDs (N={sample_size:,})')
+    ax.axvline(x=1.0, color='#d9534f', linestyle='--', linewidth=2.5, label='Frequency = 1 (Zero Variance)')
+    ax.plot([1.0], [sample_size / 2], 'ro', markersize=10)
 
     ax.set_xlim(0, 3)
     ax.set_ylim(0, sample_size * 1.05)
@@ -182,61 +194,59 @@ def generate_id_histogram_plot(sample_size, title_str, save_path, note_str):
     ax.set_ylabel('Value Set', fontsize=11, fontweight='bold')
     ax.set_title(title_str, fontsize=12, fontweight='bold', pad=15)
 
-    props = dict(boxstyle='round,pad=0.6', facecolor='#ffffcc', edgecolor='#d9534f', alpha=0.9)
+    props = dict(boxstyle='round,pad=0.6', facecolor='#ffffcc', edgecolor='#d9534f', alpha=0.95)
     ax.text(0.05, 0.92, note_str, transform=ax.transAxes, fontsize=9.5, verticalalignment='top', bbox=props)
 
-    ax.grid(True, linestyle='--', alpha=0.5)
-    ax.legend(loc='lower right', fontsize=9)
+    ax.grid(True, linestyle='--', alpha=0.5, axis='x')
+    ax.legend(loc='lower right', fontsize=9.5)
     plt.tight_layout()
     plt.savefig(save_path, dpi=300)
     plt.close()
 
 def generate_title_histogram_plot(buckets, title_str, save_path, note_str):
     """
-    Plots conceptual V-Optimal serial histogram for title.title using multi-colored stacked visual blocks.
+    Plots conceptual V-Optimal serial histogram for title.title using multi-colored horizontal stacked bars.
     X-axis: Frequencies (Sorted Ascending)
     Y-axis: Value Set / Buckets (Stacked Elements)
     """
-    plt.figure(figsize=(12, 7))
+    plt.figure(figsize=(11, 7))
     ax = plt.gca()
 
     num_b = len(buckets)
-    x_positions = np.arange(1, num_b + 1)
+    y_positions = np.arange(1, num_b + 1)
     colors = cm.tab20(np.linspace(0, 1, num_b))
 
     for i, b in enumerate(buckets):
-        freq_min, freq_max = b['min_freq'], b['max_freq']
+        f_min, f_max = b['min_freq'], b['max_freq']
         n_dist = b['distinct_count']
         tot_t = b['total_tuples']
+        avg_f = b['avg_freq']
 
         c = colors[i]
-        ax.bar(i + 1, tot_t, width=0.75, color=c, edgecolor='black', linewidth=1.2, alpha=0.85)
+        ax.barh(i + 1, avg_f, height=0.7, color=c, edgecolor='black', linewidth=1.2, alpha=0.85)
 
-        if tot_t > 30:
-            label_text = f'{n_dist} titles\n(Freq: {freq_min}-{freq_max})'
-        elif tot_t > 5:
-            label_text = f'{n_dist} titles\n(F:{freq_min})'
-        else:
-            label_text = f'{n_dist}t'
+        f_str = f'{f_min}' if f_min == f_max else f'{f_min}-{f_max}'
+        bar_text = f'{n_dist:,} titles (F: {f_str}, Tuples: {tot_t:,})'
+        ax.text(avg_f + 0.15, i + 1, bar_text, va='center', fontsize=8.5, fontweight='bold', color='black')
 
-        ax.text(i + 1, tot_t / 2, label_text, ha='center', va='center', fontsize=7.5, fontweight='bold', color='black', rotation=90 if tot_t > 500 else 0)
-
-    x_labels = []
+    y_labels = []
     for i, b in enumerate(buckets):
         f_min, f_max = b['min_freq'], b['max_freq']
         f_str = f'{f_min}' if f_min == f_max else f'{f_min}-{f_max}'
-        x_labels.append(f'B{i+1:02d}\n(F:{f_str})')
+        y_labels.append(f'B{i+1:02d} [n={b["distinct_count"]:,}] (F:{f_str})')
 
-    ax.set_xticks(x_positions)
-    ax.set_xticklabels(x_labels, fontsize=7.5, fontweight='bold')
+    max_freq = max(b['max_freq'] for b in buckets)
+    ax.set_xlim(0, max_freq + 6)
+    ax.set_yticks(y_positions)
+    ax.set_yticklabels(y_labels, fontsize=8.5, fontweight='bold')
     ax.set_xlabel('Frequencies (Sorted Ascending)', fontsize=11, fontweight='bold')
     ax.set_ylabel('Value Set / Buckets (Stacked Elements)', fontsize=11, fontweight='bold')
     ax.set_title(title_str, fontsize=12, fontweight='bold', pad=15)
 
-    props = dict(boxstyle='round,pad=0.6', facecolor='#e6f2ff', edgecolor='#0275d8', alpha=0.9)
-    ax.text(0.02, 0.95, note_str, transform=ax.transAxes, fontsize=9.5, verticalalignment='top', bbox=props)
+    props = dict(boxstyle='round,pad=0.6', facecolor='#e6f2ff', edgecolor='#0275d8', alpha=0.95)
+    ax.text(0.40, 0.95, note_str, transform=ax.transAxes, fontsize=9.5, verticalalignment='top', bbox=props)
 
-    ax.grid(True, linestyle='--', alpha=0.4, axis='y')
+    ax.grid(True, linestyle='--', alpha=0.4, axis='x')
     plt.tight_layout()
     plt.savefig(save_path, dpi=300)
     plt.close()
@@ -291,7 +301,7 @@ def run_q2():
             }
             print(f"[{col}] N={N} SUMMARY: 3 Runs Errors = {[round(e, 6) for e in run_errors]} => AVG ERROR = {avg_error:.6f}, AVG TIME = {avg_time:.4f}s")
 
-            # Generate all 6 graphs matching exact user prompts
+            # Generate all 6 graphs matching exact user prompts & schema title.title
             if col == 'id':
                 if N == 3000:
                     t_str = 'Correct Conceptual Plot for Unique title.id (N=3000)'
@@ -305,14 +315,14 @@ def run_q2():
                 generate_id_histogram_plot(N, t_str, f'plots/q2_histogram_id_{N}.png', note)
             else:
                 if N == 3000:
-                    t_str = 'Q2: For title.name (N=3000) - Correct V-Optimal Serial Histogram'
-                    note = 'title.name serial V-Optimal bucket boundaries (B=20)'
+                    t_str = 'Q2: For title.title (N=3000) - Correct V-Optimal Serial Histogram'
+                    note = 'title.title serial V-Optimal bucket boundaries (B=20)'
                 elif N == 1000:
-                    t_str = 'Sample Size: N=1000, title.name Serial Hist.'
-                    note = 'title.name serial V-Optimal bucket boundaries (B=20, N=1000)'
+                    t_str = 'Sample Size: N=1000, title.title Serial Hist.'
+                    note = 'title.title serial V-Optimal bucket boundaries (B=20, N=1000)'
                 else:
-                    t_str = 'Sample Size: N=5000, title.name Serial Hist.'
-                    note = 'title.name serial V-Optimal bucket boundaries (B=20, N=5000)'
+                    t_str = 'Sample Size: N=5000, title.title Serial Hist.'
+                    note = 'title.title serial V-Optimal bucket boundaries (B=20, N=5000)'
                 generate_title_histogram_plot(run_buckets[0], t_str, f'plots/q2_histogram_title_{N}.png', note)
 
     # Linear Regression Extrapolation on Average Timings for 'id'
