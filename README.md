@@ -13,9 +13,8 @@ This repository contains my personal assignments and coursework for the **Advanc
 
 The repository is organized into subdirectories for each assignment. Each folder contains the respective source code, scripts, and documentation required for that specific task.
 
-* 📁 **`A1/`** — Assignment 1: (to be updated)
-* 📁 **`A2/`** — Assignment 2: (to be updated)
-* 📁 **`A3/`** — Assignment 3: (to be updated)
+* 📁 **`A1/`** — Assignment 1: Histogram
+* 📁 **`A2/`** — Assignment 2: LRU-K
 
 
 ## 🚀 Navigation and Usage
